@@ -1,0 +1,10 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+branch="$(git branch --show-current)"
+
+if [ "$branch" = "main" ]; then
+  echo "Direct pushes to main branch are not allowed."
+  exit 1
+fi
+
