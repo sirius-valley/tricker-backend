@@ -8,6 +8,7 @@ import { Constants, NodeEnv, Logger } from '@utils'
 // import { router } from '@router'
 import { ErrorHandling } from '@utils/errors'
 import http from 'http'
+import { router } from '@router'
 
 export const app = express()
 
