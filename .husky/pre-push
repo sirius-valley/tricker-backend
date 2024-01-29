@@ -1,10 +1,9 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-branch="$(git branch --show-current)"
+branch="$(git rev-parse --abbrev-ref HEAD)"
 
-if [ "$branch" = "main" ]; then
+if [ "$branch" = "main" ] || [ "$branch" = "dev" ]; then
   echo "Direct pushes to main branch are not allowed."
   exit 1
 fi
-
