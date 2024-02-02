@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/server.ts",
-    "test": "NODE_V8_COVERAGE=tests/  node --test --experimental-test-coverage tests/",
+    "start": "npx tsx ./src/server.ts",
+    "test": "node --import tsx --test --experimental-test-coverage **/*.test.ts",
     "prepare": "husky"
   },
   "keywords": [],
@@ -27,7 +27,8 @@
     "prisma": "^5.9.1",
     "signale": "^1.4.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "tsx": "^4.7.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
