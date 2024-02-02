@@ -7,7 +7,7 @@ export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
   async create(data: SignupInputDTO): Promise<UserModel> {
-    return {}
+    return {id: '', password: ''}
   }
 
   async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
