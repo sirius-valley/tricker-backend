@@ -10,26 +10,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  profileImage    String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime?         @updatedAt
-  deletedAt       DateTime?         @updatedAt
 
-  issuesCreated   Issue[]           @relation("created")
-  issuesAssigned  Issue[]           @relation("assigned")
-  UserProjectRole UserProjectRole[]
+model User {
+  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  profileImage            String?
+  createdAt               DateTime      @default(now()) 
+  updatedAt               DateTime       
+  deletedAt               DateTime?
+
+  userProjectRoles        UserProjectRole[]
+  issuesAsignee           AsigneeModification[]
+  issueCreationDelete     IssueCreationDelete[]
 }
 
 model PendingUser {
-  id               String              @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  email            String
-  projectId        String              @db.Uuid
-  status           AuthorizationStatus
-  statusUpdatedAt  DateTime
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  email               String
+  projectId           String
+  status              AuthorizationStatus
+  createdAt           DateTime      @default(now()) 
+  statusUpdatedAt     DateTime 
 
-  project          Project             @relation(name: "pendingUsers", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project             Project       @relation(fields: [projectId], references: [id])
 }
 
 enum AuthorizationStatus {
@@ -38,148 +40,383 @@ enum AuthorizationStatus {
 }
 
 model Role {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name              String
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime?         @updatedAt
-  deletedAt         DateTime?         @updatedAt
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name                String
+  createdAt           DateTime      @default(now()) 
+  updatedAt           DateTime       
+  deletedAt           DateTime?
 
-  userProjectRole   UserProjectRole[]
+  userProjectRole     UserProjectRole[]
 }
 
 model Issue {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name              String
-  title             String
-  description       String
-  projectId         String    @db.Uuid
-  priority          Priority
-  storyPoints       Int
-  issueTypeId       String    @db.Uuid
-  authorId          String    @db.Uuid
-  assigneeId        String?   @db.Uuid
-  stageId           String    @db.Uuid
-  timeTrackingId    String    @db.Uuid
-  outOfEstimation   Boolean
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime? @updatedAt
-  deletedAt         DateTime? @updatedAt
+  id                        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  timeTrackingId            String
+  outOfEstimation           Boolean
 
-  project           Project             @relation(name: "issues", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  issueType         IssueType           @relation(fields: [issueTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  author            User                @relation(name: "created", fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  assignee          User?               @relation(name: "assigned", fields: [assigneeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  stage             Stage               @relation(fields: [stageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  timeTracking      TimeTracking?       @relation(fields: [timeTrackingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  IssueCustomFields IssueCustomFields[]
-}
-
-model IssueType {
-  id    String  @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name  String
-
-  Issue Issue[]
+  timeTracking              TimeTracking  @relation(fields: [timeTrackingId], references: [id])
+  storyPointsModifications  StoryPointsModification[]
+  descriptionModifications  DescriptionModification[]
+  titleModifications        TitleModification[]
+  issueCreationDeletes      IssueCreationDelete[]
+  assigneeModifications     AsigneeModification[]
+  priorityModifications     PriorityModification[]
+  issueCustomFields         IssueCustomFields[]
+  issueLabelModifications   IssueLabelModification[]
+  stageModifications        StageModification[]
 }
 
 model IssueCustomFields {
-  id      String @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name    String
-  value   String
-  issueId String @db.Uuid
-
-  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name       String
+  value      String
+  issueId    String
+  
+  issue      Issue         @relation(fields: [issueId], references: [id])
 }
 
 model Stage {
-  id    String  @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name  String
-
-  Issue Issue[]
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name                String
+  
+  stageModifications  StageModification[]
 }
 
 model Project {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name            String
-  url             String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime? @updatedAt
-  deletedAt       DateTime? @updatedAt
+  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  createdAt               DateTime      @default(now()) 
+  deletedAt               DateTime?
 
-  issues          Issue[]             @relation("issues")
-  userProjectRole UserProjectRole[]
-  pendingUsers    PendingUser[]   @relation("pendingUsers")
+  userProjectRoles        UserProjectRole[]
+  projectModifications    ProjectNameModification[]
+  projectUrlModifications ProjectUrlModification[]
+  pendingUsers            PendingUser[]
 }
 
 model LogWebhooks {
-  id          String               @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  statusId    String               @db.Uuid
-  sourceId    String               @db.Uuid
-  payload     Json
-  createdAt   DateTime             @default(now())
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  statusId            String
+  sourceId            String
+  payload             Json
+  createdAt           DateTime      @default(now())
 
-  status      WebhookOutcomeStatus @relation(fields: [statusId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  source      WebhookSource        @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  status              WebhookOutcomeStatus  @relation(fields: [statusId], references: [id])
+  source              WebhookSource         @relation(fields: [sourceId], references: [id])
 }
 
 model WebhookOutcomeStatus {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name          String
-
-  LogWebhooks   LogWebhooks[]
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name                String
+  
+  logWebhooks         LogWebhooks[]
 }
 
 model WebhookSource {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  name          String
-
-  LogWebhooks   LogWebhooks[]
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name                String
+  
+  logWebhooks         LogWebhooks[]
 }
 
 model TimeTracking {
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  startTime   Int
-  endTime     Int
-
-  Issue       Issue[]
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  startTime           Int
+  endTime             Int
+  
+  issues              Issue[]
 }
 
 model UserProjectRole {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-  userId      String    @db.Uuid
-  projectId   String    @db.Uuid
-  roleId      String    @db.Uuid
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime? @updatedAt
-  deletedAt   DateTime? @updatedAt
-
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  role        Role    @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  projectId               String
+  userId                  String
+  roleId                  String
+  createdAt               DateTime      @default(now()) 
+  updatedAt               DateTime       
+  deletedAt               DateTime?      
+  
+  project                 Project       @relation(fields: [projectId], references: [id])
+  user                    User          @relation(fields: [userId], references: [id])
+  roles                   Role          @relation(fields: [roleId], references: [id])
 }
 
 enum Priority {
-  noPriority
-  lowPriority
-  mediumPriority
-  highPriority
-  urgent
+  NO_PRIORITY
+  LOW_PRIORITY
+  MEDIUM_PRIORITY
+  HIGH_PRIORITY
+  URGENT
 }
 
-// model Event {
-//   id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id") // Primary Key 
-//   issue            Issue         @relation(fields: [issueId], references: [id])
-//   triggerUser      User          @relation(fields: [triggerUserId], references: [id])
-//   eventType        EventType     @relation(fields: [eventTypeId], references: [id])
-//   payload          Json
-//   createdAt        DateTime      @default(now()) 
-//   updatedAt        DateTime?      @updatedAt
-//   deletedAt        DateTime?      @updatedAt
+model IssueLabel {
+  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  name                    String
+
+  issueLabelModifications IssueLabelModification[]
+}
+
+model IssueCreationDelete {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId            String
+  authorId           String
+  name               String
+  projectId          String
+  createdAt          DateTime     
+  deletedAt          DateTime?     
+  eventMessage       String
+
+  issue              Issue         @relation(fields: [issueId], references: [id])
+  author             User          @relation(fields: [authorId], references: [id])
+}
+
+model TitleModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  title               String
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model DescriptionModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  description         String
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model PriorityModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  priority            Priority
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model StoryPointsModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  storyPoints         Int
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model IssueLabelModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  issueLabelId        String
+  createdAt           DateTime     
+  deletedAt           DateTime?     
+  eventMessage        String
+  
+  issueLabel          IssueLabel    @relation(fields: [issueLabelId], references: [id])
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model StageModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  stageId             String
+  issueId             String
+  updatedAt           DateTime      
+  eventMessage        String
+
+  stage               Stage         @relation(fields: [stageId], references: [id])
+  issue               Issue         @relation(fields: [issueId], references: [id])
+}
+
+model AsigneeModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  issueId             String
+  assigneeId          String
+  createdAt           DateTime     
+  updatedAt           DateTime      
+  deletedAt           DateTime?     
+  eventMessage        String
+  
+  issue               Issue         @relation(fields: [issueId], references: [id])
+  assignee            User          @relation(fields: [assigneeId], references: [id])
+}
+
+model ProjectNameModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  projectId           String
+  name                String
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  project             Project       @relation(fields: [projectId], references: [id])
+}
+
+model ProjectUrlModification {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+  projectId           String
+  url                 String
+  updatedAt           DateTime      
+  eventMessage        String
+  
+  project             Project       @relation(fields: [projectId], references: [id])
+}
+
+
+// model User {
+//   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   profileImage    String?
+//   createdAt       DateTime          @default(now())
+//   updatedAt       DateTime?         @updatedAt
+//   deletedAt       DateTime?         @updatedAt
+
+//   issuesCreated   Issue[]           @relation("created")
+//   issuesAssigned  Issue[]           @relation("assigned")
+//   UserProjectRole UserProjectRole[]
 // }
 
-// model EventType {
-//   id          String    @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid // Primary Key 
-//   name        String    @unique
+// model PendingUser {
+//   id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   email            String
+//   projectId        String              @db.Uuid
+//   status           AuthorizationStatus
+//   statusUpdatedAt  DateTime
+
+//   project          Project             @relation(name: "pendingUsers", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+// }
+
+// enum AuthorizationStatus {
+//   ACCEPTED
+//   PENDING
+// }
+
+// model Role {
+//   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name              String
+//   createdAt         DateTime          @default(now())
+//   updatedAt         DateTime?         @updatedAt
+//   deletedAt         DateTime?         @updatedAt
+
+//   userProjectRole   UserProjectRole[]
+// }
+
+// model Issue {
+//   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name              String
+//   title             String
+//   description       String
+//   projectId         String    @db.Uuid
+//   priority          Priority
+//   storyPoints       Int
+//   issueTypeId       String    @db.Uuid
+//   authorId          String    @db.Uuid
+//   assigneeId        String?   @db.Uuid
+//   stageId           String    @db.Uuid
+//   timeTrackingId    String    @db.Uuid
+//   outOfEstimation   Boolean
+//   createdAt         DateTime  @default(now())
+//   updatedAt         DateTime? @updatedAt
+//   deletedAt         DateTime? @updatedAt
+
+//   project           Project             @relation(name: "issues", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   issueType         IssueType           @relation(fields: [issueTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   author            User                @relation(name: "created", fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   assignee          User?               @relation(name: "assigned", fields: [assigneeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   stage             Stage               @relation(fields: [stageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   timeTracking      TimeTracking?       @relation(fields: [timeTrackingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   IssueCustomFields IssueCustomFields[]
+// }
+
+// model IssueType {
+//   id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name  String
+
+//   Issue Issue[]
+// }
+
+// model IssueCustomFields {
+//   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name    String
+//   value   String
+//   issueId String @db.Uuid
+
+//   issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+// }
+
+// model Stage {
+//   id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name  String
+
+//   Issue Issue[]
+// }
+
+// model Project {
+//   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name            String
+//   url             String
+//   createdAt       DateTime  @default(now())
+//   updatedAt       DateTime? @updatedAt
+//   deletedAt       DateTime? @updatedAt
+
+//   issues          Issue[]             @relation("issues")
+//   userProjectRole UserProjectRole[]
+//   pendingUsers    PendingUser[]   @relation("pendingUsers")
+// }
+
+// model LogWebhooks {
+//   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   statusId    String               @db.Uuid
+//   sourceId    String               @db.Uuid
+//   payload     Json
+//   createdAt   DateTime             @default(now())
+
+//   status      WebhookOutcomeStatus @relation(fields: [statusId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   source      WebhookSource        @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+// }
+
+// model WebhookOutcomeStatus {
+//   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name          String
+
+//   LogWebhooks   LogWebhooks[]
+// }
+
+// model WebhookSource {
+//   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   name          String
+
+//   LogWebhooks   LogWebhooks[]
+// }
+
+// model TimeTracking {
+//   id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   startTime   Int
+//   endTime     Int
+
+//   Issue       Issue[]
+// }
+
+// model UserProjectRole {
+//   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
+//   userId      String    @db.Uuid
+//   projectId   String    @db.Uuid
+//   roleId      String    @db.Uuid
 //   createdAt   DateTime  @default(now())
 //   updatedAt   DateTime? @updatedAt
 //   deletedAt   DateTime? @updatedAt
+
+//   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   role        Role    @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+// }
+
+// enum Priority {
+//   noPriority
+//   lowPriority
+//   mediumPriority
+//   highPriority
+//   urgent
 // }
