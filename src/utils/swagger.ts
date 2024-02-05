@@ -1,21 +1,21 @@
-import swaggerJsdoc from "swagger-jsdoc";
+import swaggerJsdoc from 'swagger-jsdoc';
 
 const options = {
-    definition: {
-        openapi: "3.1.0",
-        info: {
-            title: "Tricker API with Swagger",
-            version: "0.1.0",
-            description:
-                "This is a Restful API application made with Express and documented with Swagger",
-        },
-        servers: [
-            {
-                url: "http://localhost:8080",
-            },
-        ],
+  definition: {
+    openapi: '3.1.0',
+    info: {
+      title: 'Tricker API with Swagger',
+      version: '0.1.0',
+      description:
+        'This is a Restful API application made with Express and documented with Swagger',
     },
-    apis: ["./docs/swagger.json"],
+    servers: [
+      {
+        url: 'http://localhost:8080',
+      },
+    ],
+  },
+  apis: ['./docs/swagger.json'],
 };
 
 export const specs = swaggerJsdoc(options);
