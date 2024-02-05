@@ -10,134 +10,207 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  profileImage            String?
-  createdAt               DateTime      @default(now()) 
-  updatedAt               DateTime       
-  deletedAt               DateTime?
+  id                                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  profileImage                      String?
+  createdAt                         DateTime                    @default(now())
+  updatedAt                         DateTime?     
+  deletedAt                         DateTime?
 
-  userProjectRoles        UserProjectRole[]
-  issuesAsignee           AsigneeModification[]
-  issueCreationDelete     IssueCreationDelete[]
+  projectsRoleAssigned              UserProjectRole[]           @relation("UserProjectRole_assigned")
+  emittedUserProjectRole            UserProjectRole[]           @relation("UserProjectRole_emitter")
+  emittedBlockerStatusModif         BlockerStatusModification[] @relation("BlockerStatusModification_emitter")
+  authoredIssues                    Issue[]                     @relation("created")
+  asignedIssues                     Issue[]                     @relation("assigned")
+  emittedIssueChangeLogs            IssueChangeLog[]            @relation("IssueChangeLog_emitter")
+  emittedManualTimeModif            ManualTimeModification[]    @relation("ManualTimeModification_emitter")
 }
 
 model PendingUser {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  email               String
-  projectId           String
-  status              AuthorizationStatus
-  createdAt           DateTime      @default(now()) 
-  statusUpdatedAt     DateTime 
-
-  project             Project       @relation(fields: [projectId], references: [id])
-}
-
-enum AuthorizationStatus {
-  ACCEPTED
-  PENDING
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  email            String
+  projectId        String
+  status           AuthorizationStatus
+  createdAt        DateTime     @default(now())
+  statusUpdatedAt  DateTime
+  
+  project          Project      @relation(fields: [projectId], references: [id])
 }
 
 model Role {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name                String
-  createdAt           DateTime      @default(now()) 
-  updatedAt           DateTime       
-  deletedAt           DateTime?
-
-  userProjectRole     UserProjectRole[]
+  id   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name String
+  
+  users UserProjectRole[]
 }
 
 model Issue {
-  id                        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  timeTrackingId            String
-  outOfEstimation           Boolean
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  authorId         String
+  assigneeId       String
+  projectId        String
+  stageId          String
+  issueLabelId     String
+  name             String
+  title            String
+  description      String
+  priority         Priority
+  storyPoints      Int
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
 
-  timeTracking              TimeTracking  @relation(fields: [timeTrackingId], references: [id])
-  storyPointsModifications  StoryPointsModification[]
-  descriptionModifications  DescriptionModification[]
-  titleModifications        TitleModification[]
-  issueCreationDeletes      IssueCreationDelete[]
-  assigneeModifications     AsigneeModification[]
-  priorityModifications     PriorityModification[]
-  issueCustomFields         IssueCustomFields[]
-  issueLabelModifications   IssueLabelModification[]
-  stageModifications        StageModification[]
+  project                    Project      @relation(fields: [projectId], references: [id])
+  author                     User         @relation(name: "created", fields: [authorId], references: [id])
+  assignee                   User         @relation(name: "assigned", fields: [assigneeId], references: [id])
+  issueLabel                 IssueLabel   @relation(fields: [issueLabelId], references: [id])
+  stage                      Stage        @relation(fields: [stageId], references: [id])
+  timeTrackings              TimeTracking[]
+  issueChangeLogs            IssueChangeLog[]
+  customFields               IssueCustomFields[]
+  blockerStatusModifications BlockerStatusModification[]
+  manualTimeModifications    ManualTimeModification[]
 }
 
 model IssueCustomFields {
-  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name       String
-  value      String
-  issueId    String
+  id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  issueId String
+  name    String
+  value   String
   
-  issue      Issue         @relation(fields: [issueId], references: [id])
+  issue   Issue        @relation(fields: [issueId], references: [id])
 }
 
 model Stage {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name                String
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name            String
   
-  stageModifications  StageModification[]
+  projectStages   ProjectStage[]
+  issues          Issue[]
 }
 
 model Project {
-  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  createdAt               DateTime      @default(now()) 
-  deletedAt               DateTime?
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+  url              String
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
 
-  userProjectRoles        UserProjectRole[]
-  projectModifications    ProjectNameModification[]
-  projectUrlModifications ProjectUrlModification[]
-  pendingUsers            PendingUser[]
+  usersRoles       UserProjectRole[]
+  pendingUsers     PendingUser[]
+  projectStages    ProjectStage[]
+  issues           Issue[]
 }
 
 model LogWebhooks {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  statusId            String
-  sourceId            String
-  payload             Json
-  createdAt           DateTime      @default(now())
-
-  status              WebhookOutcomeStatus  @relation(fields: [statusId], references: [id])
-  source              WebhookSource         @relation(fields: [sourceId], references: [id])
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  statusId         String
+  sourceId         String
+  payload          Json
+  createdAt        DateTime     @default(now())
+  
+  status           WebhookOutcomeStatus @relation(fields: [statusId], references: [id])
+  source           WebhookSource @relation(fields: [sourceId], references: [id])
 }
 
 model WebhookOutcomeStatus {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name                String
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
   
-  logWebhooks         LogWebhooks[]
+  logsWebhooks     LogWebhooks[]
 }
 
 model WebhookSource {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name                String
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
   
-  logWebhooks         LogWebhooks[]
+  logsWebhooks     LogWebhooks[]
 }
 
 model TimeTracking {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  startTime           Int
-  endTime             Int
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  issueId         String
+  startTime       Float
+  endTime         Float
   
-  issues              Issue[]
+  issue            Issue        @relation(fields: [issueId], references: [id])
 }
 
 model UserProjectRole {
-  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  projectId               String
-  userId                  String
-  roleId                  String
-  createdAt               DateTime      @default(now()) 
-  updatedAt               DateTime       
-  deletedAt               DateTime?      
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  userId           String
+  projectId        String
+  roleId           String
+  userEmitterId    String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     
+  deletedAt        DateTime?
   
-  project                 Project       @relation(fields: [projectId], references: [id])
-  user                    User          @relation(fields: [userId], references: [id])
-  roles                   Role          @relation(fields: [roleId], references: [id])
+  project          Project      @relation(fields: [projectId], references: [id])
+  user             User         @relation(name: "UserProjectRole_assigned", fields: [userId], references: [id])
+  userEmitter      User         @relation(name: "UserProjectRole_emitter", fields: [userEmitterId], references: [id])
+  role             Role         @relation(fields: [roleId], references: [id])
+}
+
+model IssueLabel {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+
+  issues           Issue[]
+}
+
+model BlockerStatusModification {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String
+  status           BlockType
+  createdAt        DateTime     @default(now())
+  reason           String
+  comment          String
+  
+  issue            Issue        @relation(fields: [issueId], references: [id])
+  userEmitter      User         @relation(name: "BlockerStatusModification_emitter", fields: [userEmitterId], references: [id])
+}
+
+model ManualTimeModification {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String       
+  timeAmount       Int
+  modificationDate DateTime
+  reason           String
+
+  issue            Issue        @relation(fields: [issueId], references: [id])
+  userEmitter      User         @relation(name: "ManualTimeModification_emitter", fields: [userEmitterId], references: [id])
+}
+
+model IssueChangeLog {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String
+  field            String
+  from             String
+  to               String
+  createdAt        DateTime     @default(now())
+  
+  userEmitter      User         @relation(name: "IssueChangeLog_emitter", fields: [userEmitterId], references: [id])
+  issue            Issue        @relation(fields: [issueId], references: [id])
+}
+
+model ProjectStage {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId        String
+  stageId          String
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+  
+  project          Project      @relation(fields: [projectId], references: [id])
+  stage            Stage        @relation(fields: [stageId], references: [id])
+}
+
+enum BlockType {
+  NO_STATUS
+  BLOCKED_BY
+  BLOCKING_TO
 }
 
 enum Priority {
@@ -148,275 +221,7 @@ enum Priority {
   URGENT
 }
 
-model IssueLabel {
-  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  name                    String
-
-  issueLabelModifications IssueLabelModification[]
+enum AuthorizationStatus {
+  ACCEPTED
+  PENDING
 }
-
-model IssueCreationDelete {
-  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId            String
-  authorId           String
-  name               String
-  projectId          String
-  createdAt          DateTime     
-  deletedAt          DateTime?     
-  eventMessage       String
-
-  issue              Issue         @relation(fields: [issueId], references: [id])
-  author             User          @relation(fields: [authorId], references: [id])
-}
-
-model TitleModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  title               String
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model DescriptionModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  description         String
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model PriorityModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  priority            Priority
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model StoryPointsModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  storyPoints         Int
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model IssueLabelModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  issueLabelId        String
-  createdAt           DateTime     
-  deletedAt           DateTime?     
-  eventMessage        String
-  
-  issueLabel          IssueLabel    @relation(fields: [issueLabelId], references: [id])
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model StageModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  stageId             String
-  issueId             String
-  updatedAt           DateTime      
-  eventMessage        String
-
-  stage               Stage         @relation(fields: [stageId], references: [id])
-  issue               Issue         @relation(fields: [issueId], references: [id])
-}
-
-model AsigneeModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  issueId             String
-  assigneeId          String
-  createdAt           DateTime     
-  updatedAt           DateTime      
-  deletedAt           DateTime?     
-  eventMessage        String
-  
-  issue               Issue         @relation(fields: [issueId], references: [id])
-  assignee            User          @relation(fields: [assigneeId], references: [id])
-}
-
-model ProjectNameModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  projectId           String
-  name                String
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  project             Project       @relation(fields: [projectId], references: [id])
-}
-
-model ProjectUrlModification {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
-  projectId           String
-  url                 String
-  updatedAt           DateTime      
-  eventMessage        String
-  
-  project             Project       @relation(fields: [projectId], references: [id])
-}
-
-
-// model User {
-//   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   profileImage    String?
-//   createdAt       DateTime          @default(now())
-//   updatedAt       DateTime?         @updatedAt
-//   deletedAt       DateTime?         @updatedAt
-
-//   issuesCreated   Issue[]           @relation("created")
-//   issuesAssigned  Issue[]           @relation("assigned")
-//   UserProjectRole UserProjectRole[]
-// }
-
-// model PendingUser {
-//   id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   email            String
-//   projectId        String              @db.Uuid
-//   status           AuthorizationStatus
-//   statusUpdatedAt  DateTime
-
-//   project          Project             @relation(name: "pendingUsers", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-// }
-
-// enum AuthorizationStatus {
-//   ACCEPTED
-//   PENDING
-// }
-
-// model Role {
-//   id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name              String
-//   createdAt         DateTime          @default(now())
-//   updatedAt         DateTime?         @updatedAt
-//   deletedAt         DateTime?         @updatedAt
-
-//   userProjectRole   UserProjectRole[]
-// }
-
-// model Issue {
-//   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name              String
-//   title             String
-//   description       String
-//   projectId         String    @db.Uuid
-//   priority          Priority
-//   storyPoints       Int
-//   issueTypeId       String    @db.Uuid
-//   authorId          String    @db.Uuid
-//   assigneeId        String?   @db.Uuid
-//   stageId           String    @db.Uuid
-//   timeTrackingId    String    @db.Uuid
-//   outOfEstimation   Boolean
-//   createdAt         DateTime  @default(now())
-//   updatedAt         DateTime? @updatedAt
-//   deletedAt         DateTime? @updatedAt
-
-//   project           Project             @relation(name: "issues", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   issueType         IssueType           @relation(fields: [issueTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   author            User                @relation(name: "created", fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   assignee          User?               @relation(name: "assigned", fields: [assigneeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   stage             Stage               @relation(fields: [stageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   timeTracking      TimeTracking?       @relation(fields: [timeTrackingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   IssueCustomFields IssueCustomFields[]
-// }
-
-// model IssueType {
-//   id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name  String
-
-//   Issue Issue[]
-// }
-
-// model IssueCustomFields {
-//   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name    String
-//   value   String
-//   issueId String @db.Uuid
-
-//   issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-// }
-
-// model Stage {
-//   id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name  String
-
-//   Issue Issue[]
-// }
-
-// model Project {
-//   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name            String
-//   url             String
-//   createdAt       DateTime  @default(now())
-//   updatedAt       DateTime? @updatedAt
-//   deletedAt       DateTime? @updatedAt
-
-//   issues          Issue[]             @relation("issues")
-//   userProjectRole UserProjectRole[]
-//   pendingUsers    PendingUser[]   @relation("pendingUsers")
-// }
-
-// model LogWebhooks {
-//   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   statusId    String               @db.Uuid
-//   sourceId    String               @db.Uuid
-//   payload     Json
-//   createdAt   DateTime             @default(now())
-
-//   status      WebhookOutcomeStatus @relation(fields: [statusId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   source      WebhookSource        @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-// }
-
-// model WebhookOutcomeStatus {
-//   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name          String
-
-//   LogWebhooks   LogWebhooks[]
-// }
-
-// model WebhookSource {
-//   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   name          String
-
-//   LogWebhooks   LogWebhooks[]
-// }
-
-// model TimeTracking {
-//   id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   startTime   Int
-//   endTime     Int
-
-//   Issue       Issue[]
-// }
-
-// model UserProjectRole {
-//   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key 
-//   userId      String    @db.Uuid
-//   projectId   String    @db.Uuid
-//   roleId      String    @db.Uuid
-//   createdAt   DateTime  @default(now())
-//   updatedAt   DateTime? @updatedAt
-//   deletedAt   DateTime? @updatedAt
-
-//   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   role        Role    @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-// }
-
-// enum Priority {
-//   noPriority
-//   lowPriority
-//   mediumPriority
-//   highPriority
-//   urgent
-// }
