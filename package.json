@@ -6,7 +6,9 @@
   "scripts": {
     "start": "npx tsx ./src/server.ts",
     "test": "node --import tsx --test --experimental-test-coverage **/*.test.ts",
-    "prepare": "husky"
+    "prepare": "husky && husky install",
+    "lint": "eslint . --fix --max-warnings=0",
+    "format": "prettier . --write"
   },
   "keywords": [],
   "author": "",
@@ -37,11 +39,24 @@
     "@types/signale": "^1.4.7",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
     "husky": "^9.0.6",
+    "lint-staged": "^15.2.1",
     "nodemon": "^3.0.3",
+    "prettier": "3.2.5",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "npm run lint",
+    "*.{js,ts,html,css,json}": "npm run format"
   }
 }
