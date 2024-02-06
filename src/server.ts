@@ -1,9 +1,9 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
-import 'dotenv/config';
 
 import { Constants, NodeEnv, Logger } from '@utils';
 import { ErrorHandling } from '@utils/errors';
@@ -11,6 +11,7 @@ import http from 'http';
 import { router } from '@router';
 import { specs } from '@utils/swagger';
 
+dotenv.config();
 export const app = express();
 
 // Set up request logger
