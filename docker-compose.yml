@@ -1,0 +1,43 @@
+services:
+  tricker-database:
+    image: postgres:alpine
+    container_name: tricker-database
+    # if fails
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+    # to persist data in db container
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 1s
+      timeout: 1s
+      retries: 15
+  tricker-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: tricker-server
+    restart: always
+    tty: true
+    environment:
+      - DATABASE_URL=${DOCKER_DATABASE_URL}
+      - PORT=8080
+    env_file:
+      - .env
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+    depends_on:
+      tricker-database:
+        condition: service_healthy
+volumes:
+  db-data:

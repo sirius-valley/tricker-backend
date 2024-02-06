@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client"
+import { type PrismaClient } from '@prisma/client';
 
-export type Context = {
-  prisma: PrismaClient
+export interface Context {
+  prisma: PrismaClient;
 }

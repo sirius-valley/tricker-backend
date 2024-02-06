@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
+import 'dotenv/config';
 
 import { Constants, NodeEnv, Logger } from '@utils';
 import { ErrorHandling } from '@utils/errors';
