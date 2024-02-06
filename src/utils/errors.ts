@@ -14,11 +14,7 @@ abstract class HttpException extends Error {
 
 export class UnauthorizedException extends HttpException {
   constructor(errorCode?: string) {
-    super(
-      HttpStatus.UNAUTHORIZED,
-      `Unauthorized. You must login to access this content.`,
-      { error_code: errorCode }
-    );
+    super(HttpStatus.UNAUTHORIZED, `Unauthorized. You must login to access this content.`, { error_code: errorCode });
   }
 }
 
@@ -41,19 +37,13 @@ export class ValidationException extends HttpException {
 
 export class ForbiddenException extends HttpException {
   constructor() {
-    super(
-      HttpStatus.FORBIDDEN,
-      'Forbidden. You are not allowed to perform this action'
-    );
+    super(HttpStatus.FORBIDDEN, 'Forbidden. You are not allowed to perform this action');
   }
 }
 
 export class NotFoundException extends HttpException {
   constructor(model?: string) {
-    super(
-      HttpStatus.NOT_FOUND,
-      `Not found.${model != null || model !== undefined ? " Couldn't find " + model : ''}`
-    );
+    super(HttpStatus.NOT_FOUND, `Not found.${model != null || model !== undefined ? " Couldn't find " + model : ''}`);
   }
 }
 
@@ -69,23 +59,14 @@ export class InternalServerErrorException extends HttpException {
   }
 }
 
-export function ErrorHandling(
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response {
+export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
   if (error !== undefined) next(error);
   if (error instanceof HttpException) {
     if (error.code === HttpStatus.INTERNAL_SERVER_ERROR) {
       Logger.error(error.message);
     }
-    return res
-      .status(error.code)
-      .json({ message: error.message, code: error.code, errors: error.error });
+    return res.status(error.code).json({ message: error.message, code: error.code, errors: error.error });
   }
   Logger.error(error?.message);
-  return res
-    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-    .json({ message: error?.message, code: 500 });
+  return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error?.message, code: 500 });
 }

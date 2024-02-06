@@ -6,11 +6,9 @@ import assert from 'node:assert';
 
 describe('auth controller tests', () => {
   it('should return jwt token', { skip: true }, async () => {
-    mock
-      .method(AuthServiceImpl.prototype, 'login')
-      .mock.mockImplementation((): TokenDTO => {
-        return { token: 'token' };
-      });
+    mock.method(AuthServiceImpl.prototype, 'login').mock.mockImplementation((): TokenDTO => {
+      return { token: 'token' };
+    });
 
     const res = await request(app).post('/api/auth/signin').send({
       username: 'username',
@@ -22,11 +20,9 @@ describe('auth controller tests', () => {
   });
 
   it('should return jwt token', { skip: true }, async () => {
-    mock
-      .method(AuthServiceImpl.prototype, 'signup')
-      .mock.mockImplementation((): TokenDTO => {
-        return { token: 'token' };
-      });
+    mock.method(AuthServiceImpl.prototype, 'signup').mock.mockImplementation((): TokenDTO => {
+      return { token: 'token' };
+    });
 
     const res = await request(app).post('/api/auth/signup').send({
       username: 'username',

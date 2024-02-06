@@ -1,5 +1,5 @@
-import {UserModel} from "@user/dto";
-import {SignupInputDTO} from "@auth/dto";
+import { type UserModel } from '@user/dto';
+import { type SignupInputDTO } from '@auth/dto';
 
 export interface UserRepository {
   create: (data: SignupInputDTO) => Promise<UserModel>;

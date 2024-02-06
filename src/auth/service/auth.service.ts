@@ -1,4 +1,4 @@
-import { LoginInputDTO, SignupInputDTO, TokenDTO } from '../dto';
+import { type LoginInputDTO, type SignupInputDTO, type TokenDTO } from '@auth';
 
 export interface AuthService {
   signup: (data: SignupInputDTO) => Promise<TokenDTO>;

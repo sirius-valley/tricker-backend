@@ -34,10 +34,6 @@ app.use('/api', router);
 
 app.use(ErrorHandling);
 
-app.use(
-  '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(specs, { explorer: true })
-);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 export default app;
