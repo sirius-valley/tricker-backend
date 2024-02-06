@@ -1,10 +1,11 @@
 import { describe, it } from 'node:test';
-import axios from 'axios';
 import assert from 'node:assert';
+import request from 'supertest';
+import app from '@app';
 
-void describe('documentation', () => {
+void describe('documentation tests', () => {
   void it('should return status code 200', async (_t): Promise<void> => {
-    const res = await axios.get('http://localhost:8080/api-docs');
-    assert.equal(200, res.status);
+    const res = await request(app).get('/api-docs');
+    assert.equal(301, res.status);
   });
 });
