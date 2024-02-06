@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  profileImage                      String?
+  createdAt                         DateTime                    @default(now())
+  updatedAt                         DateTime?     
+  deletedAt                         DateTime?
+
+  projectsRoleAssigned              UserProjectRole[]           @relation("UserProjectRole_assigned")
+  emittedUserProjectRole            UserProjectRole[]           @relation("UserProjectRole_emitter")
+  emittedBlockerStatusModif         BlockerStatusModification[] @relation("BlockerStatusModification_emitter")
+  authoredIssues                    Issue[]                     @relation("created")
+  asignedIssues                     Issue[]                     @relation("assigned")
+  emittedIssueChangeLogs            IssueChangeLog[]            @relation("IssueChangeLog_emitter")
+  emittedManualTimeModif            ManualTimeModification[]    @relation("ManualTimeModification_emitter")
+}
+
+model PendingUser {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  email            String
+  projectId        String
+  status           AuthorizationStatus
+  createdAt        DateTime     @default(now())
+  statusUpdatedAt  DateTime
+  
+  project          Project      @relation(fields: [projectId], references: [id])
+}
+
+model Role {
+  id   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name String
+  
+  users UserProjectRole[]
+}
+
+model Issue {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  authorId         String
+  assigneeId       String
+  projectId        String
+  stageId          String
+  issueLabelId     String
+  name             String
+  title            String
+  description      String
+  priority         Priority
+  storyPoints      Int
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+
+  project                    Project      @relation(fields: [projectId], references: [id])
+  author                     User         @relation(name: "created", fields: [authorId], references: [id])
+  assignee                   User         @relation(name: "assigned", fields: [assigneeId], references: [id])
+  issueLabel                 IssueLabel   @relation(fields: [issueLabelId], references: [id])
+  stage                      Stage        @relation(fields: [stageId], references: [id])
+  timeTrackings              TimeTracking[]
+  issueChangeLogs            IssueChangeLog[]
+  customFields               IssueCustomFields[]
+  blockerStatusModifications BlockerStatusModification[]
+  manualTimeModifications    ManualTimeModification[]
+}
+
+model IssueCustomFields {
+  id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  issueId String
+  name    String
+  value   String
+  
+  issue   Issue        @relation(fields: [issueId], references: [id])
+}
+
+model Stage {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name            String
+  
+  projectStages   ProjectStage[]
+  issues          Issue[]
+}
+
+model Project {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+  url              String
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+
+  usersRoles       UserProjectRole[]
+  pendingUsers     PendingUser[]
+  projectStages    ProjectStage[]
+  issues           Issue[]
+}
+
+model LogWebhooks {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  statusId         String
+  sourceId         String
+  payload          Json
+  createdAt        DateTime     @default(now())
+  
+  status           WebhookOutcomeStatus @relation(fields: [statusId], references: [id])
+  source           WebhookSource @relation(fields: [sourceId], references: [id])
+}
+
+model WebhookOutcomeStatus {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+  
+  logsWebhooks     LogWebhooks[]
+}
+
+model WebhookSource {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+  
+  logsWebhooks     LogWebhooks[]
+}
+
+model TimeTracking {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  issueId         String
+  startTime       Float
+  endTime         Float
+  
+  issue            Issue        @relation(fields: [issueId], references: [id])
+}
+
+model UserProjectRole {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  userId           String
+  projectId        String
+  roleId           String
+  userEmitterId    String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     
+  deletedAt        DateTime?
+  
+  project          Project      @relation(fields: [projectId], references: [id])
+  user             User         @relation(name: "UserProjectRole_assigned", fields: [userId], references: [id])
+  userEmitter      User         @relation(name: "UserProjectRole_emitter", fields: [userEmitterId], references: [id])
+  role             Role         @relation(fields: [roleId], references: [id])
+}
+
+model IssueLabel {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  name             String
+
+  issues           Issue[]
+}
+
+model BlockerStatusModification {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String
+  status           BlockType
+  createdAt        DateTime     @default(now())
+  reason           String
+  comment          String
+  
+  issue            Issue        @relation(fields: [issueId], references: [id])
+  userEmitter      User         @relation(name: "BlockerStatusModification_emitter", fields: [userEmitterId], references: [id])
+}
+
+model ManualTimeModification {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String       
+  timeAmount       Int
+  modificationDate DateTime
+  reason           String
+
+  issue            Issue        @relation(fields: [issueId], references: [id])
+  userEmitter      User         @relation(name: "ManualTimeModification_emitter", fields: [userEmitterId], references: [id])
+}
+
+model IssueChangeLog {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmitterId    String
+  issueId          String
+  field            String
+  from             String
+  to               String
+  createdAt        DateTime     @default(now())
+  
+  userEmitter      User         @relation(name: "IssueChangeLog_emitter", fields: [userEmitterId], references: [id])
+  issue            Issue        @relation(fields: [issueId], references: [id])
+}
+
+model ProjectStage {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId        String
+  stageId          String
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+  
+  project          Project      @relation(fields: [projectId], references: [id])
+  stage            Stage        @relation(fields: [stageId], references: [id])
+}
+
+enum BlockType {
+  NO_STATUS
+  BLOCKED_BY
+  BLOCKING_TO
+}
+
+enum Priority {
+  NO_PRIORITY
+  LOW_PRIORITY
+  MEDIUM_PRIORITY
+  HIGH_PRIORITY
+  URGENT
+}
+
+enum AuthorizationStatus {
+  ACCEPTED
+  PENDING
+}

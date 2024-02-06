@@ -1,6 +1,6 @@
 {
   "ts-node": {
-    // Do not forget to `npm i -D tsconfig-paths`
+    // Do not forget to `npm install tsc-alias tsconfig-paths --save-dev`
     "require": ["tsconfig-paths/register"]
   },
   "compilerOptions": {
