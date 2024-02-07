@@ -5,15 +5,17 @@ import { plainToInstance } from 'class-transformer';
 
 export type ClassType<T> = new (...args: any[]) => T;
 
-export function BodyValidation<T>(target: ClassType<T>) {
+type RequestPart = 'body' | 'query' | 'params';
+
+export function validateRequest<T>(target: ClassType<T>, reqKey: RequestPart) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    req.body = plainToInstance(target, req.body);
-    const errors = await validate(req.body as object, {
+    const instance = plainToInstance(target, req[reqKey]);
+    const errors = await validate(instance as object, {
       whitelist: true,
       forbidNonWhitelisted: true,
     });
 
-    if (errors.length > 0)
+    if (errors.length > 0) {
       throw new ValidationException(
         errors.map((error) => ({
           ...error,
@@ -21,7 +23,9 @@ export function BodyValidation<T>(target: ClassType<T>) {
           value: undefined,
         }))
       );
+    }
 
+    req[reqKey] = instance;
     next();
   };
 }

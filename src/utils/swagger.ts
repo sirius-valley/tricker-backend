@@ -6,8 +6,7 @@ const options = {
     info: {
       title: 'Tricker API with Swagger',
       version: '0.1.0',
-      description:
-        'This is a Restful API application made with Express and documented with Swagger',
+      description: 'This is a Restful API application made with Express and documented with Swagger',
     },
     servers: [
       {
@@ -15,7 +14,7 @@ const options = {
       },
     ],
   },
-  apis: ['./docs/swagger.json'],
+  apis: ['./src/**/controller/*.ts'],
 };
 
 export const specs = swaggerJsdoc(options);
