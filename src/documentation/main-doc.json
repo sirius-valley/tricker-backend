@@ -1,0 +1,21 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tricker API with Swagger",
+    "version": "0.1.0",
+    "description": "This is a Restful API application made with Express and documented with Swagger"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/signup": {
+      "$ref": "paths/signup.json"
+    },
+    "/signin": {
+      "$ref": "paths/signin.json"
+    }
+  }
+}
