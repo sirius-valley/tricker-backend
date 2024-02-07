@@ -1,0 +1,28 @@
+{
+  "post": {
+    "summary": "User Signup",
+    "tags": ["Authentication"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/SignupInputDTO.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "User created successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/TokenDTO.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

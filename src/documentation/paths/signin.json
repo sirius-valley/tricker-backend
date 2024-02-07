@@ -1,0 +1,28 @@
+{
+  "post": {
+    "summary": "User Signin",
+    "tags": ["Authentication"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/LoginInputDTO.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "User logged in successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/TokenDTO.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

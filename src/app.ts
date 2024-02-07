@@ -7,7 +7,8 @@ import swaggerUi from 'swagger-ui-express';
 import { Constants, NodeEnv } from '@utils';
 import { ErrorHandling } from '@utils/errors';
 import { router } from '@router';
-import { specs } from '@utils/swagger';
+
+import documentation from './documentation/main-doc.json';
 
 require('express-async-errors');
 
@@ -34,6 +35,6 @@ app.use('/api', router);
 
 app.use(ErrorHandling);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(documentation, { explorer: true }));
 
 export default app;
