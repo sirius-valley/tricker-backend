@@ -29,7 +29,7 @@ model User {
 model PendingUser {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
   email            String
-  projectId        String
+  projectId        String       @db.Uuid
   status           AuthorizationStatus
   createdAt        DateTime     @default(now())
   statusUpdatedAt  DateTime
@@ -46,11 +46,11 @@ model Role {
 
 model Issue {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  authorId         String
-  assigneeId       String
-  projectId        String
-  stageId          String
-  issueLabelId     String
+  authorId         String       @db.Uuid
+  assigneeId       String       @db.Uuid
+  projectId        String       @db.Uuid
+  stageId          String       @db.Uuid
+  issueLabelId     String       @db.Uuid
   name             String
   title            String
   description      String
@@ -73,7 +73,7 @@ model Issue {
 
 model IssueCustomFields {
   id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  issueId String
+  issueId String       @db.Uuid
   name    String
   value   String
   
@@ -103,8 +103,8 @@ model Project {
 
 model LogWebhooks {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  statusId         String
-  sourceId         String
+  statusId         String       @db.Uuid
+  sourceId         String       @db.Uuid
   payload          Json
   createdAt        DateTime     @default(now())
   
@@ -128,7 +128,7 @@ model WebhookSource {
 
 model TimeTracking {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  issueId         String
+  issueId         String        @db.Uuid
   startTime       Float
   endTime         Float
   
@@ -137,10 +137,10 @@ model TimeTracking {
 
 model UserProjectRole {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  userId           String
-  projectId        String
-  roleId           String
-  userEmitterId    String
+  userId           String       @db.Uuid
+  projectId        String       @db.Uuid
+  roleId           String       @db.Uuid
+  userEmitterId    String       @db.Uuid
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     
   deletedAt        DateTime?
@@ -160,8 +160,8 @@ model IssueLabel {
 
 model BlockerStatusModification {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId    String
-  issueId          String
+  userEmitterId    String       @db.Uuid
+  issueId          String       @db.Uuid
   status           BlockType
   createdAt        DateTime     @default(now())
   reason           String
@@ -173,8 +173,8 @@ model BlockerStatusModification {
 
 model ManualTimeModification {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId    String
-  issueId          String       
+  userEmitterId    String       @db.Uuid
+  issueId          String       @db.Uuid       
   timeAmount       Int
   modificationDate DateTime
   reason           String
@@ -185,8 +185,8 @@ model ManualTimeModification {
 
 model IssueChangeLog {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId    String
-  issueId          String
+  userEmitterId    String       @db.Uuid
+  issueId          String       @db.Uuid
   field            String
   from             String
   to               String
@@ -198,8 +198,8 @@ model IssueChangeLog {
 
 model ProjectStage {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  projectId        String
-  stageId          String
+  projectId        String       @db.Uuid
+  stageId          String       @db.Uuid
   createdAt        DateTime     @default(now())
   deletedAt        DateTime?
   
