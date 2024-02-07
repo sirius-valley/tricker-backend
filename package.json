@@ -6,7 +6,12 @@
   "scripts": {
     "start": "npx tsx ./src/server.ts",
     "test": "node --import tsx --test --experimental-test-coverage **/*.test.ts",
-    "prepare": "husky && husky install"
+    "prepare": "husky && husky install",
+    "prod": "npm run db:migrate && node dist/server.js",
+    "dev": "npm run db:migrate && npm run db:generate && nodemon -L",
+    "db:migrate": "prisma migrate deploy",
+    "db:make-migrations": "prisma migrate dev",
+    "db:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",

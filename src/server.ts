@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -10,6 +11,7 @@ import http from 'http';
 import { router } from '@router';
 import { specs } from '@utils/swagger';
 
+dotenv.config();
 export const app = express();
 
 // Set up request logger
