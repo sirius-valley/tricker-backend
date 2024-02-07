@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx tsx ./src/server.ts",
-    "test": "node --import tsx --test --experimental-test-coverage **/*.test.ts",
+    "test": "find ./tests -name '*.test.ts' -exec node --import tsx --test {} ';'",
     "prepare": "husky && husky install",
     "prod": "npm run db:migrate && node dist/server.js",
     "dev": "npm run db:migrate && npm run db:generate && nodemon -L",
