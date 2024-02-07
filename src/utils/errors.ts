@@ -18,17 +18,6 @@ export class UnauthorizedException extends HttpException {
   }
 }
 
-export class NotFollowingException extends HttpException {
-  constructor() {
-    super(HttpStatus.BAD_REQUEST, 'You are not following the author');
-  }
-}
-export class SelfFollowException extends HttpException {
-  constructor() {
-    super(HttpStatus.BAD_REQUEST, 'A user cannot follow himself');
-  }
-}
-
 export class ValidationException extends HttpException {
   constructor(errors: object[]) {
     super(HttpStatus.BAD_REQUEST, 'Validation Error', errors);
@@ -38,12 +27,6 @@ export class ValidationException extends HttpException {
 export class ForbiddenException extends HttpException {
   constructor() {
     super(HttpStatus.FORBIDDEN, 'Forbidden. You are not allowed to perform this action');
-  }
-}
-
-export class NotFoundException extends HttpException {
-  constructor(model?: string) {
-    super(HttpStatus.NOT_FOUND, `Not found.${model != null || model !== undefined ? " Couldn't find " + model : ''}`);
   }
 }
 
