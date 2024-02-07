@@ -35,6 +35,6 @@ app.use('/api', router);
 
 app.use(ErrorHandling);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(documentation, { explorer: true }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(documentation as swaggerUi.JsonObject, { explorer: true }));
 
 export default app;
