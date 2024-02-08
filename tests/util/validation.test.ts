@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { validateRequest, ValidationException } from '@utils';
