@@ -24,6 +24,12 @@ export class ValidationException extends HttpException {
   }
 }
 
+export class NotFoundException extends HttpException {
+  constructor(model?: string) {
+    super(HttpStatus.NOT_FOUND, `Not found.${model !== null ? " Couldn't find " + model : ''}`);
+  }
+}
+
 export class ForbiddenException extends HttpException {
   constructor() {
     super(HttpStatus.FORBIDDEN, 'Forbidden. You are not allowed to perform this action');

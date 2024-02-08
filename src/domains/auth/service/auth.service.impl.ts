@@ -1,7 +1,8 @@
-import { type LoginInputDTO, type SignupInputDTO, type TokenDTO, type AuthService } from '@auth';
+import { type UserRepository } from '@domains/user';
 import { ConflictException, UnauthorizedException } from '@utils';
 import { checkPassword, encryptPassword, generateAccessToken } from '@utils/auth';
-import { type UserRepository } from '@user/repository';
+import { type SignupInputDTO, type TokenDTO, type LoginInputDTO } from '../dto';
+import { type AuthService } from './auth.service';
 
 export class AuthServiceImpl implements AuthService {
   constructor(private readonly repository: UserRepository) {}
