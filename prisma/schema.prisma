@@ -32,7 +32,7 @@ model PendingUser {
   projectId        String       @db.Uuid
   status           AuthorizationStatus
   createdAt        DateTime     @default(now())
-  statusUpdatedAt  DateTime
+  statusUpdatedAt  DateTime?   
   
   project          Project      @relation(fields: [projectId], references: [id])
 }
@@ -127,12 +127,12 @@ model WebhookSource {
 }
 
 model TimeTracking {
-  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
   issueId         String        @db.Uuid
   startTime       Float
   endTime         Float
   
-  issue            Issue        @relation(fields: [issueId], references: [id])
+  issue           Issue        @relation(fields: [issueId], references: [id])
 }
 
 model UserProjectRole {
@@ -142,7 +142,7 @@ model UserProjectRole {
   roleId           String       @db.Uuid
   userEmitterId    String       @db.Uuid
   createdAt        DateTime     @default(now())
-  updatedAt        DateTime     
+  updatedAt        DateTime     @default(now())
   deletedAt        DateTime?
   
   project          Project      @relation(fields: [projectId], references: [id])
