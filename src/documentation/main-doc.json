@@ -11,7 +11,7 @@
     }
   ],
   "paths": {
-    "/auth/signup": {
+    "/api/auth/signup": {
       "post": {
         "summary": "User Signup",
         "tags": [
@@ -41,7 +41,7 @@
         }
       }
     },
-    "/auth/signin": {
+    "/api/auth/signin": {
       "post": {
         "summary": "User Signin",
         "tags": [
@@ -71,7 +71,7 @@
         }
       }
     },
-    "/user/me": {
+    "/api/user/me": {
       "get": {
         "summary": "Get user with active session",
         "security": {
@@ -295,7 +295,7 @@
         },
         "example": {
           "code": 404,
-          "message": "User not found",
+          "message": "Couldn't find User",
           "error": {}
         }
       }
