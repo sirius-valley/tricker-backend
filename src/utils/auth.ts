@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import { type Request, type Response } from 'express';
 import { Constants } from '@utils';
 import { UnauthorizedException } from '@utils/errors';
@@ -18,12 +17,4 @@ export const withAuth = (req: Request, res: Response, next: () => any): void => 
     res.locals.context = context;
     next();
   });
-};
-
-export const encryptPassword = async (password: string): Promise<string> => {
-  return await bcrypt.hash(password, 10);
-};
-
-export const checkPassword = async (password: string, hash: string): Promise<boolean> => {
-  return await bcrypt.compare(password, hash);
 };
