@@ -32,7 +32,7 @@ model PendingUser {
   projectId        String       @db.Uuid
   status           AuthorizationStatus
   createdAt        DateTime     @default(now())
-  statusUpdatedAt  DateTime
+  statusUpdatedAt  DateTime?
   
   project          Project      @relation(fields: [projectId], references: [id])
 }
@@ -142,7 +142,7 @@ model UserProjectRole {
   roleId           String       @db.Uuid
   userEmitterId    String       @db.Uuid
   createdAt        DateTime     @default(now())
-  updatedAt        DateTime     
+  updatedAt        DateTime     @default(now())
   deletedAt        DateTime?
   
   project          Project      @relation(fields: [projectId], references: [id])
