@@ -13,7 +13,7 @@ export const withAuth = (req: Request, res: Response, next: () => any): void => 
   if ((bearer ?? '') === '' || (token ?? '') === '' || bearer !== 'Bearer') throw new UnauthorizedException('MISSING_TOKEN');
 
   jwt.verify(token, Constants.TOKEN_SECRET, (err, context) => {
-    if (err == null) throw new UnauthorizedException('INVALID_TOKEN');
+    if (err != null) throw new UnauthorizedException('INVALID_TOKEN');
     res.locals.context = context;
     next();
   });

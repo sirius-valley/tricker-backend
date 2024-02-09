@@ -10,107 +10,66 @@
       "url": "http://localhost:8080"
     }
   ],
-  "paths": {
-    "/api/auth/signup": {
-      "post": {
-        "summary": "User Signup",
-        "tags": [
-          "Authentication"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignupInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenDTO"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/signin": {
-      "post": {
-        "summary": "User Signin",
-        "tags": [
-          "Authentication"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User logged in successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenDTO"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/user/me": {
-      "get": {
-        "summary": "Get user with active session",
-        "security": {
-          "bearerAuth": []
-        },
-        "tags": [
-          "User"
-        ],
-        "responses": {
-          "200": {
-            "description": "The authenticated user has been sent",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDTO"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found exception",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/NotFoundException"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "components": {
-    "securitySchemes": {
+    "securitySchemes": {  
       "bearerAuth": {
-        "type": "HTTP",
+        "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "NotFoundException": {
+        "description": "Not found entity",
+        "content": {
+          "application/json": {
+            "schema":{
+              "code": {
+                "type": "number",
+                "description": "The HTTP error code"
+              },
+              "message": {
+                "type": "string",
+                "description": "The error message"
+              },
+              "error": {
+                "type": "object",
+                "description": "An object where you can set the error code by providing it when it is thrown"
+              }
+            }
+          }
+        },
+        "example": {
+            "message": "Not found. Couldn't find User",
+            "code": 404
+        }
+      },
+      "ValidationException": {
+        "content": {
+          "application/json": {
+            "schema":{
+              "code": {
+                "type": "number",
+                "description": "The HTTP error code"
+              },
+              "message": {
+                "type": "string",
+                "description": "The error message"
+              },
+              "error": {
+                "type": "object",
+                "description": "An object where you can set the error code by providing it when it is thrown"
+              }
+            }
+          }
+        },
+        "example": {
+          "message": "Unauthorized. You must login to access this content.",
+          "code": 401,
+          "errors": {
+            "error_code": "MISSING_TOKEN"
+          }
+        }
       }
     },
     "schemas": {
@@ -155,10 +114,10 @@
           "createdAt"
         ],
         "example": {
-          "id": "awsID",
+          "id": "514b6530-3011-70b9-4701-ea45062a7f38",
           "profileImage": null,
           "projectsRoleAssigned": [],
-          "createdAt": "2023-11-06 18:20:20.755",
+          "createdAt": "2024-02-09T13:37:31.000Z",
           "deletedAt": null,
           "emittedUserProjectRole": []
         }
@@ -271,34 +230,102 @@
           "token"
         ]
       }
-    },
-    "responses": {
-      "NotFoundException": {
-        "description": "Not found entity",
-        "content": {
-          "application/json": {
-            "schema":{
-              "code": {
-                "type": "number",
-                "description": "The HTTP error code"
-              },
-              "message": {
-                "type": "string",
-                "description": "The error message"
-              },
-              "error": {
-                "type": "object",
-                "description": "An object where you can set the error code by providing it when it is thrown"
+    }
+  },
+  "paths": {
+    "/api/auth/signup": {
+      "post": {
+        "summary": "User Signup",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupInputDTO"
               }
             }
           }
         },
-        "example": {
-          "code": 404,
-          "message": "Couldn't find User",
-          "error": {}
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User Signin",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/me": {
+      "get": {
+        "summary": "Get user with active session",
+        "tags": [
+          "User"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "The authenticated user has been sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found exception",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/NotFoundException"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation exception",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/ValidationException"
+                }
+              }
+            }
+          }
         }
       }
     }
   }
+  
 }
