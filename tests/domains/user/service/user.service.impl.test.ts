@@ -30,7 +30,6 @@ describe('user getById tests', () => {
   it('Should successfully get a user by a provided id', async () => {
     const recievedUser: UserDTO = await service.getById('id');
 
-    assert.notEqual(recievedUser, null);
     assert.strictEqual(user.id, recievedUser.id);
     assert.equal(recievedUser.createdAt.toISOString(), user.createdAt.toISOString());
   });
