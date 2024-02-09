@@ -22,7 +22,7 @@ The Tricker backend is a robust and scalable server-side application providing r
 
 ### Prerequisites
 
--   Node.js (version 14 or later)
+-   Node.js (version 20 or later)
 -   npm
 
 ### Installation
@@ -32,7 +32,6 @@ The Tricker backend is a robust and scalable server-side application providing r
     ```bash
     git clone https://github.com/sirius-valley/tricker-backend.git
     cd tricker-backend
-
     ```
 
 2. **Install dependencies**
