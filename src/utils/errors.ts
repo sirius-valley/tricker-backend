@@ -24,6 +24,12 @@ export class ValidationException extends HttpException {
   }
 }
 
+export class NotFoundException extends HttpException {
+  constructor(model?: string) {
+    super(HttpStatus.NOT_FOUND, `Not found.${model !== null ? " Couldn't find " + model : ''}`);
+  }
+}
+
 export class ForbiddenException extends HttpException {
   constructor() {
     super(HttpStatus.FORBIDDEN, 'Forbidden. You are not allowed to perform this action');
@@ -43,7 +49,8 @@ export class InternalServerErrorException extends HttpException {
 }
 
 export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
-  if (error !== undefined) next(error);
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if (!error) next(error);
   if (error instanceof HttpException) {
     if (error.code === HttpStatus.INTERNAL_SERVER_ERROR) {
       Logger.error(error.message);
