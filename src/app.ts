@@ -4,11 +4,9 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 
-import { Constants, NodeEnv } from '@utils';
+import { Constants, NodeEnv, specs } from '@utils';
 import { ErrorHandling } from '@utils/errors';
 import { router } from '@router';
-
-import documentation from './documentation/main-doc.json';
 
 require('express-async-errors');
 
@@ -35,6 +33,6 @@ app.use('/api', router);
 
 app.use(ErrorHandling);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(documentation as swaggerUi.JsonObject, { explorer: true }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs as swaggerUi.JsonObject, { explorer: true }));
 
 export default app;
