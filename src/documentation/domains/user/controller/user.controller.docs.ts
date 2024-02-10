@@ -132,26 +132,7 @@
  *         createdAt: "2023-11-06 18:20:20.755"
  *         updatedAt: "2023-12-06 20:10:20.700"
  *         deletedAt: null
- *     TokenDTO:
- *       type: "object"
- *       properties:
- *         token:
- *           type: "string"
- *       required:
- *         - "token"
  * paths:
- *   /api/auth/login:
- *     post:
- *       summary: "User Signin"
- *       tags:
- *         - "Authentication"
- *       responses:
- *         '200':
- *           description: "User logged in successfully"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/schemas/TokenDTO"
  *   /api/user/me:
  *     get:
  *       summary: "Get user with active session"
