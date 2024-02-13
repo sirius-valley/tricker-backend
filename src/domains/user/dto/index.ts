@@ -1,4 +1,4 @@
-import { type UserProjectRole } from '@utils/classes';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 
 export class UserModel {
   id: string;
@@ -13,10 +13,10 @@ export class UserModel {
 export class UserDTO {
   id: string;
   profileImage: string | null;
-  projectsRoleAssigned: UserProjectRole[];
+  projectsRoleAssigned: UserProjectRoleDTO[];
   createdAt: Date;
   deletedAt: Date | null;
-  emittedUserProjectRole: UserProjectRole[];
+  emittedUserProjectRole: UserProjectRoleDTO[];
 
   constructor(user: UserDTO) {
     this.id = user.id;
