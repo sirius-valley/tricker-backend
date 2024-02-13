@@ -84,7 +84,7 @@
  *         createdAt: "2024-02-09T13:37:31.000Z"
  *         deletedAt: null
  *         emittedUserProjectRole: []
- *     UserProjectRole:
+ *     UserProjectRoleDTO:
  *       type: "object"
  *       properties:
  *         id:

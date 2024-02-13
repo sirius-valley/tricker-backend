@@ -2,7 +2,7 @@ import { type ProjectService } from '@domains/project/service/project.service';
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type UserRepository } from '@domains/user';
-import { ConflictException, db } from '@utils';
+import { ConflictException, db, NotFoundException } from '@utils';
 import { type ProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type PendingUserRepository } from '@domains/pendingUser/repository';
 import { type UserProjectRoleService } from '@domains/userProjectRole/service';
@@ -19,8 +19,9 @@ export class ProjectServiceImpl implements ProjectService {
   async integrateProject(projectId: string, userId: string): Promise<ProjectDTO> {
     const user = await this.userRepository.getById(userId);
     if (user == null) {
-      throw new ConflictException('User id is not valid.');
+      throw new NotFoundException('User');
     }
+    // TO DO: should we add source project id to Project Schema?
     const previousProject = await this.projectRepository.getById(projectId);
     if (previousProject != null) {
       if (previousProject.deletedAt !== null) {
@@ -31,7 +32,7 @@ export class ProjectServiceImpl implements ProjectService {
 
     const projectData: ProjectDataDTO = await this.projectTool.integrateProjectData(projectId, userId);
     const project: ProjectDTO = await db.$transaction(async () => {
-      // TO DO: is it project url necessary?
+      // TO DO: change url prop name to projectImage
       const newProject = await this.projectRepository.create(projectData.projectName, 'url');
       await this.integrateMembers(projectData, newProject.id, userId);
 

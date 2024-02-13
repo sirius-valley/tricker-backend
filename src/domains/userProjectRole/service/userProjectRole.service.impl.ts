@@ -4,7 +4,7 @@ import { type UserProjectRoleRepository } from '@domains/userProjectRole/reposit
 import { type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type RoleRepository } from '@domains/role/repository';
-import { ConflictException } from '@utils';
+import { NotFoundException } from '@utils';
 
 export class UserProjectRoleServiceImpl implements UserProjectRoleService {
   constructor(
@@ -16,13 +16,13 @@ export class UserProjectRoleServiceImpl implements UserProjectRoleService {
 
   async create(userId: string, projectId: string, roleId: string, userEmitterId: string): Promise<UserProjectRoleDTO> {
     const user = await this.userRepository.getById(userId);
-    if (user == null) throw new ConflictException('User id is not correct');
+    if (user == null) throw new NotFoundException('User');
     const project = await this.projectRepository.getById(projectId);
-    if (project == null) throw new ConflictException('Project id is not correct');
+    if (project == null) throw new NotFoundException('Project');
     const role = await this.roleRepository.getById(roleId);
-    if (role == null) throw new ConflictException('Role id is not correct');
+    if (role == null) throw new NotFoundException('Role');
     const userEmitter = await this.userRepository.getById(userEmitterId);
-    if (userEmitter == null) throw new ConflictException('Emitter id is not correct');
+    if (userEmitter == null) throw new NotFoundException('User');
 
     return await this.userProjectRoleRepository.create(userId, projectId, roleId, userEmitterId);
   }

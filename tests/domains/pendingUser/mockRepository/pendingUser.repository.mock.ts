@@ -3,12 +3,17 @@ import { type PendingUserDTO } from '@domains/pendingUser/dto';
 
 export class PendingUserRepositoryMock implements PendingUserRepository {
   async create(email: string, projectId: string): Promise<PendingUserDTO> {
-    await Promise.resolve(undefined);
+    return {
+      id: 'id',
+      email: 'email@mail.com',
+      projectId: 'pid',
+      status: 'PENDING',
+      createdAt: new Date('2023-11-18T19:28:40.065Z'),
+      statusUpdatedAt: null,
+    };
   }
 
   async getByEmailAndProject(email: string, projectId: string): Promise<PendingUserDTO | null> {
-    if (projectId === 'idNull') {
-      return null;
-    }
+    return null;
   }
 }

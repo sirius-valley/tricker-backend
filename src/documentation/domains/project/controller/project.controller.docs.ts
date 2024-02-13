@@ -1,58 +1,43 @@
 /**
  * @swagger
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: "http"
+ *       scheme: "bearer"
+ *       bearerFormat: "JWT"
+ *   responses:
+ *     ConflictException:
+ *       description: "Conflict with data"
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: "object"
+ *             properties:
+ *               code:
+ *                 type: "number"
+ *                 description: "The HTTP error code"
+ *               message:
+ *                 type: "string"
+ *                 description: "The error message"
+ *               error:
+ *                 type: "object"
+ *                 description: "An object where you can set the error code by providing it when it is thrown"
+ *       example:
+ *         message: "Conflict. User already exists"
+ *         code: 409
  *   schemas:
- *     UserProjectRoleDTO:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *         userId:
- *           type: string
- *         projectId:
- *           type: string
- *         roleId:
- *           type: string
- *         userEmitterId:
- *           type: string
- *         createdAt:
- *           type: string
- *           format: date-time
- *         updatedAt:
- *           type: string
- *           format: date-time
- *         deletedAt:
- *           type: string
- *           format: date-time
- *       example:
- *         id: "1"
- *         userId: "1"
- *         projectId: "123"
- *         roleId: "1"
- *         userEmitterId: "2"
- *         createdAt: "2024-02-12T00:00:00Z"
- *         updatedAt: "2024-02-12T12:00:00Z"
- *         deletedAt: null
- *     UserModel:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *         password:
- *           type: string
- *       example:
- *         id: "1"
- *         password: "password123"
  *     RoleDTO:
  *       type: object
  *       properties:
  *         id:
  *           type: string
+ *           format: uuid
  *         name:
  *           type: string
  *       example:
  *         id: "1"
- *         name: "Example Role"
+ *         name: "Project Manager"
  *     AuthorizationStatus:
  *       type: string
  *       enum:
@@ -63,6 +48,7 @@
  *       properties:
  *         id:
  *           type: string
+ *           format: uuid
  *         name:
  *           type: string
  *         url:
@@ -129,4 +115,16 @@
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ProjectDTO'
+ *         '404':
+ *           description: "Not found exception"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/NotFoundException"
+ *         '409':
+ *           description: "Conflict exception"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/ConflictException"
  */
