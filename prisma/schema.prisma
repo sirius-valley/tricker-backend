@@ -11,8 +11,11 @@ datasource db {
 }
 
 model User {
-  id                                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  id                                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cognitoId                         String
   profileImage                      String?
+  email                             String
+  name                              String
   createdAt                         DateTime                    @default(now())
   updatedAt                         DateTime?     
   deletedAt                         DateTime?
@@ -91,7 +94,8 @@ model Stage {
 model Project {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
   name             String
-  url              String
+  providerId       String
+  image            String
   createdAt        DateTime     @default(now())
   deletedAt        DateTime?
 
@@ -105,6 +109,7 @@ model LogWebhooks {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
   statusId         String       @db.Uuid
   sourceId         String       @db.Uuid
+  providerEventId  String
   payload          Json
   createdAt        DateTime     @default(now())
   
@@ -128,9 +133,9 @@ model WebhookSource {
 
 model TimeTracking {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
-  issueId         String        @db.Uuid
-  startTime       Float
-  endTime         Float
+  issueId          String        @db.Uuid
+  startTime        Float
+  endTime          Float
   
   issue            Issue        @relation(fields: [issueId], references: [id])
 }
