@@ -12,6 +12,9 @@ export class UserModel {
 
 export class UserDTO {
   id: string;
+  cognitoId: string;
+  email: string;
+  name: string;
   profileImage: string | null;
   projectsRoleAssigned: UserProjectRoleDTO[];
   createdAt: Date;
@@ -20,6 +23,9 @@ export class UserDTO {
 
   constructor(user: UserDTO) {
     this.id = user.id;
+    this.cognitoId = user.cognitoId;
+    this.email = user.email;
+    this.name = user.name;
     this.projectsRoleAssigned = user.projectsRoleAssigned;
     this.createdAt = user.createdAt;
     this.profileImage = user.profileImage;
