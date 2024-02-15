@@ -35,6 +35,9 @@
  *           format: uuid
  *         name:
  *           type: string
+ *       required:
+ *         - "id"
+ *         - "name"
  *       example:
  *         id: "1"
  *         name: "Project Manager"
@@ -49,20 +52,29 @@
  *         id:
  *           type: string
  *           format: uuid
+ *         providerId: string
  *         name:
  *           type: string
- *         url:
+ *         image:
  *           type: string
+ *           description: project icon url
  *         createdAt:
  *           type: string
  *           format: date-time
  *         deletedAt:
  *           type: string
  *           format: date-time
+ *       required:
+ *         - "id"
+ *         - "providerId"
+ *         - "name"
+ *         - "createdAt"
+ *         - "deletedAt"
  *       example:
  *         id: "123"
+ *         providerId: 'linear_12568'
  *         name: "Example Project"
- *         url: "http://example.com"
+ *         image: "http://exampleImage.com.example"
  *         createdAt: "2024-02-12T00:00:00Z"
  *         deletedAt: "2024-02-12T12:00:00Z"
  *     PendingUserDTO:
@@ -85,6 +97,13 @@
  *         statusUpdatedAt:
  *           type: string
  *           format: date-time
+ *       required:
+ *         - "id"
+ *         - "email"
+ *         - "projectId"
+ *         - "status"
+ *         - "userEmitterId"
+ *         - "createdAt"
  *       example:
  *         id: "1"
  *         email: "example@example.com"

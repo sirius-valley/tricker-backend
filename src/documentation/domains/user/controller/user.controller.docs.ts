@@ -61,6 +61,12 @@
  *           description: "The projects and the roles assigned in those projects"
  *           items:
  *             $ref: "#/components/schemas/UserProjectRole"
+ *         cognitoId:
+ *            type: "string"
+ *         email:
+ *            type: "string"
+ *         name:
+ *            type: "string"
  *         createdAt:
  *           type: "string"
  *           format: "date-time"
@@ -74,11 +80,17 @@
  *             $ref: "#/components/schemas/UserProjectRole"
  *       required:
  *         - "id"
+ *         - "cognitoId"
+ *         - "email"
+ *         - "name"
  *         - "projectsRoleAssigned"
  *         - "emittedUserProjectRole"
  *         - "createdAt"
  *       example:
  *         id: "514b6530-3011-70b9-4701-ea45062a7f38"
+ *         cognitoId: "cognitoID8888"
+ *         email: "mail@mail.com"
+ *         name: "John Doe"
  *         profileImage: null
  *         projectsRoleAssigned: []
  *         createdAt: "2024-02-09T13:37:31.000Z"
