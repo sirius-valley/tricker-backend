@@ -5,10 +5,14 @@ import { type UserRepository } from '@domains/user';
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(id: string): Promise<UserDTO> {
+  async create(id: string, cognitoId: string, email: string, name: string, profileImage: string | null): Promise<UserDTO> {
     const user = await this.db.user.create({
       data: {
         id,
+        cognitoId,
+        email,
+        name,
+        profileImage,
       },
     });
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });

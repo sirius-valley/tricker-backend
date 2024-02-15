@@ -21,7 +21,6 @@ export class ProjectServiceImpl implements ProjectService {
     if (user == null) {
       throw new NotFoundException('User');
     }
-    // TO DO: should we add source project id to Project Schema?
     const previousProject = await this.projectRepository.getById(projectId);
     if (previousProject != null) {
       if (previousProject.deletedAt !== null) {
@@ -32,8 +31,7 @@ export class ProjectServiceImpl implements ProjectService {
 
     const projectData: ProjectDataDTO = await this.projectTool.integrateProjectData(projectId, userId);
     const project: ProjectDTO = await db.$transaction(async () => {
-      // TO DO: change url prop name to projectImage
-      const newProject = await this.projectRepository.create(projectData.projectName, 'url');
+      const newProject: ProjectDTO = await this.projectRepository.create(projectData.projectName, projectId, projectData.image ?? '');
       await this.integrateMembers(projectData, newProject.id, userId);
 
       return newProject;

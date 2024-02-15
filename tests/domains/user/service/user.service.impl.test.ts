@@ -15,6 +15,9 @@ describe('linear adapter tests', () => {
     service = new UserServiceImpl(mockRepository);
     user = new UserDTO({
       id: 'id',
+      cognitoId: 'cogId',
+      email: 'mail@mail.com',
+      name: 'random name',
       profileImage: null,
       projectsRoleAssigned: [],
       createdAt: new Date('2023-11-18T19:28:40.065Z'),

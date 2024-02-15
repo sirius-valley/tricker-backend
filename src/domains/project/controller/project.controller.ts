@@ -26,9 +26,8 @@ const userProjectRole: UserProjectRoleService = new UserProjectRoleServiceImpl(n
 const service = new ProjectServiceImpl(projectTool, projectRepository, userRepository, pendingUserRepository, userProjectRole);
 
 projectRouter.post('/integration/linear', async (req: Request, res: Response) => {
-  // TO DO: See how data is sent to the endpoint. Linear query?
+  // TO DO: See how data is sent to the endpoint. Another endpoint?
   // TO DO: Create body to validate?
-  // TO DO: should email be added to schema?
   const { userId } = res.locals.context;
   const { projectId } = req.body;
 
