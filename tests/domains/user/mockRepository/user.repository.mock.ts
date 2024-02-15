@@ -11,6 +11,9 @@ export class UserRepositoryMock implements UserRepository {
     }
     return new UserDTO({
       id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
       profileImage: null,
       projectsRoleAssigned: [],
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
@@ -20,6 +23,16 @@ export class UserRepositoryMock implements UserRepository {
   }
 
   async create(id: string): Promise<UserDTO> {
-    return new UserDTO({ id: 'id', createdAt: new Date(), projectsRoleAssigned: [], emittedUserProjectRole: [], deletedAt: null, profileImage: null });
+    return new UserDTO({
+      id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
+      createdAt: new Date(),
+      projectsRoleAssigned: [],
+      emittedUserProjectRole: [],
+      deletedAt: null,
+      profileImage: null,
+    });
   }
 }

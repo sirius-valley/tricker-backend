@@ -7,6 +7,7 @@ export class LinearAdapterMock implements ProjectManagementTool {
       projectId: 'idP',
       members: [{ email: 'mockUser@mock.com', role: 'Project Manager' }],
       projectName: 'Tricker',
+      image: 'imageUrl',
     };
   }
 }

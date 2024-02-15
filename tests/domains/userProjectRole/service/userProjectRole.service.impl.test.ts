@@ -32,6 +32,9 @@ describe('Method create userProjectRole tests', () => {
     service = new UserProjectRoleServiceImpl(UPRMockRepository, userMockRepository, projectMockRepository, roleMockRepository);
     user = new UserDTO({
       id: 'userId',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
       profileImage: null,
       projectsRoleAssigned: [],
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
@@ -40,8 +43,9 @@ describe('Method create userProjectRole tests', () => {
     });
     project = new ProjectDTO({
       id: 'idP',
+      providerId: 'pId',
       name: 'Tricker',
-      url: 'url',
+      image: 'url',
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     });

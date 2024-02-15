@@ -44,6 +44,9 @@ describe('Integrate project method tests', () => {
     user = new UserDTO({
       id: 'userId',
       profileImage: null,
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
       projectsRoleAssigned: [],
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
@@ -51,12 +54,13 @@ describe('Integrate project method tests', () => {
     });
     project = new ProjectDTO({
       id: 'idP',
+      providerId: 'pId',
       name: 'Tricker',
-      url: 'url',
+      image: 'url',
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     });
-    projectData = new ProjectDataDTO('idP', [{ email: 'mockUser@mock.com', role: 'Project Manager' }], 'Tricker');
+    projectData = new ProjectDataDTO('idP', [{ email: 'mockUser@mock.com', role: 'Project Manager' }], 'Tricker', null);
     userProjectRole = new UserProjectRoleDTO({
       id: 'idUPR',
       userId: 'userId',
