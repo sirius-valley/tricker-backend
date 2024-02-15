@@ -1,9 +1,7 @@
-import { type SignupInputDTO } from '@domains/auth';
-import { type UserDTO, type UserModel } from '../dto';
+import { type CreateUserIdTokenDTO, type UserDTO } from '../dto';
 
 export interface UserRepository {
-  create: (data: SignupInputDTO) => Promise<UserModel>;
+  create: (data: CreateUserIdTokenDTO) => Promise<UserDTO>;
   getById: (id: string) => Promise<UserDTO | null>;
-  getByEmailOrUsername: (email?: string, username?: string) => Promise<UserModel | null>;
-  getByProviderId: (providerId: string) => Promise<UserModel | null>;
+  getByProviderId: (providerId: string) => Promise<UserDTO | null>;
 }

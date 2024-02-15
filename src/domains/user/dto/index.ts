@@ -1,4 +1,5 @@
 import { type UserProjectRole } from '@utils/classes';
+import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 
 export class UserModel {
   id: string;
@@ -31,5 +32,14 @@ export class UserDTO {
     this.profileImage = user.profileImage;
     this.deletedAt = user.deletedAt;
     this.emittedUserProjectRole = user.emittedUserProjectRole;
+  }
+}
+
+export class CreateUserIdTokenDTO {
+  providerId: string;
+  email: string;
+  constructor(input: CognitoIdTokenPayload) {
+    this.providerId = input.sub;
+    this.email = input['cognito:username'];
   }
 }
