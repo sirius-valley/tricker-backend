@@ -1,13 +1,21 @@
-import { type SignupInputDTO } from '@domains/auth';
 import { type PrismaClient } from '@prisma/client';
 import { type UserModel, UserDTO } from '../dto';
-import { type UserRepository } from './user.repository';
+import { type UserRepository } from '@domains/user';
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(data: SignupInputDTO): Promise<UserModel> {
-    return { id: '', password: '' };
+  async create(id: string, cognitoId: string, email: string, name: string, profileImage: string | null): Promise<UserDTO> {
+    const user = await this.db.user.create({
+      data: {
+        id,
+        cognitoId,
+        email,
+        name,
+        profileImage,
+      },
+    });
+    return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
   }
 
   async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
@@ -18,6 +26,7 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         id,
+        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {

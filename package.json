@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@linear/sdk": "^13.0.0",
     "@prisma/client": "^5.9.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",

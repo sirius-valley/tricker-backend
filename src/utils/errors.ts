@@ -37,8 +37,8 @@ export class ForbiddenException extends HttpException {
 }
 
 export class ConflictException extends HttpException {
-  constructor(errorCode?: string) {
-    super(HttpStatus.CONFLICT, `Conflict`, { error_code: errorCode });
+  constructor(message?: string) {
+    super(HttpStatus.CONFLICT, `Conflict. ${message !== null ? message : ''}`);
   }
 }
 

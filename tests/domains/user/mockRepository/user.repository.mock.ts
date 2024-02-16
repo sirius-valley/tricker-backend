@@ -1,11 +1,6 @@
-import { type SignupInputDTO } from '@domains/auth';
 import { UserDTO, type UserModel, type UserRepository } from '@domains/user';
 
-export class UserMockRepository implements UserRepository {
-  async create(data: SignupInputDTO): Promise<UserModel> {
-    return { id: '', password: '' };
-  }
-
+export class UserRepositoryMock implements UserRepository {
   async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
     return null;
   }
@@ -16,11 +11,28 @@ export class UserMockRepository implements UserRepository {
     }
     return new UserDTO({
       id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
       profileImage: null,
       projectsRoleAssigned: [],
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
       emittedUserProjectRole: [],
+    });
+  }
+
+  async create(id: string): Promise<UserDTO> {
+    return new UserDTO({
+      id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
+      createdAt: new Date(),
+      projectsRoleAssigned: [],
+      emittedUserProjectRole: [],
+      deletedAt: null,
+      profileImage: null,
     });
   }
 }

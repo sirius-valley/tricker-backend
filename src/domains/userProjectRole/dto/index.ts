@@ -1,4 +1,4 @@
-export class UserProjectRole {
+export class UserProjectRoleDTO {
   id: string;
   userId: string;
   projectId: string;
@@ -8,7 +8,7 @@ export class UserProjectRole {
   updatedAt: Date;
   deletedAt: Date | null;
 
-  constructor(userProjectRole: UserProjectRole) {
+  constructor(userProjectRole: UserProjectRoleDTO) {
     this.id = userProjectRole.id;
     this.projectId = userProjectRole.projectId;
     this.userId = userProjectRole.userId;
