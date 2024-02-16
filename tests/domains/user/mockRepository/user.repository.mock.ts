@@ -1,4 +1,4 @@
-import { UserDTO, type UserModel, type UserRepository } from '@domains/user';
+import { type CreateUserIdTokenDTO, UserDTO, type UserModel, type UserRepository } from '@domains/user';
 
 export class UserRepositoryMock implements UserRepository {
   async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
@@ -22,7 +22,7 @@ export class UserRepositoryMock implements UserRepository {
     });
   }
 
-  async create(id: string): Promise<UserDTO> {
+  async create(data: CreateUserIdTokenDTO): Promise<UserDTO> {
     return new UserDTO({
       id: 'id',
       cognitoId: 'cognitoId',
@@ -34,5 +34,9 @@ export class UserRepositoryMock implements UserRepository {
       deletedAt: null,
       profileImage: null,
     });
+  }
+
+  async getByProviderId(providerId: string): Promise<UserDTO | null> {
+    return null;
   }
 }

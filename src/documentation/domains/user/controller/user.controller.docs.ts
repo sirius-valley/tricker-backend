@@ -165,10 +165,50 @@
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/NotFoundException"
- *         '401':
+ *         '400':
  *           description: "Validation exception"
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/ValidationException"
+ *   /api/user/getOrCreate:
+ *     post:
+ *       summary: "Get or create user"
+ *       consumes:
+ *         - "application/json"
+ *       produces:
+ *         - "application/json"
+ *       parameters:
+ *         - in: "body"
+ *           name: "body"
+ *           description: "AWS emitted IdToken"
+ *           required: true
+ *           schema:
+ *             type: "object"
+ *             properties:
+ *               idToken:
+ *                 type: "string"
+ *       responses:
+ *         "200":
+ *           description: "User already exists"
+ *           schema:
+ *             type: "object"
+ *             properties:
+ *               user:
+ *                 $ref: "#/components/schemas/UserDTO"
+ *         "201":
+ *           description: "User created"
+ *           schema:
+ *             type: "object"
+ *             properties:
+ *               user:
+ *                 $ref: "#/components/schemas/UserDTO"
+ *         '400':
+ *           description: "Validation exception"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/ValidationException"
+ *         "500":
+ *           description: "Internal server error"
  */

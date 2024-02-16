@@ -1,25 +1,19 @@
 import { type PrismaClient } from '@prisma/client';
-import { type UserModel, UserDTO } from '../dto';
-import { type UserRepository } from '@domains/user';
+import { type CreateUserIdTokenDTO, UserDTO } from '../dto';
+import { type UserRepository } from './user.repository';
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(id: string, cognitoId: string, email: string, name: string, profileImage: string | null): Promise<UserDTO> {
+  async create(data: CreateUserIdTokenDTO): Promise<UserDTO> {
     const user = await this.db.user.create({
       data: {
-        id,
-        cognitoId,
-        email,
-        name,
-        profileImage,
+        cognitoId: data.providerId,
+        email: data.email,
+        name: data.name,
       },
     });
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
-  }
-
-  async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
-    return null;
   }
 
   async getById(id: string): Promise<UserDTO | null> {
@@ -27,6 +21,28 @@ export class UserRepositoryImpl implements UserRepository {
       where: {
         id,
         deletedAt: null,
+      },
+      include: {
+        projectsRoleAssigned: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        emittedUserProjectRole: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    return userPrisma === null ? null : new UserDTO(userPrisma);
+  }
+
+  async getByProviderId(providerId: string): Promise<UserDTO | null> {
+    const userPrisma = await this.db.user.findUnique({
+      where: {
+        cognitoId: providerId,
       },
       include: {
         projectsRoleAssigned: {

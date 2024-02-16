@@ -1,7 +1,6 @@
-import { type UserDTO, type UserModel } from '../dto';
-
+import { type CreateUserIdTokenDTO, type UserDTO } from '../dto';
 export interface UserRepository {
-  create: (id: string, cognitoId: string, email: string, name: string, profilePicture: string | null) => Promise<UserDTO>;
+  create: (data: CreateUserIdTokenDTO) => Promise<UserDTO>;
   getById: (id: string) => Promise<UserDTO | null>;
-  getByEmailOrUsername: (email?: string, username?: string) => Promise<UserModel | null>;
+  getByProviderId: (providerId: string) => Promise<UserDTO | null>;
 }
