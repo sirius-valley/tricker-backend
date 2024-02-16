@@ -1,7 +1,7 @@
 import { userRouter } from '@domains/user/controller';
-import { withAuth } from '@utils/auth';
+import { withAwsAuth } from '@utils/auth';
 import { Router } from 'express';
 
 export const router = Router();
 
-router.use('/user', withAuth, userRouter);
+router.use('/user', withAwsAuth, userRouter);
