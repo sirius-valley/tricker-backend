@@ -1,5 +1,4 @@
 import { type CreateUserIdTokenDTO, type UserDTO } from '../dto';
-
 export interface UserRepository {
   create: (data: CreateUserIdTokenDTO) => Promise<UserDTO>;
   getById: (id: string) => Promise<UserDTO | null>;
