@@ -17,7 +17,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   // TO DO: after fixing prisma schema image prop will be optional
-  async create(name: string, providerId: string, image: string): Promise<ProjectDTO> {
+  async create(name: string, providerId: string, image: string | null): Promise<ProjectDTO> {
     const project: Project = await this.db.project.create({
       data: {
         name,
