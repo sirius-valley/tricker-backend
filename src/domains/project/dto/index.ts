@@ -2,7 +2,7 @@ export class ProjectDTO {
   id: string;
   name: string;
   providerId: string;
-  image: string;
+  image: string | null;
   createdAt: Date;
   deletedAt: Date | null;
 

@@ -31,7 +31,7 @@ export class ProjectServiceImpl implements ProjectService {
 
     const projectData: ProjectDataDTO = await this.projectTool.integrateProjectData(projectId, userId);
     const project: ProjectDTO = await db.$transaction(async () => {
-      const newProject: ProjectDTO = await this.projectRepository.create(projectData.projectName, projectId, projectData.image ?? '');
+      const newProject: ProjectDTO = await this.projectRepository.create(projectData.projectName, projectId, projectData.image ?? null);
       await this.integrateMembers(projectData, newProject.id, userId);
 
       return newProject;
