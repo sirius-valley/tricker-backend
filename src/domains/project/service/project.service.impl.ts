@@ -1,7 +1,7 @@
 import { type ProjectService } from '@domains/project/service/project.service';
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
 import { type ProjectRepository } from '@domains/project/repository';
-import { type UserRepository } from '@domains/user';
+import { type UserDTO, type UserRepository } from '@domains/user';
 import { ConflictException, db, NotFoundException } from '@utils';
 import { type ProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type PendingUserRepository } from '@domains/pendingUser/repository';
@@ -21,7 +21,7 @@ export class ProjectServiceImpl implements ProjectService {
     if (user == null) {
       throw new NotFoundException('User');
     }
-    const previousProject = await this.projectRepository.getById(projectId);
+    const previousProject = await this.projectRepository.getByProviderId(projectId);
     if (previousProject != null) {
       if (previousProject.deletedAt !== null) {
         throw new ConflictException('Project has been already integrated');
@@ -43,8 +43,7 @@ export class ProjectServiceImpl implements ProjectService {
   private async integrateMembers(projectData: ProjectDataDTO, projectId: string, emitterId: string): Promise<void> {
     const fullyIntegratedUsers = [];
     for (const member of projectData.members) {
-      // TO DO: see if it is better to use email property in user model or make request to cognito to retrieve identity
-      const user = await this.userRepository.getById(member.email);
+      const user: UserDTO | null = await this.userRepository.getById(member.email);
       if (user == null) {
         await this.pendingUserRepository.create(member.email, projectId);
       } else {

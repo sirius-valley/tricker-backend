@@ -4,6 +4,7 @@ import { ConflictException } from '@utils';
 import { type RoleRepository } from '@domains/role/repository';
 import { type LinearClient, type Team, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
+import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 
 export class LinearAdapter implements ProjectManagementTool {
   // TO DO: Check how to connect with Linear (secret or OAuth)
@@ -37,5 +38,50 @@ export class LinearAdapter implements ProjectManagementTool {
     const org = await this.linearClient.organization;
 
     return new ProjectDataDTO(linearProjectId, teamMembers, team.name, org.logoUrl ?? null);
+  }
+
+  async integrateAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
+    const project: Team = await this.linearClient.team(providerProjectId);
+    const issues = await project.issues();
+    const integratedIssuesData: IssueDataDTO[] = [];
+    for (const issue of issues.nodes) {
+      const stage = await issue.state;
+      const creator = await issue.creator;
+      const assignee = await issue.assignee;
+      let priority: Priority;
+      switch (issue.priority) {
+        case 1:
+          priority = 'URGENT';
+          break;
+        case 2:
+          priority = 'HIGH_PRIORITY';
+          break;
+        case 3:
+          priority = 'MEDIUM_PRIORITY';
+          break;
+        case 4:
+          priority = 'LOW_PRIORITY';
+          break;
+        default:
+          priority = 'NO_PRIORITY';
+      }
+
+      integratedIssuesData.push(
+        new IssueDataDTO({
+          providerIssueId: issue.id,
+          authorEmail: creator !== undefined ? creator.email : null,
+          assigneeEmail: assignee !== undefined ? assignee.email : null,
+          providerProjectId,
+          name: issue.identifier,
+          title: issue.title,
+          description: issue.description ?? null,
+          priority,
+          storyPoints: issue.estimate ?? null,
+          stage: stage != null ? stage.name : null,
+        })
+      );
+    }
+
+    return integratedIssuesData;
   }
 }

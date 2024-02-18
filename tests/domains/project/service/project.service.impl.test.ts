@@ -81,7 +81,7 @@ describe('Integrate project method tests', () => {
     mock.method(userMockRepository, 'getById').mock.mockImplementation(() => {
       return user;
     });
-    mock.method(projectMockRepository, 'getById').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
       return null;
     });
     mock.method(mockAdapterTool, 'integrateProjectData').mock.mockImplementation(() => {
@@ -118,7 +118,7 @@ describe('Integrate project method tests', () => {
     mock.method(userMockRepository, 'getById').mock.mockImplementation(async () => {
       return user;
     });
-    mock.method(projectMockRepository, 'getById').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
       return { ...project, deletedAt: new Date('2023-11-18T19:28:40.065Z') };
     });
 
@@ -134,7 +134,7 @@ describe('Integrate project method tests', () => {
     mock.method(userMockRepository, 'getById').mock.mockImplementation(async () => {
       return user;
     });
-    mock.method(projectMockRepository, 'getById').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
       return project;
     });
 

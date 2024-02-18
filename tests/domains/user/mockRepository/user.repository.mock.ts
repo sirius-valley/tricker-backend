@@ -39,4 +39,8 @@ export class UserRepositoryMock implements UserRepository {
   async getByProviderId(providerId: string): Promise<UserDTO | null> {
     return null;
   }
+
+  async getByEmail(email: string): Promise<UserDTO | null> {
+    return null;
+  }
 }

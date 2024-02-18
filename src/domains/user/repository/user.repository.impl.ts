@@ -1,6 +1,6 @@
 import { type PrismaClient } from '@prisma/client';
 import { type CreateUserIdTokenDTO, UserDTO } from '../dto';
-import { type UserRepository } from './user.repository';
+import { type UserRepository } from '@domains/user';
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -20,7 +20,6 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         id,
-        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {
@@ -43,6 +42,28 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         cognitoId: providerId,
+      },
+      include: {
+        projectsRoleAssigned: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        emittedUserProjectRole: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    return userPrisma === null ? null : new UserDTO(userPrisma);
+  }
+
+  async getByEmail(email: string): Promise<UserDTO | null> {
+    const userPrisma = await this.db.user.findFirst({
+      where: {
+        email,
       },
       include: {
         projectsRoleAssigned: {
