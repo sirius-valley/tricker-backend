@@ -48,25 +48,26 @@ model Role {
 }
 
 model Issue {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authorId     String    @db.Uuid
-  assigneeId   String    @db.Uuid
-  projectId    String    @db.Uuid
-  stageId      String    @db.Uuid
-  issueLabelId String    @db.Uuid
-  name         String
-  title        String
-  description  String
-  priority     Priority
-  storyPoints  Int
-  createdAt    DateTime  @default(now())
-  deletedAt    DateTime?
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerIssueId String    @unique
+  authorId        String?   @db.Uuid
+  assigneeId      String?   @db.Uuid
+  projectId       String    @db.Uuid
+  stageId         String?   @db.Uuid
+  issueLabelId    String?   @db.Uuid
+  name            String
+  title           String
+  description     String?
+  priority        Priority
+  storyPoints     Int?
+  createdAt       DateTime  @default(now())
+  deletedAt       DateTime?
 
   project                    Project                     @relation(fields: [projectId], references: [id])
-  author                     User                        @relation(name: "created", fields: [authorId], references: [id])
-  assignee                   User                        @relation(name: "assigned", fields: [assigneeId], references: [id])
-  issueLabel                 IssueLabel                  @relation(fields: [issueLabelId], references: [id])
-  stage                      Stage                       @relation(fields: [stageId], references: [id])
+  author                     User?                        @relation(name: "created", fields: [authorId], references: [id])
+  assignee                   User?                        @relation(name: "assigned", fields: [assigneeId], references: [id])
+  issueLabel                 IssueLabel?                  @relation(fields: [issueLabelId], references: [id])
+  stage                      Stage?                       @relation(fields: [stageId], references: [id])
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
   customFields               IssueCustomFields[]
