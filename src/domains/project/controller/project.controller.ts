@@ -12,6 +12,7 @@ import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repositor
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import HttpStatus from 'http-status';
 import { linearClient } from '@context';
+import axios from 'axios';
 
 require('express-async-errors');
 
@@ -32,6 +33,9 @@ projectRouter.post('/integration/linear', async (req: Request, res: Response) =>
   const { projectId } = req.body;
 
   const project: ProjectDTO = await service.integrateProject(projectId as string, userId as string);
+  await axios.post('http://localhost:8080/api/issues/integrate/linear', {
+    projectId: project.id,
+  });
 
   res.status(HttpStatus.CREATED).json(project);
 });
