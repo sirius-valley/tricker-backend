@@ -25,10 +25,10 @@ export class IssueRepositoryImpl implements IssueRepository {
     return new IssueDTO(issue);
   }
 
-  async getByProviderId(providerId: string): Promise<IssueDTO | null> {
+  async getByProviderId(providerIssueId: string): Promise<IssueDTO | null> {
     const issue: Issue | null = await this.db.issue.findFirst({
       where: {
-        providerId,
+        providerIssueId,
       },
     });
 

@@ -1,6 +1,6 @@
 export class IssueDTO {
   id: string;
-  providerId: string;
+  providerIssueId: string;
   authorId: string | null;
   assigneeId: string | null;
   projectId: string;
@@ -16,7 +16,7 @@ export class IssueDTO {
 
   constructor(issue: IssueDTO) {
     this.id = issue.id;
-    this.providerId = issue.providerId;
+    this.providerIssueId = issue.providerIssueId;
     this.authorId = issue.authorId;
     this.assigneeId = issue.assigneeId;
     this.projectId = issue.projectId;
