@@ -1,15 +1,14 @@
 import { NotFoundException } from '@utils';
-import { CreateUserIdTokenDTO, type UserDTO } from '../dto';
+import { CreateUserIdTokenDTO, type CustomCognitoIdTokenPayload, type UserDTO } from '../dto';
 import { type UserRepository } from '../repository';
 import { type UserService } from './user.service';
 import { verifyIdAwsToken } from '@utils/aws';
-import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 
 export class UserServiceImpl implements UserService {
   constructor(private readonly repository: UserRepository) {}
 
   async getById(id: string): Promise<UserDTO> {
-    const user = await this.repository.getByProviderId(id);
+    const user = await this.repository.getById(id);
     if (user === null) {
       throw new NotFoundException('User');
     }
@@ -26,7 +25,7 @@ export class UserServiceImpl implements UserService {
     return user;
   }
 
-  async createUserWithIdToken(data: CognitoIdTokenPayload): Promise<UserDTO> {
+  async createUserWithIdToken(data: CustomCognitoIdTokenPayload): Promise<UserDTO> {
     return await this.repository.create(new CreateUserIdTokenDTO(data));
   }
 
