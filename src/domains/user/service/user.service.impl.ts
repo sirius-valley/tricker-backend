@@ -9,7 +9,7 @@ export class UserServiceImpl implements UserService {
 
   async getById(id: string): Promise<UserDTO> {
     const user = await this.repository.getById(id);
-    if (user === null) {
+    if (user === null || user.deletedAt != null) {
       throw new NotFoundException('User');
     }
 
@@ -18,7 +18,7 @@ export class UserServiceImpl implements UserService {
 
   async getByProviderUserId(providerUserId: string): Promise<UserDTO> {
     const user = await this.repository.getByProviderId(providerUserId);
-    if (user === null) {
+    if (user === null || user.deletedAt != null) {
       throw new NotFoundException('User');
     }
 
