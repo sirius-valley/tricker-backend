@@ -31,7 +31,10 @@ describe('linear adapter tests', () => {
   });
 
   it('Should successfully get a user by a provided id', async () => {
-    const receivedUser: UserDTO = await service.getById('id');
+    mock.method(mockRepository, 'getByProviderId').mock.mockImplementation(async () => {
+      return user;
+    });
+    const receivedUser: UserDTO = await service.getByProviderUserId('id');
 
     assert.strictEqual(user.id, receivedUser.id);
     assert.equal(receivedUser.createdAt.toISOString(), user.createdAt.toISOString());
@@ -39,7 +42,7 @@ describe('linear adapter tests', () => {
 
   it('Should throw exception when user is null', async () => {
     try {
-      await service.getById('nullId');
+      await service.getByProviderUserId('nullId');
     } catch (error) {
       assert.ok(error instanceof NotFoundException);
     }

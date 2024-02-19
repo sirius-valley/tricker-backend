@@ -9,7 +9,7 @@ export class UserServiceImpl implements UserService {
   constructor(private readonly repository: UserRepository) {}
 
   async getById(id: string): Promise<UserDTO> {
-    const user = await this.repository.getById(id);
+    const user = await this.repository.getByProviderId(id);
     if (user === null) {
       throw new NotFoundException('User');
     }
