@@ -1,6 +1,11 @@
 import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 
+export type CustomCognitoIdTokenPayload = CognitoIdTokenPayload & {
+  name: string;
+  email: string;
+};
+
 export class UserModel {
   id: string;
   password: string;
@@ -40,9 +45,9 @@ export class CreateUserIdTokenDTO {
   email: string;
   name: string;
 
-  constructor(input: CognitoIdTokenPayload) {
+  constructor(input: CustomCognitoIdTokenPayload) {
     this.providerId = input.sub;
-    this.email = input['cognito:username'];
-    this.name = '';
+    this.email = input.email;
+    this.name = input.name;
   }
 }
