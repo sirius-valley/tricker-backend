@@ -15,7 +15,7 @@ const service: UserService = new UserServiceImpl(new UserRepositoryImpl(db));
 
 userRouter.get('/me', async (_req: Request, res: Response): Promise<Response> => {
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
-  const user: UserDTO = await service.getById(sub);
+  const user: UserDTO = await service.getByProviderUserId(sub);
 
   return res.status(HttpStatus.OK).json(user);
 });

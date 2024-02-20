@@ -1,9 +1,8 @@
-import { type UserDTO } from '../dto';
-import type { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
+import { type CustomCognitoIdTokenPayload, type UserDTO } from '../dto';
 
 export interface UserService {
   getById: (id: string) => Promise<UserDTO>;
-  getByProviderUserId: (providerUserId: string) => Promise<UserDTO | null>;
-  createUserWithIdToken: (data: CognitoIdTokenPayload) => Promise<UserDTO>;
+  getByProviderUserId: (providerUserId: string) => Promise<UserDTO>;
+  createUserWithIdToken: (data: CustomCognitoIdTokenPayload) => Promise<UserDTO>;
   getOrCreateUser: (idToken: string) => Promise<{ user: UserDTO; alreadyExists: boolean }>;
 }
