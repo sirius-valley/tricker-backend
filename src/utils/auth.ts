@@ -27,6 +27,7 @@ export const withAwsAuth = async (req: Request, res: Response, next: () => any):
 
   try {
     res.locals.context = await verifyAwsAccessToken(token);
+    next();
   } catch (e) {
     throw new UnauthorizedException('INVALID_TOKEN');
   }
