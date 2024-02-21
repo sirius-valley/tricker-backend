@@ -16,7 +16,7 @@ describe('Linear Adapter tests', () => {
   before(() => {
     mockRepository = new RoleRepositoryMock();
     mockLinearClient = new LinearClient({ apiKey: process.env.LINEAR_SECRET });
-    adapter = new LinearAdapter(mockLinearClient, mockRepository);
+    adapter = new LinearAdapter(mockRepository);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     members = { nodes: [{ id: '1' }, { id: '2' }] };
