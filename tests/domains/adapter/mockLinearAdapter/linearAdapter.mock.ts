@@ -1,5 +1,6 @@
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
-import { type ProjectDataDTO } from '@domains/project/dto';
+import { type ProjectDataDTO, type ProjectPreIntegratedDTO } from '@domains/project/dto';
+import { UnauthorizedException } from '@utils';
 
 export class LinearAdapterMock implements ProjectManagementTool {
   async integrateProjectData(projectId: string, pmId: string): Promise<ProjectDataDTO> {
@@ -10,5 +11,14 @@ export class LinearAdapterMock implements ProjectManagementTool {
       image: 'imageUrl',
       stages: [],
     };
+  }
+
+  async getProjects(key: string | undefined): Promise<ProjectPreIntegratedDTO[]> {
+    return [];
+  }
+
+  validateSecret(secret: string | undefined): void {
+    if (secret === '' || secret === undefined) throw new UnauthorizedException(undefined, 'MISSING_SECRET');
+    if (!secret.startsWith('lin_api_')) throw new UnauthorizedException(undefined, 'NOT_VALID_SECRET');
   }
 }

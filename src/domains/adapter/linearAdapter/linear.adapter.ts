@@ -1,14 +1,23 @@
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
-import { ProjectDataDTO, UserRole } from '@domains/project/dto';
-import { ConflictException } from '@utils';
+import { ProjectDataDTO, ProjectPreIntegratedDTO, UserRole } from '@domains/project/dto';
+import { ConflictException, UnauthorizedException } from '@utils';
 import { type RoleRepository } from '@domains/role/repository';
-import { LinearClient, type Organization, type Team, type User, type UserConnection } from '@linear/sdk';
+import { LinearClient, type Organization, type Team, type TeamConnection, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
 import process from 'process';
 
 export class LinearAdapter implements ProjectManagementTool {
-  // TO DO: Check how to connect with Linear (secret or OAuth)
   constructor(private readonly roleRepository: RoleRepository) {}
+
+  async getProjects(linearKey: string | undefined): Promise<ProjectPreIntegratedDTO[]> {
+    const linearClient = new LinearClient({
+      apiKey: linearKey,
+    });
+
+    const teams: TeamConnection = await linearClient.teams();
+    const workspace: Organization = await linearClient.organization;
+    return teams.nodes.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? undefined }));
+  }
 
   async integrateProjectData(linearProjectId: string, pmEmail: string): Promise<ProjectDataDTO> {
     const linearClient = new LinearClient({
@@ -39,5 +48,10 @@ export class LinearAdapter implements ProjectManagementTool {
     const org: Organization = await linearClient.organization;
 
     return new ProjectDataDTO(linearProjectId, teamMembers, team.name, stages, org.logoUrl ?? null);
+  }
+
+  validateSecret(secret: string | undefined): void {
+    if (secret === '' || secret === undefined) throw new UnauthorizedException(undefined, 'MISSING_SECRET');
+    if (!secret.startsWith('lin_api_')) throw new UnauthorizedException(undefined, 'NOT_VALID_SECRET');
   }
 }

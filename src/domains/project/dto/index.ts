@@ -1,3 +1,5 @@
+import { IsString } from 'class-validator';
+
 export class ProjectDTO {
   id: string;
   name: string;
@@ -13,6 +15,18 @@ export class ProjectDTO {
     this.image = project.image;
     this.createdAt = project.createdAt;
     this.deletedAt = project.deletedAt;
+  }
+}
+
+export class ProjectPreIntegratedDTO {
+  providerProjectId: string;
+  name: string;
+  image: string | undefined;
+
+  constructor(project: ProjectPreIntegratedDTO) {
+    this.providerProjectId = project.providerProjectId;
+    this.image = project.image;
+    this.name = project.name;
   }
 }
 
@@ -40,4 +54,12 @@ export class UserRole {
     this.email = userRole.email;
     this.role = userRole.role;
   }
+}
+
+export class ProviderSecretDTO {
+  @IsString()
+  secret!: string;
+
+  @IsString()
+  provider!: string;
 }

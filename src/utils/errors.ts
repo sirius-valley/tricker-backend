@@ -13,8 +13,8 @@ abstract class HttpException extends Error {
 }
 
 export class UnauthorizedException extends HttpException {
-  constructor(errorCode?: string) {
-    super(HttpStatus.UNAUTHORIZED, `Unauthorized. You must login to access this content.`, { error_code: errorCode });
+  constructor(errorCode?: string, message?: string) {
+    super(HttpStatus.UNAUTHORIZED, message ?? `Unauthorized. You must login to access this content.`, { error_code: errorCode });
   }
 }
 

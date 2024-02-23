@@ -12,9 +12,12 @@ import { UserProjectRoleRepositoryMock } from '../../userProjectRole/mockReposit
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 import { type UserProjectRoleService, UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserRepositoryMock } from '../../user/mockRepository/user.repository.mock';
-import { ProjectDataDTO, ProjectDTO } from '@domains/project/dto';
+import { ProjectDataDTO, ProjectDTO, type ProjectPreIntegratedDTO } from '@domains/project/dto';
 import { UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 import { ProjectRepositoryMock } from '../mockRepository/project.repository.mock';
+import { type ManagementProviderRepository } from '@domains/managementProvider/repository';
+import { ManagementProviderRepositoryMock } from '../../managementProvider/mockRepository/managementProvider.repository.mock';
+import { ManagementProviderDTO } from '@domains/managementProvider/dto';
 
 let userMockRepository: UserRepository;
 let roleMockRepository: RoleRepository;
@@ -27,8 +30,10 @@ let user: UserDTO;
 let project: ProjectDTO;
 let projectData: ProjectDataDTO;
 let userProjectRole: UserProjectRoleDTO;
+let managementProviderRepository: ManagementProviderRepository;
+let managementProvider: ManagementProviderDTO;
 
-describe('Integrate project method tests', () => {
+describe('Project service', () => {
   before(() => {
     userMockRepository = new UserRepositoryMock();
     roleMockRepository = new RoleRepositoryMock();
@@ -36,7 +41,8 @@ describe('Integrate project method tests', () => {
     mockAdapterTool = new LinearAdapterMock();
     projectMockRepository = new ProjectRepositoryMock();
     userProjectRoleService = new UserProjectRoleServiceImpl(UPRMockRepository, userMockRepository, projectMockRepository, roleMockRepository);
-    service = new ProjectServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository);
+    managementProviderRepository = new ManagementProviderRepositoryMock();
+    service = new ProjectServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, managementProviderRepository);
     user = new UserDTO({
       id: 'userId',
       profileImage: null,
@@ -67,78 +73,154 @@ describe('Integrate project method tests', () => {
       updatedAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     });
+    managementProvider = new ManagementProviderDTO({
+      id: 'mpId',
+      name: 'Linear',
+    });
   });
 
   beforeEach(() => {
     mock.restoreAll();
   });
 
-  it('Should successfully integrate a project to tricker', async () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(() => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return null;
-    });
-    mock.method(mockAdapterTool, 'integrateProjectData').mock.mockImplementation(() => {
-      return projectData;
-    });
-    mock.method(userProjectRoleService, 'create').mock.mockImplementation(() => {
-      return userProjectRole;
-    });
-    mock.method(db, '$transaction').mock.mockImplementation(() => {
-      return project;
+  describe('retrieveProjectsFromProvider method', () => {
+    it('should successfully retrieve a projects list', async () => {
+      mock.method(managementProviderRepository, 'getByName').mock.mockImplementation(async () => {
+        return managementProvider;
+      });
+      mock.method(mockAdapterTool, 'validateSecret').mock.mockImplementation(() => {});
+      mock.method(mockAdapterTool, 'getProjects').mock.mockImplementation(async () => {
+        return [{ providerProjectId: 'ppID', image: undefined, name: 'Tricker' }];
+      });
+
+      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: undefined, name: 'Tricker' }];
+      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider('Linear', 'mock_secret');
+
+      assert.strictEqual(expected[0].providerProjectId, received[0].providerProjectId);
+      assert.equal(received.length, 1);
     });
 
-    const expectedProject: ProjectDTO = project;
-    const receivedProject: ProjectDTO = await service.integrateProject('id', 'idE');
+    it('should throw an error when the manager provider name is not supported', async () => {
+      mock.method(managementProviderRepository, 'getByName').mock.mockImplementation(async () => {
+        return null;
+      });
 
-    assert.strictEqual(expectedProject.id, receivedProject.id);
-    assert.equal(receivedProject.createdAt.toISOString(), expectedProject.createdAt.toISOString());
+      await assert.rejects(
+        async () => {
+          await service.retrieveProjectsFromProvider('NotExistingProvider', 'mock_secret');
+        },
+        { message: "Not found. Couldn't find ManagementProvider" }
+      );
+    });
+
+    it('should throw an error when the sent secret is undefined', async () => {
+      mock.method(managementProviderRepository, 'getByName').mock.mockImplementation(async () => {
+        return managementProvider;
+      });
+
+      await assert.rejects(
+        async () => {
+          await service.retrieveProjectsFromProvider('Linear', undefined);
+        },
+        { message: 'MISSING_SECRET' }
+      );
+    });
+
+    it('should throw an error when the sent secret is an empty string', async () => {
+      mock.method(managementProviderRepository, 'getByName').mock.mockImplementation(async () => {
+        return managementProvider;
+      });
+
+      await assert.rejects(
+        async () => {
+          await service.retrieveProjectsFromProvider('Linear', '');
+        },
+        { message: 'MISSING_SECRET' }
+      );
+    });
+
+    it('should throw an error when the sent secret is not valid', async () => {
+      mock.method(managementProviderRepository, 'getByName').mock.mockImplementation(async () => {
+        return managementProvider;
+      });
+
+      await assert.rejects(
+        async () => {
+          await service.retrieveProjectsFromProvider('Linear', 'not_valid_Secret');
+        },
+        { message: 'NOT_VALID_SECRET' }
+      );
+    });
   });
 
-  it('Should throw exception when user is null', async () => {
-    mock.method(userMockRepository, 'getById').mock.mockImplementation(() => {
-      return null;
+  describe('Integrate project method tests', () => {
+    it('Should successfully integrate a project to tricker', async () => {
+      mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(() => {
+        return user;
+      });
+      mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+        return null;
+      });
+      mock.method(mockAdapterTool, 'integrateProjectData').mock.mockImplementation(() => {
+        return projectData;
+      });
+      mock.method(userProjectRoleService, 'create').mock.mockImplementation(() => {
+        return userProjectRole;
+      });
+      mock.method(db, '$transaction').mock.mockImplementation(() => {
+        return project;
+      });
+
+      const expectedProject: ProjectDTO = project;
+      const receivedProject: ProjectDTO = await service.integrateProject('id', 'idE');
+
+      assert.strictEqual(expectedProject.id, receivedProject.id);
+      assert.equal(receivedProject.createdAt.toISOString(), expectedProject.createdAt.toISOString());
     });
 
-    await assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: "Not found. Couldn't find User" }
-    );
-  });
+    it('Should throw exception when user is null', async () => {
+      mock.method(userMockRepository, 'getById').mock.mockImplementation(() => {
+        return null;
+      });
 
-  it('Should throw exception when project has already been integrated', () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return project;
+      await assert.rejects(
+        async () => {
+          await service.integrateProject('8', 'idNull');
+        },
+        { message: "Not found. Couldn't find User" }
+      );
     });
 
-    assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: 'Conflict. Project has been already integrated' }
-    );
-  });
+    it('Should throw exception when project has already been integrated', () => {
+      mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
+        return user;
+      });
+      mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+        return project;
+      });
 
-  it('Should throw exception when project is inactive', () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return { ...project, deletedAt: new Date('2023-11-18T19:28:40.065Z') };
+      assert.rejects(
+        async () => {
+          await service.integrateProject('8', 'idNull');
+        },
+        { message: 'Conflict. Project has been already integrated' }
+      );
     });
 
-    assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: 'Conflict. Project is currently inactive. Please, re-active it if you need' }
-    );
+    it('Should throw exception when project is inactive', () => {
+      mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
+        return user;
+      });
+      mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
+        return { ...project, deletedAt: new Date('2023-11-18T19:28:40.065Z') };
+      });
+
+      assert.rejects(
+        async () => {
+          await service.integrateProject('8', 'idNull');
+        },
+        { message: 'Conflict. Project is currently inactive. Please, re-active it if you need' }
+      );
+    });
   });
 });
