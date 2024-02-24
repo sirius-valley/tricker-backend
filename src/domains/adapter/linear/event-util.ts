@@ -58,6 +58,14 @@ export const filterRelationChanges = (event: IssueHistory): IssueRelationHistory
   }
 };
 
+export const getCommentForBlockEvent = (action: string, blockType: string, identifier: string): string => {
+  if (action === LinearActionTypeConvention.ADD) {
+    return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by ${identifier}` : `Blocking to ${identifier}`;
+  } else {
+    return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `No longer blocked by ${identifier}` : `No longer blocking to ${identifier}`;
+  }
+};
+
 export const createBlockEvent = (action: string, blockType: string, identifier: string, event: IssueHistory, issue: Issue): BlockEventInput => {
   const reason = action === LinearActionTypeConvention.ADD ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Block by other ticket` : 'Blocking other ticket') : `-`;
 
@@ -72,12 +80,4 @@ export const createBlockEvent = (action: string, blockType: string, identifier: 
     type, // do not know how to get rid of ! op
     userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
   });
-};
-
-export const getCommentForBlockEvent = (action: string, blockType: string, identifier: string): string => {
-  if (action === LinearActionTypeConvention.ADD) {
-    return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by ${identifier}` : `Blocking to ${identifier}`;
-  } else {
-    return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `No longer blocked by ${identifier}` : `No longer blocking to ${identifier}`;
-  }
 };
