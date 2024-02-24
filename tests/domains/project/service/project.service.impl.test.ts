@@ -3,40 +3,31 @@ import assert from 'node:assert';
 import { db } from '@utils';
 import { UserDTO, type UserRepository } from '@domains/user';
 import { type RoleRepository } from '@domains/role/repository';
-import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
 import { RoleRepositoryMock } from '../../role/mockRepository/role.repository.mock';
-import { UserProjectRoleRepositoryMock } from '../../userProjectRole/mockRepository/userProjectRole.repository.mock';
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
-import { type UserProjectRoleService, UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserRepositoryMock } from '../../user/mockRepository/user.repository.mock';
 import { ProjectDataDTO, ProjectDTO } from '@domains/project/dto';
-import { UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 import { ProjectRepositoryMock } from '../mockRepository/project.repository.mock';
 
 let userMockRepository: UserRepository;
 let roleMockRepository: RoleRepository;
-let UPRMockRepository: UserProjectRoleRepository;
 let projectMockRepository: ProjectRepository;
 let mockAdapterTool: ProjectManagementTool;
-let userProjectRoleService: UserProjectRoleService;
 let service: ProjectService;
 let user: UserDTO;
 let project: ProjectDTO;
 let projectData: ProjectDataDTO;
-let userProjectRole: UserProjectRoleDTO;
 
 describe('Integrate project method tests', () => {
   before(() => {
     userMockRepository = new UserRepositoryMock();
     roleMockRepository = new RoleRepositoryMock();
-    UPRMockRepository = new UserProjectRoleRepositoryMock();
     mockAdapterTool = new LinearAdapterMock();
     projectMockRepository = new ProjectRepositoryMock();
-    userProjectRoleService = new UserProjectRoleServiceImpl(UPRMockRepository, userMockRepository, projectMockRepository, roleMockRepository);
-    service = new ProjectServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository);
+    service = new ProjectServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, roleMockRepository);
     user = new UserDTO({
       id: 'userId',
       profileImage: null,
@@ -56,8 +47,8 @@ describe('Integrate project method tests', () => {
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     });
-    projectData = new ProjectDataDTO('idP', [{ email: 'mockUser@mock.com', role: 'Project Manager' }], 'Tricker', [], null);
-    userProjectRole = new UserProjectRoleDTO({
+    projectData = new ProjectDataDTO('idP', [{ email: 'mockUser@mock.com', role: 'Project Manager' }], 'Tricker', [], [], null);
+    /* userProjectRole = new UserProjectRoleDTO({
       id: 'idUPR',
       userId: 'userId',
       projectId: 'idP',
@@ -66,7 +57,7 @@ describe('Integrate project method tests', () => {
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       updatedAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
-    });
+    }); */
   });
 
   beforeEach(() => {
@@ -82,9 +73,6 @@ describe('Integrate project method tests', () => {
     });
     mock.method(mockAdapterTool, 'integrateProjectData').mock.mockImplementation(() => {
       return projectData;
-    });
-    mock.method(userProjectRoleService, 'create').mock.mockImplementation(() => {
-      return userProjectRole;
     });
     mock.method(db, '$transaction').mock.mockImplementation(() => {
       return project;

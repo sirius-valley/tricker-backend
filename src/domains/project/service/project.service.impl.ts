@@ -6,19 +6,21 @@ import { ConflictException, db, NotFoundException } from '@utils';
 import { type ProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { RoleRepositoryImpl } from '@domains/role/repository';
+import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { PendingUserRepositoryImpl } from '@domains/pendingUser/repository';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { StageServiceImpl } from '@domains/stage/service';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
+import type { RoleDTO } from '@domains/role/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
     private readonly projectTool: ProjectManagementTool,
     private readonly projectRepository: ProjectRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly roleRepository: RoleRepository
   ) {}
 
   async integrateProject(projectId: string, userId: string): Promise<ProjectDTO> {
@@ -40,6 +42,7 @@ export class ProjectServiceImpl implements ProjectService {
       const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, projectData.image ?? null);
       await this.integrateMembers(projectData, newProject.id, user.id, db);
       await this.integrateStages(newProject.id, projectData.stages, db);
+      // await this.integrateLabels(newProject.id, projectData.labels, db);
 
       return newProject;
     });
@@ -52,10 +55,14 @@ export class ProjectServiceImpl implements ProjectService {
     const pendingUserRepository: PendingUserRepositoryImpl = new PendingUserRepositoryImpl(db);
     for (const member of projectData.members) {
       const user: UserDTO | null = await this.userRepository.getByEmail(member.email);
-      if (user == null) {
+      let role: RoleDTO | null = await this.roleRepository.getByName(member.role);
+      if (role === null) {
+        role = await this.roleRepository.create(member.role);
+      }
+      if (user === null) {
         await pendingUserRepository.create(member.email, projectId);
       } else {
-        fullyIntegratedUsers.push({ ...user, role: member.role });
+        fullyIntegratedUsers.push({ ...user, role: role.id });
       }
     }
     const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(db), new UserRepositoryImpl(db), new ProjectRepositoryImpl(db), new RoleRepositoryImpl(db));
@@ -68,7 +75,7 @@ export class ProjectServiceImpl implements ProjectService {
     const stageService: StageServiceImpl = new StageServiceImpl(new StageRepositoryImpl(db));
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(db);
     for (const stage of stages) {
-      const stageId = (await stageService.getOrCreate(stage)).id;
+      const stageId: string = (await stageService.getOrCreate(stage)).id;
       await projectStageRepository.create(projectId, stageId);
     }
   }
