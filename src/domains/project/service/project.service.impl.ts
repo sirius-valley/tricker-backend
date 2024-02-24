@@ -14,6 +14,8 @@ import { StageServiceImpl } from '@domains/stage/service';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
 import type { RoleDTO } from '@domains/role/dto';
+import { type LabelDataDTO } from '@domains/label/dto';
+import { LabelRepositoryImpl } from '@domains/label/repository';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
@@ -77,6 +79,13 @@ export class ProjectServiceImpl implements ProjectService {
     for (const stage of stages) {
       const stageId: string = (await stageService.getOrCreate(stage)).id;
       await projectStageRepository.create(projectId, stageId);
+    }
+  }
+
+  private async integrateLabels(projectId: string, labels: LabelDataDTO[], db: Omit<PrismaClient, ITXClientDenyList>): Promise<void> {
+    const labelRepository = new LabelRepositoryImpl(db);
+    for (const label of labels) {
+      await labelRepository.create(label.name, label.providerId, projectId);
     }
   }
 }
