@@ -64,10 +64,10 @@ model Issue {
   deletedAt       DateTime?
 
   project                    Project                     @relation(fields: [projectId], references: [id])
-  author                     User?                        @relation(name: "created", fields: [authorId], references: [id])
-  assignee                   User?                        @relation(name: "assigned", fields: [assigneeId], references: [id])
-  issueLabel                 IssueLabel?                  @relation(fields: [issueLabelId], references: [id])
-  stage                      Stage?                       @relation(fields: [stageId], references: [id])
+  author                     User?                       @relation(name: "created", fields: [authorId], references: [id])
+  assignee                   User?                       @relation(name: "assigned", fields: [assigneeId], references: [id])
+  issueLabel                 IssueLabel?                 @relation(fields: [issueLabelId], references: [id])
+  stage                      Stage?                      @relation(fields: [stageId], references: [id])
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
   customFields               IssueCustomFields[]
@@ -165,13 +165,15 @@ model IssueLabel {
 }
 
 model BlockerStatusModification {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId String    @db.Uuid
-  issueId       String    @db.Uuid
-  status        BlockType
-  createdAt     DateTime  @default(now())
-  reason        String
-  comment       String
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerEventId   String    @unique
+  userEmitterId     String    @db.Uuid
+  issueId           String    @db.Uuid
+  status            BlockType
+  eventRegisteredAt DateTime?
+  createdAt         DateTime  @default(now())
+  reason            String
+  comment           String
 
   issue       Issue @relation(fields: [issueId], references: [id])
   userEmitter User  @relation(name: "BlockerStatusModification_emitter", fields: [userEmitterId], references: [id])
@@ -190,13 +192,15 @@ model ManualTimeModification {
 }
 
 model IssueChangeLog {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId String   @db.Uuid
-  issueId       String   @db.Uuid
-  field         String
-  from          String
-  to            String
-  createdAt     DateTime @default(now())
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerEventId   String    @unique
+  userEmitterId     String    @db.Uuid
+  issueId           String    @db.Uuid
+  field             String
+  from              String?
+  to                String?
+  eventRegisteredAt DateTime?
+  createdAt         DateTime  @default(now())
 
   userEmitter User  @relation(name: "IssueChangeLog_emitter", fields: [userEmitterId], references: [id])
   issue       Issue @relation(fields: [issueId], references: [id])
