@@ -33,6 +33,7 @@ export class ProjectServiceImpl implements ProjectService {
       }
       throw new ConflictException('Project is currently inactive. Please, re-active it if you need');
     }
+
     const projectData: ProjectDataDTO = await this.projectTool.integrateProjectData(projectId, user.email);
     const project: ProjectDTO = await db.$transaction(async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
       const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
