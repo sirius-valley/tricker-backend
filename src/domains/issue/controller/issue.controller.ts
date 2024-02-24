@@ -5,11 +5,12 @@ import { db } from '@utils';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { UserRepositoryImpl } from '@domains/user';
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
-import { LinearAdapter } from '@domains/adapter/linearAdapter/linear.adapter';
+import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { linearClient } from '@context';
 import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
 import HttpStatus from 'http-status';
 import { type IssueDTO } from '@domains/issue/dto';
+import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
 
 require('express-async-errors');
 
@@ -18,7 +19,8 @@ const issueRepository: IssueRepository = new IssueRepositoryImpl(db);
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepositoryImpl = new UserRepositoryImpl(db);
 const roleRepository: RoleRepository = new RoleRepositoryImpl(db);
-const adapter: ProjectManagementTool = new LinearAdapter(linearClient, roleRepository);
+const eventRepository: EventRepository = new EventRepositoryImpl(db);
+const adapter: ProjectManagementTool = new LinearAdapter(linearClient, roleRepository, eventRepository);
 const issueService: IssueServiceImpl = new IssueServiceImpl(adapter, issueRepository, projectRepository, userRepository);
 
 issueRouter.post('/integrate/linear', async (req: Request, res: Response) => {
