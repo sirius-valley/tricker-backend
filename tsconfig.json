@@ -1,17 +1,22 @@
 {
+  "ts-node": {
+    // Do not forget to `npm install tsc-alias tsconfig-paths --save-dev`
+    "require": ["tsconfig-paths/register"]
+  },
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "target": "ES2022",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./src",
-    "rootDir": "./src",
+    "rootDirs": ["src", "tests"],
     "moduleResolution": "node",
     "incremental": true,
     "skipLibCheck": true,
@@ -25,6 +30,6 @@
     }
   },
   "lib": ["es2022"],
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/*", "tests/**/*", "tests/*"],
   "exclude": ["node_modules"]
 }
