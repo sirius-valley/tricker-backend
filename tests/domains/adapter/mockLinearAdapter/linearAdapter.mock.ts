@@ -16,4 +16,8 @@ export class LinearAdapterMock implements ProjectManagementTool {
   async integrateAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
     return await Promise.resolve([]);
   }
+
+  async integrateIssueEvents(providerIssueId: string): Promise<void> {
+    await Promise.resolve(undefined);
+  }
 }
