@@ -65,8 +65,8 @@ export class IssueChangeLogDTO {
   field: string;
   from?: string;
   to?: string;
-  eventRegisteredAt?: string;
-  createdAt: string;
+  eventRegisteredAt?: Date;
+  createdAt: Date;
 
   constructor(input: IssueChangeLogDTO) {
     this.id = input.id;
@@ -87,8 +87,8 @@ export class BlockerStatusModificationDTO {
   userEmitterId: string;
   issueId: string;
   status: string;
-  eventRegisteredAt?: string;
-  createdAt: string;
+  eventRegisteredAt?: Date;
+  createdAt: Date;
   reason: string;
   comment: string;
 
