@@ -5,11 +5,28 @@ import { type RoleRepository } from '@domains/role/repository';
 import { LinearClient, type Organization, type Team, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
+import { processIssueEvents } from '@domains/adapter/linear/util';
+import { type EventRepository } from '@domains/event/repository/event.repository';
+import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
 
 export class LinearAdapter implements ProjectManagementTool {
   // TO DO: Check how to connect with Linear (secret or OAuth)
-  constructor(private readonly roleRepository: RoleRepository) {}
+  constructor(
+    private readonly linearClient: LinearClient,
+    private readonly roleRepository: RoleRepository,
+    private readonly eventRepository: EventRepository
+  ) {}
+
+  async integrateIssueEvents(linearIssueId: string): Promise<void> {
+    const issue = await this.linearClient.issue(linearIssueId);
+    const events = await processIssueEvents(issue);
+
+    for (const event of events) {
+      if (event instanceof ChangeScalarEventInput) await this.eventRepository.createIssueChangeLog(event);
+      if (event instanceof BlockEventInput) await this.eventRepository.createIssueBlockEvent(event);
+    }
+  }
 
   async integrateProjectData(linearProjectId: string, pmEmail: string): Promise<ProjectDataDTO> {
     const linearClient = new LinearClient({
