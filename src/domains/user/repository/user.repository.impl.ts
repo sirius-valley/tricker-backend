@@ -1,9 +1,10 @@
 import { type PrismaClient } from '@prisma/client';
 import { type CreateUserIdTokenDTO, UserDTO } from '../dto';
 import { type UserRepository } from '@domains/user';
+import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class UserRepositoryImpl implements UserRepository {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   async create(data: CreateUserIdTokenDTO): Promise<UserDTO> {
     const user = await this.db.user.create({

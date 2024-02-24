@@ -21,12 +21,14 @@ export class ProjectDataDTO {
   members: UserRole[];
   projectName: string;
   image: string | null;
+  stages: string[];
 
-  constructor(projectId: string, members: UserRole[], name: string, image: string | null) {
+  constructor(projectId: string, members: UserRole[], name: string, stages: string[], image: string | null) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;
     this.image = image;
+    this.stages = stages;
   }
 }
 

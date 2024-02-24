@@ -2,21 +2,23 @@ import { type ProjectManagementTool } from '@domains/adapter/projectManagementTo
 import { ProjectDataDTO, UserRole } from '@domains/project/dto';
 import { ConflictException } from '@utils';
 import { type RoleRepository } from '@domains/role/repository';
-import { type LinearClient, type Team, type User, type UserConnection } from '@linear/sdk';
+import { LinearClient, type Organization, type Team, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
+import process from 'process';
 
 export class LinearAdapter implements ProjectManagementTool {
   // TO DO: Check how to connect with Linear (secret or OAuth)
-  constructor(
-    private readonly linearClient: LinearClient,
-    private readonly roleRepository: RoleRepository
-  ) {}
+  constructor(private readonly roleRepository: RoleRepository) {}
 
-  async integrateProjectData(linearProjectId: string, pmId: string): Promise<ProjectDataDTO> {
-    const team: Team = await this.linearClient.team(linearProjectId);
+  async integrateProjectData(linearProjectId: string, pmEmail: string): Promise<ProjectDataDTO> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+    const team: Team = await linearClient.team(linearProjectId);
     const members: UserConnection = await team.members();
-    const pm: User | undefined = members.nodes.find((member) => member.id === pmId);
+    const stages: string[] = (await team.states()).nodes.map((stage) => stage.name);
+    const pm: User | undefined = members.nodes.find((member) => member.email === pmEmail);
     if (pm == null) {
       throw new ConflictException('Provided Project Manager ID not correct.');
     }
@@ -31,17 +33,20 @@ export class LinearAdapter implements ProjectManagementTool {
     let role: string;
     const teamMembers: UserRole[] = members.nodes.map((member) => {
       if (pmRole != null && dev != null) {
-        role = member.id === pmId ? pmRole.id : dev.id;
+        role = member.email === pmEmail ? pmRole.id : dev.id;
       }
       return new UserRole({ email: member.email, role });
     });
-    const org = await this.linearClient.organization;
+    const org: Organization = await linearClient.organization;
 
-    return new ProjectDataDTO(linearProjectId, teamMembers, team.name, org.logoUrl ?? null);
+    return new ProjectDataDTO(linearProjectId, teamMembers, team.name, stages, org.logoUrl ?? null);
   }
 
   async integrateAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
-    const project: Team = await this.linearClient.team(providerProjectId);
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+    const project: Team = await linearClient.team(providerProjectId);
     const issues = await project.issues();
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues.nodes) {
