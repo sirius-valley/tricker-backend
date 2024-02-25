@@ -27,6 +27,53 @@
  *         message: "Conflict. User already exists"
  *         code: 409
  *   schemas:
+ *     ManagementProviderDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *       required:
+ *         - id
+ *         - name
+ *       example:
+ *         id: "1"
+ *         name: "Example Provider"
+ *     ProjectPreIntegratedDTO:
+ *       type: object
+ *       properties:
+ *         providerProjectId:
+ *           type: string
+ *           description: ID of the project in the provider's system
+ *         name:
+ *           type: string
+ *           description: Name of the project
+ *         image:
+ *           type: string
+ *           description: URL of the project's image (if available)
+ *       required:
+ *         - providerProjectId
+ *         - name
+ *       example:
+ *         providerProjectId: "123"
+ *         name: "Example Project"
+ *         image: "http://example.com/image.jpg"
+ *     ProviderSecretDTO:
+ *       type: object
+ *       properties:
+ *         secret:
+ *           type: string
+ *           description: Secret key for the provider
+ *         provider:
+ *           type: string
+ *           description: Provider name
+ *       required:
+ *         - secret
+ *         - provider
+ *       example:
+ *         secret: "mySecretKey"
+ *         provider: "myProvider"
  *     RoleDTO:
  *       type: object
  *       properties:
@@ -112,9 +159,40 @@
  *         createdAt: "2024-02-12T00:00:00Z"
  *         statusUpdatedAt: "2024-02-12T12:00:00Z"
  * paths:
+ *   /integration/projects/linear:
+ *     get:
+ *       summary: Brings a list of projects from a Linear Workspace with a given Linear secret
+ *       tags: [Project]
+ *       parameters:
+ *         - in: query
+ *           name: secret
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: Secret key for the provider
+ *         - in: query
+ *           name: provider
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: Provider name
+ *       responses:
+ *         '200':
+ *           description: Projects retrieved successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: "#/components/schemas/ProjectPreIntegratedDTO"
+ *         '404':
+ *           $ref: "#/components/responses/NotFoundException"
+ *         '500':
+ *           $ref: "#/components/responses/InternalServerException"
  *   /integration/linear:
  *     post:
  *       summary: Integrate a project into Linear
+ *       tags: [Project]
  *       requestBody:
  *         required: true
  *         content:
