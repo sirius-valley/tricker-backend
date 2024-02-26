@@ -1,0 +1,45 @@
+{
+  "boardOrder": 0,
+  "branchName": "lucascardozo/pro-2-try-3-ways-to-navigate-linear-command-line-keyboard-or-mouse",
+  "createdAt": "2024-02-16T19:29:08.859Z",
+  "customerTicketCount": 0,
+  "description": "`Cmd/Ctrl` `K` **is our most powerful feature.** \n\nUse it to search for or take any action in the app.\n\n[cf798178-b3bc-4ae1-b24f-577d4871ae5d](https://uploads.linear.app/fe63b3e2-bf87-46c0-8784-cd7d639287c8/f477604b-f0d2-4ade-8a7a-571830a3b5de/cf798178-b3bc-4ae1-b24f-577d4871ae5d)\n\nIf you prefer to use a mouse, right click over any issue for **contextual menus**. They're a great way to learn the keyboard shortcuts, too.\n\n![CleanShot 2023-07-10 at 16.03.57.png](https://uploads.linear.app/fe63b3e2-bf87-46c0-8784-cd7d639287c8/11668d24-67e7-431d-9c7d-4bb5f409cae8/650d277b-cc1e-498b-aabd-8d04e8f57680)\n\nIf you prefer **keyboard shortcuts**, type `?` to view our full list.",
+  "estimate": 2,
+  "id": "d44558d2-26bf-4f0d-82ff-1c87527a68b6",
+  "identifier": "PRO-2",
+  "labelIds": [
+    "9ebb4214-78db-43b5-8c6f-bc34b6e9db65",
+    "d6393dd7-f28c-4b41-a8a1-d6529b522bc8"
+  ],
+  "number": 2,
+  "previousIdentifiers": [
+    "LAL-2",
+    "MEP-2",
+    "FRONT-2"
+  ],
+  "priority": 2,
+  "priorityLabel": "High",
+  "sortOrder": -862.33,
+  "subIssueSortOrder": 38.37390314413861,
+  "title": "Try 3 ways to navigate Linear: Command line, keyboard or mouse",
+  "updatedAt": "2024-02-22T13:17:36.166Z",
+  "url": "https://linear.app/lal/issue/PRO-2/try-3-ways-to-navigate-linear-command-line-keyboard-or-mouse",
+  "botActor": {
+    "avatarUrl": "https://static.linear.app/assets/pwa/icon_maskable_512.png",
+    "id": "5c07d33f-5e8f-484b-8100-67908589ec45",
+    "name": "Linear",
+    "type": "workflow"
+  },
+  "_assignee": {
+    "id": "3a1b9fea-7438-4170-893f-ee49372b264a"
+  },
+  "_parent": {
+    "id": "652a9ed1-12fb-4785-a302-19244c95b13b"
+  },
+  "_state": {
+    "id": "63140d53-a4dd-4752-aa0f-8089f566d2c7"
+  },
+  "_team": {
+    "id": "57143066-2643-4c74-a23a-00cfeed0ca53"
+  }
+}

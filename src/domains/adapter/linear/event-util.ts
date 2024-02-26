@@ -6,13 +6,12 @@ export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> =>
   const history = (await issue.history()).nodes;
   const events: EventInput[] = [];
   for (const event of history) {
-    const filteredRelationChanges = filterRelationChanges(event);
-    for (const change of filteredRelationChanges) {
-      const { type, identifier } = change;
-      const [action, blockType] = type;
-
-      const blockEvent = createBlockEvent(action, blockType, identifier, event, issue);
-      events.push(blockEvent);
+    if (event.relationChanges !== undefined) {
+      const filteredRelationChanges = filterRelationChanges(event.relationChanges);
+      for (const change of filteredRelationChanges) {
+        const blockEvent = createBlockEvent(change, event, issue);
+        events.push(blockEvent);
+      }
     }
 
     if (event.toStateId !== undefined || event.fromStateId !== undefined) {
@@ -44,18 +43,11 @@ export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> =>
   return events;
 };
 
-export const filterRelationChanges = (event: IssueHistory): IssueRelationHistoryPayload[] => {
-  if (event.relationChanges !== undefined) {
-    if (event.relationChanges.length !== 0) {
-      return [];
-    }
-    return event.relationChanges.filter((change) => {
-      const blockType = change.type[1];
-      return blockType === LinearBlockTypeConvention.BLOCKED_BY || blockType === LinearBlockTypeConvention.BLOCKING_TO;
-    });
-  } else {
-    return [];
-  }
+export const filterRelationChanges = (changes: IssueRelationHistoryPayload[]): IssueRelationHistoryPayload[] => {
+  return changes.filter((change) => {
+    const blockType = change.type[1];
+    return blockType === LinearBlockTypeConvention.BLOCKED_BY || blockType === LinearBlockTypeConvention.BLOCKING_TO;
+  });
 };
 
 export const getCommentForBlockEvent = (action: string, blockType: string, identifier: string): string => {
@@ -66,10 +58,13 @@ export const getCommentForBlockEvent = (action: string, blockType: string, ident
   }
 };
 
-export const createBlockEvent = (action: string, blockType: string, identifier: string, event: IssueHistory, issue: Issue): BlockEventInput => {
+export const createBlockEvent = (change: IssueRelationHistoryPayload, event: IssueHistory, issue: Issue): BlockEventInput => {
+  const { type, identifier } = change;
+  const [action, blockType] = type;
+
   const reason = action === LinearActionTypeConvention.ADD ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Block by other ticket` : 'Blocking other ticket') : `-`;
 
-  const type = action === LinearActionTypeConvention.ADD ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
+  const dbType = action === LinearActionTypeConvention.ADD ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
 
   return new BlockEventInput({
     reason,
@@ -77,7 +72,7 @@ export const createBlockEvent = (action: string, blockType: string, identifier: 
     createdAt: event.createdAt,
     issueId: issue.id,
     providerEventId: event.id,
-    type, // do not know how to get rid of ! op
+    type: dbType, // do not know how to get rid of ! op
     userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
   });
 };
