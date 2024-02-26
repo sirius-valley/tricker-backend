@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  cognitoId    String    @unique
+  cognitoId    String    @unique @db.Uuid
   profileImage String?
   email        String
   name         String
@@ -20,24 +20,14 @@ model User {
   updatedAt    DateTime?
   deletedAt    DateTime?
 
-  projectsRoleAssigned      UserProjectRole[]           @relation("UserProjectRole_assigned")
-  emittedUserProjectRole    UserProjectRole[]           @relation("UserProjectRole_emitter")
-  emittedBlockerStatusModif BlockerStatusModification[] @relation("BlockerStatusModification_emitter")
-  authoredIssues            Issue[]                     @relation("created")
-  asignedIssues             Issue[]                     @relation("assigned")
-  emittedIssueChangeLogs    IssueChangeLog[]            @relation("IssueChangeLog_emitter")
-  emittedManualTimeModif    ManualTimeModification[]    @relation("ManualTimeModification_emitter")
-}
-
-model PendingUser {
-  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email           String
-  projectId       String              @db.Uuid
-  status          AuthorizationStatus
-  createdAt       DateTime            @default(now())
-  statusUpdatedAt DateTime?
-
-  project Project @relation(fields: [projectId], references: [id])
+  projectsRoleAssigned             UserProjectRole[]           @relation("UserProjectRole_assigned")
+  emittedUserProjectRole           UserProjectRole[]           @relation("UserProjectRole_emitter")
+  emittedBlockerStatusModification BlockerStatusModification[]
+  authoredIssues                   Issue[]                     @relation("created")
+  asignedIssues                    Issue[]                     @relation("assigned")
+  emittedIssueChangeLogs           IssueChangeLog[]
+  emittedManualTimeModification    ManualTimeModification[]
+  OrganizationAdministrator        OrganizationAdministrator[]
 }
 
 model Role {
@@ -54,7 +44,6 @@ model Issue {
   assigneeId      String?   @db.Uuid
   projectId       String    @db.Uuid
   stageId         String?   @db.Uuid
-  issueLabelId    String?   @db.Uuid
   name            String
   title           String
   description     String?
@@ -64,15 +53,24 @@ model Issue {
   deletedAt       DateTime?
 
   project                    Project                     @relation(fields: [projectId], references: [id])
-  author                     User?                        @relation(name: "created", fields: [authorId], references: [id])
-  assignee                   User?                        @relation(name: "assigned", fields: [assigneeId], references: [id])
-  issueLabel                 IssueLabel?                  @relation(fields: [issueLabelId], references: [id])
-  stage                      Stage?                       @relation(fields: [stageId], references: [id])
+  author                     User?                       @relation(name: "created", fields: [authorId], references: [id])
+  assignee                   User?                       @relation(name: "assigned", fields: [assigneeId], references: [id])
+  labels                     IssueLabel[]
+  stage                      Stage?                      @relation(fields: [stageId], references: [id])
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
   customFields               IssueCustomFields[]
   blockerStatusModifications BlockerStatusModification[]
   manualTimeModifications    ManualTimeModification[]
+}
+
+model IssueLabel {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  labelId String @db.Uuid
+  issueId String @db.Uuid
+
+  label Label @relation(fields: [labelId], references: [id])
+  issue Issue @relation(fields: [issueId], references: [id])
 }
 
 model IssueCustomFields {
@@ -93,17 +91,19 @@ model Stage {
 }
 
 model Project {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  providerId String    @unique
-  image      String?
-  createdAt  DateTime  @default(now())
-  deletedAt  DateTime?
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  providerId     String    @unique
+  organizationId String    @db.Uuid
+  image          String?
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
 
+  organization  Organization      @relation(fields: [organizationId], references: [id])
   usersRoles    UserProjectRole[]
-  pendingUsers  PendingUser[]
   projectStages ProjectStage[]
   issues        Issue[]
+  labels        ProjectLabel[]
 }
 
 model LogWebhooks {
@@ -157,11 +157,12 @@ model UserProjectRole {
   role        Role    @relation(fields: [roleId], references: [id])
 }
 
-model IssueLabel {
+model Label {
   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String
 
-  issues Issue[]
+  issues        IssueLabel[]
+  projectLabels ProjectLabel[]
 }
 
 model BlockerStatusModification {
@@ -174,7 +175,7 @@ model BlockerStatusModification {
   comment       String
 
   issue       Issue @relation(fields: [issueId], references: [id])
-  userEmitter User  @relation(name: "BlockerStatusModification_emitter", fields: [userEmitterId], references: [id])
+  userEmitter User  @relation(fields: [userEmitterId], references: [id])
 }
 
 model ManualTimeModification {
@@ -186,7 +187,7 @@ model ManualTimeModification {
   reason           String
 
   issue       Issue @relation(fields: [issueId], references: [id])
-  userEmitter User  @relation(name: "ManualTimeModification_emitter", fields: [userEmitterId], references: [id])
+  userEmitter User  @relation(fields: [userEmitterId], references: [id])
 }
 
 model IssueChangeLog {
@@ -198,7 +199,7 @@ model IssueChangeLog {
   to            String
   createdAt     DateTime @default(now())
 
-  userEmitter User  @relation(name: "IssueChangeLog_emitter", fields: [userEmitterId], references: [id])
+  userEmitter User  @relation(fields: [userEmitterId], references: [id])
   issue       Issue @relation(fields: [issueId], references: [id])
 }
 
@@ -211,6 +212,17 @@ model ProjectStage {
 
   project Project @relation(fields: [projectId], references: [id])
   stage   Stage   @relation(fields: [stageId], references: [id])
+}
+
+model ProjectLabel {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String    @db.Uuid
+  labelId   String    @db.Uuid
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  project Project @relation(fields: [projectId], references: [id])
+  label   Label   @relation(fields: [labelId], references: [id])
 }
 
 enum BlockType {
@@ -230,4 +242,46 @@ enum Priority {
 enum AuthorizationStatus {
   ACCEPTED
   PENDING
+}
+
+model Organization {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @unique
+
+  projects       Project[]
+  administrators OrganizationAdministrator[]
+}
+
+model OrganizationAdministrator {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid
+  userId         String @db.Uuid
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+}
+
+model PendingProjectAuthorization {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerProjectId String
+  token             String
+  integratorId      String
+  issueProviderId   String
+
+  issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
+  emails        MemberEmail[]
+}
+
+model IssueProvider {
+  id                          String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                        String                        @unique
+  PendingProjectAuthorization PendingProjectAuthorization[]
+}
+
+model MemberEmail {
+  id                            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                         String @unique
+  pendingProjectAuthorizationId String @db.Uuid
+
+  pendingProjectAuthorization PendingProjectAuthorization @relation(fields: [pendingProjectAuthorizationId], references: [id], onDelete: Cascade)
 }
