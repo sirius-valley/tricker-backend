@@ -83,4 +83,39 @@ export class UserRepositoryImpl implements UserRepository {
 
     return userPrisma === null ? null : new UserDTO(userPrisma);
   }
+
+  async registerAlreadyCreatedUser(cognitoId: string, name: string, id: string): Promise<UserDTO | null> {
+    const userPrisma = await this.db.user.update({
+      where: {
+        id,
+      },
+      data: {
+        cognitoId,
+        name,
+      },
+      include: {
+        projectsRoleAssigned: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        emittedUserProjectRole: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    return userPrisma === null ? null : new UserDTO(userPrisma);
+  }
+
+  async createWithoutCognitoId(email: string): Promise<UserDTO> {
+    const user = await this.db.user.create({
+      data: {
+        email,
+      },
+    });
+    return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+  }
 }

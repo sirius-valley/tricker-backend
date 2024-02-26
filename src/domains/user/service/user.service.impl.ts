@@ -30,17 +30,22 @@ export class UserServiceImpl implements UserService {
   }
 
   async getOrCreateUser(idToken: string): Promise<{ user: UserDTO; alreadyExists: boolean }> {
-    let alreadyExists = false;
-    const payload = await verifyIdAwsToken(idToken);
-    let user: UserDTO;
+    let alreadyExists: boolean = true;
+    const payload: CustomCognitoIdTokenPayload = await verifyIdAwsToken(idToken);
+    let user: UserDTO | null;
 
-    try {
-      user = await this.getByProviderUserId(payload.sub);
-      alreadyExists = true;
-    } catch (e: any) {
-      user = await this.createUserWithIdToken(payload);
+    user = await this.repository.getByProviderId(payload.sub);
+    if (user === null) {
+      user = await this.repository.getByEmail(payload.email);
+      if (user === null) {
+        user = await this.createUserWithIdToken(payload);
+      } else {
+        user = await this.repository.registerAlreadyCreatedUser(payload.sub, payload.name, user.id);
+      }
+      alreadyExists = false;
     }
+    const createdUser: UserDTO = user!;
 
-    return { user, alreadyExists };
+    return { user: createdUser, alreadyExists };
   }
 }

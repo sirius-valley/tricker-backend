@@ -18,9 +18,9 @@ export class UserModel {
 
 export class UserDTO {
   id: string;
-  cognitoId: string;
+  cognitoId: string | null;
   email: string;
-  name: string;
+  name: string | null;
   profileImage: string | null;
   projectsRoleAssigned: UserProjectRoleDTO[];
   createdAt: Date;

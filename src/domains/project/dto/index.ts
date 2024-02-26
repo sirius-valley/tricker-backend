@@ -1,5 +1,3 @@
-import { type LabelDataDTO } from '@domains/label/dto';
-
 export class ProjectDTO {
   id: string;
   name: string;
@@ -24,9 +22,9 @@ export class ProjectDataDTO {
   projectName: string;
   image: string | null;
   stages: string[];
-  labels: LabelDataDTO[];
+  labels: string[];
 
-  constructor(projectId: string, members: UserRole[], name: string, stages: string[], labels: LabelDataDTO[], image: string | null) {
+  constructor(projectId: string, members: UserRole[], name: string, stages: string[], labels: string[], image: string | null) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;

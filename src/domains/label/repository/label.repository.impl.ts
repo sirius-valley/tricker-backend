@@ -6,15 +6,23 @@ import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 export class LabelRepositoryImpl implements LabelRepository {
   constructor(private readonly db: Omit<PrismaClient, ITXClientDenyList>) {}
 
-  async create(name: string, providerId: string, projectId: string): Promise<LabelDTO> {
+  async create(name: string): Promise<LabelDTO> {
     const label = this.db.label.create({
       data: {
         name,
-        providerId,
-        projectId,
       },
     });
 
     return new LabelDTO(label as LabelDTO);
+  }
+
+  async getByName(name: string): Promise<LabelDTO | null> {
+    const label = this.db.label.findFirst({
+      where: {
+        name,
+      },
+    });
+
+    return label === null ? null : new LabelDTO(label as LabelDTO);
   }
 }

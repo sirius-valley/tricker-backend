@@ -5,7 +5,6 @@ import { type IssueLabel, LinearClient, type Organization, type Team, type User,
 import process from 'process';
 import { type PendingAuthProjectRepository } from '@domains/pendingAuthProject/repository';
 import { type PendingAuthProjectDTO } from '@domains/pendingAuthProject/dto';
-import { LabelDataDTO } from '@domains/label/dto';
 
 export class LinearAdapter implements ProjectManagementTool {
   constructor(private readonly pendingAuthProject: PendingAuthProjectRepository) {}
@@ -20,7 +19,6 @@ export class LinearAdapter implements ProjectManagementTool {
     });
     const team: Team = await linearClient.team(linearProjectId);
     const members: User[] = (await team.members()).nodes.filter((member: User): boolean => pendingProject.memberMails.find((email: string): boolean => email === member.email) !== undefined);
-    // const stages: StageDataDTO[] = (await team.states()).nodes.map((stage: WorkflowState) => new StageDataDTO({name: stage.name, providerId: stage.id}));
     const stages: string[] = (await team.states()).nodes.map((stage: WorkflowState) => stage.name);
     const pm: User | undefined = members.find((member: User): boolean => member.email === pmEmail);
     if (pm == null) {
@@ -30,7 +28,7 @@ export class LinearAdapter implements ProjectManagementTool {
       const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
       return new UserRole({ email: member.email, role });
     });
-    const labels: LabelDataDTO[] = (await team.labels()).nodes.map((label: IssueLabel) => new LabelDataDTO({ providerId: label.id, name: label.name }));
+    const labels: string[] = (await team.labels()).nodes.map((label: IssueLabel) => label.name);
     const org: Organization = await linearClient.organization;
 
     return new ProjectDataDTO(linearProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null);

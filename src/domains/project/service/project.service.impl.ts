@@ -6,23 +6,22 @@ import { ConflictException, db, NotFoundException } from '@utils';
 import { type ProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
+import { RoleRepositoryImpl } from '@domains/role/repository';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
-import { PendingUserRepositoryImpl } from '@domains/pendingUser/repository';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
-import { StageServiceImpl } from '@domains/stage/service';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
 import type { RoleDTO } from '@domains/role/dto';
-import { type LabelDataDTO } from '@domains/label/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
+import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
+import { type LabelDTO } from '@domains/label/dto';
+import { type StageDTO } from '@domains/stage/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
     private readonly projectTool: ProjectManagementTool,
     private readonly projectRepository: ProjectRepository,
-    private readonly userRepository: UserRepository,
-    private readonly roleRepository: RoleRepository
+    private readonly userRepository: UserRepository
   ) {}
 
   async integrateProject(projectId: string, userId: string): Promise<ProjectDTO> {
@@ -44,7 +43,7 @@ export class ProjectServiceImpl implements ProjectService {
       const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, projectData.image ?? null);
       await this.integrateMembers(projectData, newProject.id, user.id, db);
       await this.integrateStages(newProject.id, projectData.stages, db);
-      // await this.integrateLabels(newProject.id, projectData.labels, db);
+      await this.integrateLabels(newProject.id, projectData.labels, db);
 
       return newProject;
     });
@@ -53,39 +52,48 @@ export class ProjectServiceImpl implements ProjectService {
   }
 
   private async integrateMembers(projectData: ProjectDataDTO, projectId: string, emitterId: string, db: Omit<PrismaClient, ITXClientDenyList>): Promise<void> {
+    const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(db);
+    const userRepository: UserRepositoryImpl = new UserRepositoryImpl(db);
     const fullyIntegratedUsers = [];
-    const pendingUserRepository: PendingUserRepositoryImpl = new PendingUserRepositoryImpl(db);
     for (const member of projectData.members) {
-      const user: UserDTO | null = await this.userRepository.getByEmail(member.email);
-      let role: RoleDTO | null = await this.roleRepository.getByName(member.role);
+      const user: UserDTO | null = await userRepository.getByEmail(member.email);
+      let role: RoleDTO | null = await roleRepository.getByName(member.role);
       if (role === null) {
-        role = await this.roleRepository.create(member.role);
+        role = await roleRepository.create(member.role);
       }
       if (user === null) {
-        await pendingUserRepository.create(member.email, projectId);
+        await userRepository.createWithoutCognitoId(member.email);
       } else {
         fullyIntegratedUsers.push({ ...user, role: role.id });
       }
     }
-    const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(db), new UserRepositoryImpl(db), new ProjectRepositoryImpl(db), new RoleRepositoryImpl(db));
+    const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(db), userRepository, new ProjectRepositoryImpl(db), roleRepository);
     for (const user of fullyIntegratedUsers) {
       await userProjectRoleService.create(user.id, projectId, user.role, emitterId);
     }
   }
 
   private async integrateStages(projectId: string, stages: string[], db: Omit<PrismaClient, ITXClientDenyList>): Promise<void> {
-    const stageService: StageServiceImpl = new StageServiceImpl(new StageRepositoryImpl(db));
+    const stageRepository: StageRepositoryImpl = new StageRepositoryImpl(db);
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(db);
-    for (const stage of stages) {
-      const stageId: string = (await stageService.getOrCreate(stage)).id;
-      await projectStageRepository.create(projectId, stageId);
+    for (const name of stages) {
+      let stage: StageDTO | null = await stageRepository.getByName(name);
+      if (stage === null) {
+        stage = await stageRepository.create(name);
+      }
+      await projectStageRepository.create(projectId, stage.id);
     }
   }
 
-  private async integrateLabels(projectId: string, labels: LabelDataDTO[], db: Omit<PrismaClient, ITXClientDenyList>): Promise<void> {
-    const labelRepository = new LabelRepositoryImpl(db);
-    for (const label of labels) {
-      await labelRepository.create(label.name, label.providerId, projectId);
+  private async integrateLabels(projectId: string, labels: string[], db: Omit<PrismaClient, ITXClientDenyList>): Promise<void> {
+    const labelRepository: LabelRepositoryImpl = new LabelRepositoryImpl(db);
+    const projectLabel: ProjectLabelRepositoryImpl = new ProjectLabelRepositoryImpl(db);
+    for (const name of labels) {
+      let label: LabelDTO | null = await labelRepository.getByName(name);
+      if (label === null) {
+        label = await labelRepository.create(name);
+      }
+      await projectLabel.create(projectId, label.id);
     }
   }
 }
