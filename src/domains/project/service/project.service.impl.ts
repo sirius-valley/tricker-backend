@@ -32,6 +32,7 @@ export class ProjectServiceImpl implements ProjectService {
     this.projectTool.validateSecret(secret);
 
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.projectTool.getProjects(secret);
+    // retrieve only not integrated projects
     return unfilteredProjects.filter(async (project) => (await this.projectRepository.getByProviderId(project.providerProjectId)) === null);
   }
 
