@@ -1,8 +1,8 @@
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
 import { ProjectDataDTO, UserRole } from '@domains/project/dto';
-import { ConflictException } from '@utils';
+import { ConflictException, LinearIntegrationException } from '@utils';
 import { type RoleRepository } from '@domains/role/repository';
-import { LinearClient, type Organization, type Team, type User, type UserConnection } from '@linear/sdk';
+import { LinearClient, type LinearError, type Organization, type Team, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
@@ -10,15 +10,26 @@ import { type EventInput } from '@domains/event/dto';
 import process from 'process';
 
 export class LinearAdapter implements ProjectManagementTool {
-  // TO DO: Check how to connect with Linear (secret or OAuth)
   constructor(private readonly roleRepository: RoleRepository) {}
 
+  /**
+   * Integrates issue events for a given Linear issue ID.
+   * @param {string} linearIssueId - The ID of the Linear issue.
+   * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
+   * @throws {LinearIntegrationException} If there is an issue with retrieving the issue details or processing the events.
+   */
   async integrateIssueEvents(linearIssueId: string): Promise<EventInput[]> {
     const linearClient = new LinearClient({
       apiKey: process.env.LINEAR_SECRET,
     });
-    const issue = await linearClient.issue(linearIssueId);
-    return await processIssueEvents(issue);
+
+    try {
+      const issue = await linearClient.issue(linearIssueId);
+      return await processIssueEvents(issue);
+    } catch (err: any) {
+      const linearError = err as LinearError;
+      throw new LinearIntegrationException(linearError.message, linearError.errors);
+    }
   }
 
   async integrateProjectData(linearProjectId: string, pmEmail: string): Promise<ProjectDataDTO> {
