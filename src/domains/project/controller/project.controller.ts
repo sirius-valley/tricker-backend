@@ -2,7 +2,7 @@ import { type Request, type Response, Router } from 'express';
 import { db } from '@utils';
 import { type ProjectDTO } from '@domains/project/dto';
 import { ProjectServiceImpl } from '@domains/project/service';
-import { LinearAdapter } from '@domains/adapter/linearAdapter/linear.adapter';
+import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type CustomCognitoIdTokenPayload, type UserRepository, UserRepositoryImpl } from '@domains/user';
