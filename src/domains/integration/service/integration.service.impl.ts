@@ -1,5 +1,5 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
-import type { ProjectDataDTO, ProjectDTO } from '@domains/project/dto';
+import type { ProjectDTO } from '@domains/project/dto';
 import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, NotFoundException } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
@@ -21,7 +21,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
+import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -55,7 +55,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       throw new NotFoundException('Organization');
     }
 
-    const projectData: ProjectDataDTO = await this.projectTool.adaptProjectData(projectId, user.email, pendingProject.token, memberMails);
+    const projectData: ProjectDataDTO = await this.projectTool.adaptProjectData({ providerProjectId: projectId, pmEmail: user.email, token: pendingProject.token, memberMails });
     const project: ProjectDTO = await db.$transaction(async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
       const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
       const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);

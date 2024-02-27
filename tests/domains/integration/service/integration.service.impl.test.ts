@@ -6,7 +6,7 @@ import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 import { UserRepositoryMock } from '../../user/mockRepository/user.repository.mock';
-import { ProjectDataDTO, ProjectDTO } from '@domains/project/dto';
+import { ProjectDTO } from '@domains/project/dto';
 import { ProjectRepositoryMock } from '../../project/mockRepository/project.repository.mock';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
 import { type PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
@@ -18,6 +18,7 @@ import { PendingProjectAuthorizationMockRepository } from '../../pendingProjectA
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { PendingMemberMailDTO } from 'domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
+import { ProjectDataDTO } from '@domains/integration/dto';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;

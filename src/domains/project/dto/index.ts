@@ -18,24 +18,6 @@ export class ProjectDTO {
   }
 }
 
-export class ProjectDataDTO {
-  projectId: string;
-  members: UserRole[];
-  projectName: string;
-  image: string | null;
-  stages: string[];
-  labels: string[];
-
-  constructor(projectId: string, members: UserRole[], name: string, stages: string[], labels: string[], image: string | null) {
-    this.projectId = projectId;
-    this.projectName = name;
-    this.members = members;
-    this.image = image;
-    this.stages = stages;
-    this.labels = labels;
-  }
-}
-
 export class UserRole {
   email: string;
   role: string;

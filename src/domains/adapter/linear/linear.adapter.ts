@@ -3,12 +3,11 @@ import { type EventInput } from '@domains/event/dto';
 import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { ConflictException, decryptData, LinearIntegrationException } from '@utils';
-import { ProjectDataDTO, UserRole } from '@domains/project/dto';
-import { IssueDataDTO } from '@domains/issue/dto';
-import { type Priority } from '@prisma/client';
+import { UserRole } from '@domains/project/dto';
+import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
-import { linearClient } from '@context';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
+import { ProjectDataDTO } from '@domains/integration/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   private linearClient?: LinearClient;
@@ -24,7 +23,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   }
 
   setKey(apiKey: string): void {
-    if (linearClient !== undefined) return;
+    if (this.linearClient !== undefined) return;
     this.apiKey = apiKey;
     this.linearClient = this.initializeLinearClient();
   }
@@ -64,17 +63,14 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     }
     const team: Team = await this.linearClient.team(input.providerProjectId);
     const members: User[] = (await team.members()).nodes.filter((member: User): boolean => input.memberMails.find((email: string): boolean => email === member.email) !== undefined);
-    const stages: string[] = (await team.states()).nodes.map((stage: WorkflowState) => stage.name);
+    const stages: string[] = await this.getStages(team);
     const pm: User | undefined = members.find((member: User): boolean => member.email === input.pmEmail);
     if (pm == null) {
       throw new ConflictException('Provided Project Manager ID not correct.');
     }
-    const teamMembers: UserRole[] = members.map((member: User) => {
-      const role: string = member.email === input.pmEmail ? 'Project Manager' : 'Developer';
-      return new UserRole({ email: member.email, role });
-    });
-    const labels: string[] = (await team.labels()).nodes.map((label: IssueLabel) => label.name);
-    const org: Organization = await linearClient.organization;
+    const teamMembers: UserRole[] = await this.assignRoles(members, input.pmEmail);
+    const labels: string[] = await this.getLabels(team);
+    const org: Organization = await this.linearClient.organization;
 
     return new ProjectDataDTO(input.providerProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null);
   }
@@ -125,5 +121,20 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     }
 
     return integratedIssuesData;
+  }
+
+  private async getStages(team: Team): Promise<string[]> {
+    return (await team.states()).nodes.map((stage: WorkflowState) => stage.name);
+  }
+
+  private async getLabels(team: Team): Promise<string[]> {
+    return (await team.labels()).nodes.map((label: IssueLabel) => label.name);
+  }
+
+  private async assignRoles(members: User[], pmEmail: string): Promise<UserRole[]> {
+    return members.map((member: User) => {
+      const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
+      return new UserRole({ email: member.email, role });
+    });
   }
 }

@@ -51,3 +51,10 @@ export class CreateUserIdTokenDTO {
     this.name = input.name;
   }
 }
+
+export interface UserUpdateInputDTO {
+  id: string;
+  name: string;
+  cognitoId: string;
+  email?: string;
+}
