@@ -10,7 +10,6 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findUnique({
       where: {
         id: projectId,
-        deletedAt: null,
       },
     });
 
@@ -32,7 +31,6 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findFirst({
       where: {
         providerId,
-        deletedAt: null,
       },
     });
 

@@ -1,7 +1,7 @@
 import { before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { type RoleRepository } from '@domains/role/repository';
-import { LinearAdapter } from '@domains/adapter/linearAdapter/linear.adapter';
+import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { RoleRepositoryMock } from '../../role/mockRepository/role.repository.mock';
 import process from 'process';
 import { LinearClient, type LinearFetch, type Team, type UserConnection } from '@linear/sdk';

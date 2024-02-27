@@ -21,7 +21,6 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         id,
-        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {
