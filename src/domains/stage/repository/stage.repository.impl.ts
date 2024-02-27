@@ -17,7 +17,7 @@ export class StageRepositoryImpl implements StageRepository {
   }
 
   async getByName(name: string): Promise<StageDTO | null> {
-    const stage = await this.db.stage.findFirst({
+    const stage: Stage | null = await this.db.stage.findFirst({
       where: {
         name,
       },

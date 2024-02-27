@@ -43,4 +43,22 @@ export class UserRepositoryMock implements UserRepository {
   async getByEmail(email: string): Promise<UserDTO | null> {
     return null;
   }
+
+  async createWithoutCognitoId(email: string): Promise<UserDTO> {
+    return new UserDTO({
+      id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
+      createdAt: new Date(),
+      projectsRoleAssigned: [],
+      emittedUserProjectRole: [],
+      deletedAt: null,
+      profileImage: null,
+    });
+  }
+
+  async registerAlreadyCreatedUser(cognitoId: string, name: string, id: string): Promise<UserDTO | null> {
+    return null;
+  }
 }

@@ -166,13 +166,15 @@ model Label {
 }
 
 model BlockerStatusModification {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId String    @db.Uuid
-  issueId       String    @db.Uuid
-  status        BlockType
-  createdAt     DateTime  @default(now())
-  reason        String
-  comment       String
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerEventId   String    @unique
+  userEmitterId     String    @db.Uuid
+  issueId           String    @db.Uuid
+  status            BlockType
+  eventRegisteredAt DateTime?
+  createdAt         DateTime  @default(now())
+  reason            String
+  comment           String
 
   issue       Issue @relation(fields: [issueId], references: [id])
   userEmitter User  @relation(fields: [userEmitterId], references: [id])
@@ -191,13 +193,15 @@ model ManualTimeModification {
 }
 
 model IssueChangeLog {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId String   @db.Uuid
-  issueId       String   @db.Uuid
-  field         String
-  from          String
-  to            String
-  createdAt     DateTime @default(now())
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerEventId   String    @unique
+  userEmitterId     String    @db.Uuid
+  issueId           String    @db.Uuid
+  field             String
+  from              String?
+  to                String?
+  eventRegisteredAt DateTime?
+  createdAt         DateTime  @default(now())
 
   userEmitter User  @relation(fields: [userEmitterId], references: [id])
   issue       Issue @relation(fields: [issueId], references: [id])
@@ -239,17 +243,13 @@ enum Priority {
   URGENT
 }
 
-enum AuthorizationStatus {
-  ACCEPTED
-  PENDING
-}
-
 model Organization {
   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String @unique
 
   projects       Project[]
   administrators OrganizationAdministrator[]
+  pendingProjects PendingProjectAuthorization[]
 }
 
 model OrganizationAdministrator {
@@ -266,9 +266,11 @@ model PendingProjectAuthorization {
   providerProjectId String
   token             String
   integratorId      String
-  issueProviderId   String
+  issueProviderId   String @db.Uuid
+  organizationId    String @db.Uuid
 
   issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
   emails        MemberEmail[]
 }
 

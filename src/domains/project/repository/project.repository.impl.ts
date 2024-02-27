@@ -16,12 +16,13 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     return project === null ? null : new ProjectDTO(project);
   }
 
-  async create(name: string, providerId: string, image: string | null): Promise<ProjectDTO> {
+  async create(name: string, providerId: string, organizationId: string, image: string | null): Promise<ProjectDTO> {
     const project: Project = await this.db.project.create({
       data: {
         name,
         image,
         providerId,
+        organizationId,
       },
     });
     return new ProjectDTO(project);
