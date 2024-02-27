@@ -1,13 +1,36 @@
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
-import { ProjectDataDTO, UserRole } from '@domains/project/dto';
-import { ConflictException, decryptData, NotFoundException } from '@utils';
-import { type IssueLabel, LinearClient, type Organization, type Team, type User, type WorkflowState } from '@linear/sdk';
-import process from 'process';
 import { type PendingAuthProjectRepository } from '@domains/pendingAuthProject/repository';
+import { type EventInput } from '@domains/event/dto';
+import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team } from '@linear/sdk';
+import { processIssueEvents } from '@domains/adapter/linear/event-util';
+import { ConflictException, decryptData, LinearIntegrationException, NotFoundException } from '@utils';
+import { ProjectDataDTO, UserRole } from '@domains/project/dto';
 import { type PendingAuthProjectDTO } from '@domains/pendingAuthProject/dto';
+import { IssueDataDTO } from '@domains/issue/dto';
+import { type Priority } from '@prisma/client';
 
 export class LinearAdapter implements ProjectManagementTool {
   constructor(private readonly pendingAuthProject: PendingAuthProjectRepository) {}
+
+  /**
+   * Integrates issue events for a given Linear issue ID.
+   * @param {string} linearIssueId - The ID of the Linear issue.
+   * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
+   * @throws {LinearIntegrationException} If there is an issue with retrieving the issue details or processing the events.
+   */
+  async integrateIssueEvents(linearIssueId: string): Promise<EventInput[]> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+
+    try {
+      const issue = await linearClient.issue(linearIssueId);
+      return await processIssueEvents(issue);
+    } catch (err: any) {
+      const linearError = err as LinearError;
+      throw new LinearIntegrationException(linearError.message, linearError.errors);
+    }
+  }
 
   async integrateProjectData(linearProjectId: string, pmEmail: string): Promise<ProjectDataDTO> {
     const pendingProject: PendingAuthProjectDTO | null = await this.pendingAuthProject.getByProjectId(linearProjectId);
@@ -32,5 +55,53 @@ export class LinearAdapter implements ProjectManagementTool {
     const org: Organization = await linearClient.organization;
 
     return new ProjectDataDTO(linearProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null);
+  }
+
+  async integrateAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+    const project: Team = await linearClient.team(providerProjectId);
+    const issues = await project.issues();
+    const integratedIssuesData: IssueDataDTO[] = [];
+    for (const issue of issues.nodes) {
+      const stage = await issue.state;
+      const creator = await issue.creator;
+      const assignee = await issue.assignee;
+      let priority: Priority;
+      switch (issue.priority) {
+        case 1:
+          priority = 'URGENT';
+          break;
+        case 2:
+          priority = 'HIGH_PRIORITY';
+          break;
+        case 3:
+          priority = 'MEDIUM_PRIORITY';
+          break;
+        case 4:
+          priority = 'LOW_PRIORITY';
+          break;
+        default:
+          priority = 'NO_PRIORITY';
+      }
+
+      integratedIssuesData.push(
+        new IssueDataDTO({
+          providerIssueId: issue.id,
+          authorEmail: creator !== undefined ? creator.email : null,
+          assigneeEmail: assignee !== undefined ? assignee.email : null,
+          providerProjectId,
+          name: issue.identifier,
+          title: issue.title,
+          description: issue.description ?? null,
+          priority,
+          storyPoints: issue.estimate ?? null,
+          stage: stage != null ? stage.name : null,
+        })
+      );
+    }
+
+    return integratedIssuesData;
   }
 }
