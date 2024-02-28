@@ -1,0 +1,19 @@
+[
+  {
+    "active": true,
+    "admin": true,
+    "createdAt": "2024-02-16T19:29:08.859Z",
+    "createdIssueCount": 4,
+    "displayName": "lucascardozo",
+    "email": "lucascardozo@sirius.com.ar",
+    "guest": false,
+    "id": "3a1b9fea-7438-4170-893f-ee49372b264a",
+    "inviteHash": "ed0f960aba0b79f0",
+    "isMe": true,
+    "lastSeen": "2024-02-27T12:27:18.040Z",
+    "name": "Lucas David Cardozo",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "updatedAt": "2024-02-16T19:29:20.815Z",
+    "url": "https://linear.app/lal/profiles/lucascardozo"
+  }
+]

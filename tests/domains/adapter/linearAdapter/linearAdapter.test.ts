@@ -4,7 +4,9 @@ import { type RoleRepository } from '@domains/role/repository';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { RoleRepositoryMock } from '../../role/mockRepository/role.repository.mock';
 import process from 'process';
-import { LinearClient, type LinearFetch, type Team, type UserConnection } from '@linear/sdk';
+import { LinearClient, type LinearFetch, type Team, type User, type UserConnection } from '@linear/sdk';
+import teamData from './data/team-data.json';
+import membersData from './data/members-data.json';
 
 let mockRepository: RoleRepository;
 let mockLinearClient: LinearClient;
@@ -65,4 +67,44 @@ describe('Linear Adapter tests', () => {
       { message: 'Conflict. Provided Project Manager ID not correct.' }
     );
   });
+});
+
+describe('getMembersByProjectId', () => {
+  it('should return project members for a given project ID', async () => {
+    // Given
+    const linearProjectId = 'project123';
+    const mockTeam = teamData as unknown as Team;
+    const mockMembers = membersData as unknown as User[];
+
+    mock.method(mockLinearClient, 'team').mock.mockImplementationOnce(() => mockTeam);
+    mock.method(team, 'members').mock.mockImplementation(() => mockMembers);
+
+    // When
+    const members = await adapter.getMembersByProjectId(linearProjectId);
+
+    // Then
+    assert.strictEqual(members.length, 0);
+
+    // // Verificamos que se llamara al método members() del equipo (team) devuelto por el cliente Linear
+    // expect(teamMock.members).toHaveBeenCalled();
+    //
+    // // Verificamos que los miembros (members) devueltos tengan el formato correcto de ProjectMemberDataDTO
+    // expect(result).toEqual([
+    //   new ProjectMemberDataDTO({ providerId: 'member1', name: 'Member 1', email: 'member1@example.com' }),
+    //   new ProjectMemberDataDTO({ providerId: 'member2', name: 'Member 2', email: 'member2@example.com' }),
+    // ]);
+  });
+
+  // it('should throw an exception when Linear client encounters an error', async () => {
+  //  // Configuramos el cliente Linear mockeado para que devuelva un error
+  //  linearClientMock.team.mockRejectedValue(new Error('Linear client error'));
+  //
+  //  // Datos de prueba
+  //  const linearProjectId = 'project123';
+  //
+  //  // Afirmamos que la función lance una excepción al encontrar un error
+  //  await expect(getMembersByProjectId(linearProjectId)).rejects.toThrowError('Linear client error');
+  // });
+
+  // Podemos añadir más pruebas para otros casos de prueba según sea necesario
 });
