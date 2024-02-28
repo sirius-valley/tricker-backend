@@ -42,9 +42,34 @@ export class ConflictException extends HttpException {
   }
 }
 
+/**
+ * Represents a generic exception for various errors that may occur in the server.
+ * Extends the HttpException class.
+ */
 export class InternalServerErrorException extends HttpException {
-  constructor() {
-    super(HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+  /**
+   * Creates an instance of InternalServerErrorException.
+   * @param message Optional. A human-readable description of the error.
+   * @param errors Optional. Additional details or errors associated with the exception.
+   */
+  constructor(message?: string, errors?: object | object[]) {
+    super(HttpStatus.INTERNAL_SERVER_ERROR, message ?? 'Internal Server Error', errors);
+  }
+}
+
+/**
+ * Represents an exception specific to Linear errors.
+ * Extends the InternalServerErrorException class.
+ */
+export class LinearIntegrationException extends InternalServerErrorException {
+  /**
+   * Creates an instance of LinearIntegrationException.
+   * @param message Optional. A human-readable description of the error.
+   * @param errors Optional. Additional details or errors associated with the exception.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(message?: string, errors?: object | object[]) {
+    super(message, errors);
   }
 }
 

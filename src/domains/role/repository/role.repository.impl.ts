@@ -1,13 +1,13 @@
 import { type RoleRepository } from '@domains/role/repository/role.repository';
 import { RoleDTO } from '@domains/role/dto';
-import { type PrismaClient } from '@prisma/client';
+import { type PrismaClient, type Role } from '@prisma/client';
 import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class RoleRepositoryImpl implements RoleRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   async create(name: string): Promise<RoleDTO> {
-    const role = await this.db.role.create({
+    const role: Role = await this.db.role.create({
       data: {
         name,
       },
@@ -17,7 +17,7 @@ export class RoleRepositoryImpl implements RoleRepository {
   }
 
   async getById(roleId: string): Promise<null | RoleDTO> {
-    const role = await this.db.role.findUnique({
+    const role: Role | null = await this.db.role.findUnique({
       where: {
         id: roleId,
       },
@@ -27,7 +27,7 @@ export class RoleRepositoryImpl implements RoleRepository {
   }
 
   async getByName(name: string): Promise<RoleDTO | null> {
-    const role = await this.db.role.findFirst({
+    const role: Role | null = await this.db.role.findFirst({
       where: {
         name,
       },

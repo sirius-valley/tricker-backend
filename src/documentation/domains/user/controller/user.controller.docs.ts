@@ -173,6 +173,8 @@
  *                 $ref: "#/components/responses/ValidationException"
  *   /api/user/getOrCreate:
  *     post:
+ *       tags:
+ *         - "User"
  *       summary: "Get or create user"
  *       consumes:
  *         - "application/json"

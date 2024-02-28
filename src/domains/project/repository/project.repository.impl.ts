@@ -10,19 +10,19 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findUnique({
       where: {
         id: projectId,
-        deletedAt: null,
       },
     });
 
     return project === null ? null : new ProjectDTO(project);
   }
 
-  async create(name: string, providerId: string, image: string | null): Promise<ProjectDTO> {
+  async create(name: string, providerId: string, organizationId: string, image: string | null): Promise<ProjectDTO> {
     const project: Project = await this.db.project.create({
       data: {
         name,
         image,
         providerId,
+        organizationId,
       },
     });
     return new ProjectDTO(project);
@@ -32,7 +32,6 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findFirst({
       where: {
         providerId,
-        deletedAt: null,
       },
     });
 

@@ -3,6 +3,7 @@ import { type Request, type Response } from 'express';
 import { Constants } from '@utils';
 import { UnauthorizedException } from '@utils/errors';
 import { verifyAwsAccessToken } from '@utils/aws';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
 export const generateAccessToken = (payload: Record<string, string | boolean | number>): string => {
   return jwt.sign(payload, Constants.TOKEN_SECRET, { expiresIn: '1h' });
@@ -31,4 +32,23 @@ export const withAwsAuth = async (req: Request, res: Response, next: () => any):
   } catch (e) {
     throw new UnauthorizedException('INVALID_TOKEN');
   }
+};
+
+export const encryptData = (data: string, key: string): string => {
+  const iv: Buffer = randomBytes(16);
+  const cipher = createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let encrypted = cipher.update(data);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+};
+
+export const decryptData = (encryptedData: string, key: string): string => {
+  const parts = encryptedData.split(':');
+  const iv = Buffer.from(parts[0], 'hex');
+  const encryptedText = Buffer.from(parts[1], 'hex');
+  const decipher = createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
 };

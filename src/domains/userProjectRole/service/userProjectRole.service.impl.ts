@@ -15,14 +15,15 @@ export class UserProjectRoleServiceImpl implements UserProjectRoleService {
   ) {}
 
   async create(userId: string, projectId: string, roleId: string, userEmitterId: string): Promise<UserProjectRoleDTO> {
+    console.log(projectId);
     const user = await this.userRepository.getById(userId);
-    if (user == null) throw new NotFoundException('User');
+    if (user == null || user.deletedAt !== null) throw new NotFoundException('User');
     const project = await this.projectRepository.getById(projectId);
-    if (project == null) throw new NotFoundException('Project');
+    if (project == null || project.deletedAt !== null) throw new NotFoundException('Project');
     const role = await this.roleRepository.getById(roleId);
     if (role == null) throw new NotFoundException('Role');
     const userEmitter = await this.userRepository.getById(userEmitterId);
-    if (userEmitter == null) throw new NotFoundException('User');
+    if (userEmitter == null || userEmitter.deletedAt !== null) throw new NotFoundException('User');
 
     return await this.userProjectRoleRepository.create(userId, projectId, roleId, userEmitterId);
   }
