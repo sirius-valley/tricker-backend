@@ -1,2 +1,2 @@
-export * from './integration.service.impl';
 export * from './integration.service';
+export * from './integration.service.impl';

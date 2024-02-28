@@ -13,7 +13,6 @@ export class IssueRepositoryImpl implements IssueRepository {
         assigneeId: data.assigneeId,
         projectId: data.projectId,
         stageId: data.stageId,
-        issueLabelId: data.issueLabelId,
         name: data.name,
         title: data.title,
         description: data.description,

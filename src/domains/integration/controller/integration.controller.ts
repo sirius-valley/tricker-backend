@@ -1,16 +1,37 @@
 import { type Request, type Response, Router } from 'express';
-import HttpStatus from 'http-status';
 import { db, validateRequest } from '@utils';
-import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
+import { type ProjectDTO } from '@domains/project/dto';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
-import { RoleRepositoryImpl } from '@domains/role/repository';
-import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams } from '@domains/integration/dto';
+import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
+import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
+import { type CustomCognitoIdTokenPayload, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import HttpStatus from 'http-status';
+import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from 'domains/pendingProjectAuthorization/repository';
+import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from 'domains/pendingMemberMail/repository';
+import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
+import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
+import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
 
 require('express-async-errors');
 
-const integrationService: IntegrationService = new IntegrationServiceImpl(new LinearAdapter(new RoleRepositoryImpl(db)));
+export const integrationRouter: Router = Router();
 
-export const integrationRouter = Router();
+const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
+const userRepository: UserRepository = new UserRepositoryImpl(db);
+const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);
+const projectTool: ProjectManagementToolAdapter = new LinearAdapter();
+const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
+const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
+const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository);
+
+integrationRouter.post('/linear/project', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
+  const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
+  const { projectId } = req.body;
+
+  const project: ProjectDTO = await service.integrateProject(projectId, sub);
+
+  res.status(HttpStatus.CREATED).json(project);
+});
 
 integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (_req: Request, res: Response) => {
   const { id: projectId } = _req.params;
@@ -18,7 +39,7 @@ integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembe
   // const { apiToken } : { apiToken: string } = _req.body
   // process.env.CURRENT_API_TOKEN = apiToken
 
-  const members = await integrationService.getMembers(projectId);
+  const members = await service.getMembers(projectId);
 
   return res.status(HttpStatus.OK).json(members);
 });

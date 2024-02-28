@@ -4,12 +4,12 @@ import { type ProjectRepository } from '@domains/project/repository';
 import { type IssueDataDTO, type IssueDTO } from '@domains/issue/dto';
 import { db, NotFoundException } from '@utils';
 import { type ProjectDTO } from '@domains/project/dto';
-import type { ProjectManagementTool } from '@domains/adapter/projectManagementTool';
+import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type UserDTO, type UserRepository } from '@domains/user';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
-    private readonly adapter: ProjectManagementTool,
+    private readonly adapter: ProjectManagementToolAdapter,
     private readonly issueRepository: IssueRepository,
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository
@@ -21,7 +21,7 @@ export class IssueServiceImpl implements IssueService {
       throw new NotFoundException('Project');
     }
 
-    const allIssuesData: IssueDataDTO[] = await this.adapter.integrateAllProjectIssuesData(project.providerId);
+    const allIssuesData: IssueDataDTO[] = await this.adapter.adaptAllProjectIssuesData(project.providerId);
     const filteredIssuesData: IssueDataDTO[] = await Promise.all(
       allIssuesData.filter(async (issueData) => {
         return (await this.issueRepository.getByProviderId(issueData.providerIssueId)) === null;
