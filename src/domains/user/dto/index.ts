@@ -18,9 +18,9 @@ export class UserModel {
 
 export class UserDTO {
   id: string;
-  cognitoId: string;
+  cognitoId: string | null;
   email: string;
-  name: string;
+  name: string | null;
   profileImage: string | null;
   projectsRoleAssigned: UserProjectRoleDTO[];
   createdAt: Date;
@@ -50,4 +50,11 @@ export class CreateUserIdTokenDTO {
     this.email = input.email;
     this.name = input.name;
   }
+}
+
+export interface UserUpdateInputDTO {
+  id: string;
+  name: string;
+  cognitoId: string;
+  email?: string;
 }

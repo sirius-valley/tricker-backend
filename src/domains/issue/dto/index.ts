@@ -5,7 +5,6 @@ export class IssueDTO {
   assigneeId: string | null;
   projectId: string;
   stageId: string | null;
-  issueLabelId: string | null;
   name: string;
   title: string;
   description: string | null;
@@ -21,7 +20,6 @@ export class IssueDTO {
     this.assigneeId = issue.assigneeId;
     this.projectId = issue.projectId;
     this.stageId = issue.stageId;
-    this.issueLabelId = issue.issueLabelId;
     this.name = issue.name;
     this.title = issue.title;
     this.description = issue.description;

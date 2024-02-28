@@ -1,4 +1,4 @@
-import { type CreateUserIdTokenDTO, UserDTO, type UserModel, type UserRepository } from '@domains/user';
+import { type CreateUserIdTokenDTO, UserDTO, type UserModel, type UserRepository, type UserUpdateInputDTO } from '@domains/user';
 
 export class UserRepositoryMock implements UserRepository {
   async getByEmailOrUsername(email?: string, username?: string): Promise<UserModel | null> {
@@ -41,6 +41,28 @@ export class UserRepositoryMock implements UserRepository {
   }
 
   async getByEmail(email: string): Promise<UserDTO | null> {
+    return null;
+  }
+
+  async createWithoutCognitoId(email: string): Promise<UserDTO> {
+    return new UserDTO({
+      id: 'id',
+      cognitoId: 'cognitoId',
+      email: 'mail@mail.com',
+      name: 'John Doe',
+      createdAt: new Date(),
+      projectsRoleAssigned: [],
+      emittedUserProjectRole: [],
+      deletedAt: null,
+      profileImage: null,
+    });
+  }
+
+  async registerAlreadyCreatedUser(cognitoId: string, name: string, id: string): Promise<UserDTO | null> {
+    return null;
+  }
+
+  async update(input: UserUpdateInputDTO): Promise<UserDTO | null> {
     return null;
   }
 }

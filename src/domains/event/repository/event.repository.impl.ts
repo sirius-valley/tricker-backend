@@ -23,6 +23,7 @@ export class EventRepositoryImpl implements EventRepository {
       from: event.from ?? undefined,
       to: event.to ?? undefined,
       eventRegisteredAt: event.eventRegisteredAt ?? undefined,
+      providerEventId: event.providerEventId
     });
   }
 
