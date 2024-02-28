@@ -65,8 +65,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const members: User[] = (await team.members()).nodes.filter((member: User): boolean => input.memberMails.find((email: string): boolean => email === member.email) !== undefined);
     const stages: string[] = await this.getStages(team);
     const pm: User | undefined = members.find((member: User): boolean => member.email === input.pmEmail);
-    if (pm == null) {
-      throw new ConflictException('Provided Project Manager ID not correct.');
+    if (pm === undefined) {
+      throw new ConflictException('Provided Project Manager email not correct.');
     }
     const teamMembers: UserRole[] = await this.assignRoles(members, input.pmEmail);
     const labels: string[] = await this.getLabels(team);

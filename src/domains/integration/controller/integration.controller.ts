@@ -23,11 +23,9 @@ const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMe
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository);
 
-integrationRouter.post('/project/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response) => {
+integrationRouter.post('/project/linear', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
-  const { projectId } = req.params;
-
-  console.log(projectId);
+  const { projectId } = req.body;
 
   const project: ProjectDTO = await service.integrateProject(projectId, sub);
 

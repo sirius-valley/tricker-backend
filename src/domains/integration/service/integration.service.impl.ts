@@ -33,11 +33,17 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly organizationRepository: OrganizationRepository
   ) {}
 
+  /**
+   * Integrates a project using the provided project ID and user ID,
+   * checks for existing projects and pending authorizations, retrieves project data,
+   * and creates a new project with associated members, stages, and labels.
+   * @param {string} projectId - The ID of the project to integrate.
+   * @param {string} userId - The ID of the user initiating the integration.
+   * @returns {Promise<ProjectDTO>} A promise resolving with the integrated project data.
+   * @throws {ConflictException} If the project is already integrated or inactive.
+   * @throws {NotFoundException} If there is no pending authorization, user, or organization associated with the project.
+   */
   async integrateProject(projectId: string, userId: string): Promise<ProjectDTO> {
-    const user: UserDTO | null = await this.userRepository.getByProviderId(userId);
-    if (user == null) {
-      throw new NotFoundException('User');
-    }
     const previousProject: ProjectDTO | null = await this.projectRepository.getByProviderId(projectId);
     if (previousProject != null) {
       if (previousProject.deletedAt === null) {
@@ -49,12 +55,15 @@ export class IntegrationServiceImpl implements IntegrationService {
     if (pendingProject === null) {
       throw new NotFoundException('PendingAuthProject');
     }
-    const memberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(projectId)).map((memberMail) => memberMail.email);
-    const organization: OrganizationDTO | null = await this.organizationRepository.getByName(pendingProject.organizationId);
+    const user: UserDTO | null = await this.userRepository.getByProviderId(pendingProject.integratorId);
+    if (user == null) {
+      throw new NotFoundException('User');
+    }
+    const memberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
+    const organization: OrganizationDTO | null = await this.organizationRepository.getById(pendingProject.organizationId);
     if (organization === null) {
       throw new NotFoundException('Organization');
     }
-
     const projectData: ProjectDataDTO = await this.projectTool.adaptProjectData({ providerProjectId: projectId, pmEmail: user.email, token: pendingProject.token, memberMails });
     const project: ProjectDTO = await db.$transaction(async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
       const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
@@ -66,9 +75,19 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
+    // await this.pendingAuthProjectRepository.delete(pendingProject.id);
+
     return project;
   }
 
+  /**
+   * Integrates project members using the provided input data,
+   * creates or retrieves users and roles, assigns roles to users,
+   * and establishes user-project associations.
+   * @param {MembersIntegrationInputDTO} input - Input data including project members, project ID, and emitter ID.
+   * @returns {Promise<void>} A promise that resolves once the integration is complete.
+   * @throws {NotFoundException} If a user or role cannot be found.
+   */
   async integrateMembers(input: MembersIntegrationInputDTO): Promise<void> {
     const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(input.db);
     const userRepository: UserRepositoryImpl = new UserRepositoryImpl(input.db);
@@ -85,12 +104,19 @@ export class IntegrationServiceImpl implements IntegrationService {
         fullyIntegratedUsers.push({ ...user, role: role.id });
       }
     }
-    const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(db), userRepository, new ProjectRepositoryImpl(db), roleRepository);
+    const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(input.db), userRepository, new ProjectRepositoryImpl(input.db), roleRepository);
     for (const user of fullyIntegratedUsers) {
       await userProjectRoleService.create(user.id, input.projectId, user.role, input.emitterId);
     }
   }
 
+  /**
+   * Integrates project stages using the provided input data,
+   * creates or retrieves stages, and associates them with the project.
+   * @param {StageIntegrationInputDTO} input - Input data including project stages and project ID.
+   * @returns {Promise<void>} A promise that resolves once the integration is complete.
+   * @throws {NotFoundException} If a stage cannot be found.
+   */
   async integrateStages(input: StageIntegrationInputDTO): Promise<void> {
     const stageRepository: StageRepositoryImpl = new StageRepositoryImpl(input.db);
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(input.db);
@@ -103,6 +129,13 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
+  /**
+   * Integrates project labels using the provided input data,
+   * creates or retrieves labels, and associates them with the project.
+   * @param {LabelIntegrationInputDTO} input - Input data including project labels and project ID.
+   * @returns {Promise<void>} A promise that resolves once the integration is complete.
+   * @throws {NotFoundException} If a label cannot be found.
+   */
   async integrateLabels(input: LabelIntegrationInputDTO): Promise<void> {
     const labelRepository: LabelRepositoryImpl = new LabelRepositoryImpl(input.db);
     const projectLabel: ProjectLabelRepositoryImpl = new ProjectLabelRepositoryImpl(input.db);

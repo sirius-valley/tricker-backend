@@ -110,7 +110,7 @@ describe('Integrate project method tests', () => {
     mock.method(pendingMemberMailsMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
       return [pendingMemberMail];
     });
-    mock.method(organizationMockRepository, 'getByName').mock.mockImplementation(async () => {
+    mock.method(organizationMockRepository, 'getById').mock.mockImplementation(async () => {
       return organization;
     });
     mock.method(mockAdapterTool, 'adaptProjectData').mock.mockImplementation(() => {
@@ -204,7 +204,7 @@ describe('Integrate project method tests', () => {
     mock.method(pendingMemberMailsMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
       return [pendingMemberMail];
     });
-    mock.method(organizationMockRepository, 'getByName').mock.mockImplementation(async () => {
+    mock.method(organizationMockRepository, 'getById').mock.mockImplementation(async () => {
       return null;
     });
 

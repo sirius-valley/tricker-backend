@@ -6,10 +6,10 @@ import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 export class OrganizationRepositoryImpl implements OrganizationRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
-  async getByName(name: string): Promise<OrganizationDTO | null> {
-    const organization: Organization | null = await this.db.organization.findFirst({
+  async getById(id: string): Promise<OrganizationDTO | null> {
+    const organization: Organization | null = await this.db.organization.findUnique({
       where: {
-        name,
+        id,
       },
     });
 

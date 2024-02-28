@@ -307,64 +307,59 @@
  *         - projectId
  *       example:
  *         projectId: "1"
- *   paths:
- *     /integration/linear/{projectId}:
- *       post:
- *         summary: Integrate a project into Linear
- *         parameters:
- *           - in: path
- *             name: projectId
- *             required: true
+ * paths:
+ *   /integration/linear:
+ *     post:
+ *       summary: Integrate a project into Linear
+ *       tags:
+ *         - "Integration"
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
  *             schema:
- *               type: string
- *             description: ID of the project to integrate
- *         requestBody:
- *           required: true
+ *               type: object
+ *               properties:
+ *                 projectId:
+ *                   type: string
+ *                   description: ID of the project to integrate
+ *               required:
+ *                 - projectId
+ *       responses:
+ *         '201':
+ *           description: Project integrated successfully
  *           content:
  *             application/json:
  *               schema:
- *                 type: object
- *                 properties:
- *                   projectId:
- *                     type: string
- *                     description: ID of the project to integrate
- *                 required:
- *                   - projectId
- *         responses:
- *           '201':
- *             description: Project integrated successfully
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: '#/components/schemas/ProjectDTO'
- *           '404':
- *             description: "Not found exception"
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: "#/components/responses/NotFoundException"
- *           '409':
- *             description: "Conflict exception"
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: "#/components/responses/ConflictException"
- *           '401':
- *             description: "Unauthorized. You must login to access this content."
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: "#/components/responses/UnauthorizedException"
- *           '400':
- *             description: "Validation Error"
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: "#/components/responses/ValidationException"
- *           '500':
- *             description: "Internal Server Error"
- *             content:
- *               application/json:
- *                 schema:
- *                   $ref: "#/components/responses/InternalServerErrorException"
+ *                 $ref: '#/components/schemas/ProjectDTO'
+ *         '404':
+ *           description: "Not found exception"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/NotFoundException"
+ *         '409':
+ *           description: "Conflict exception"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/ConflictException"
+ *         '401':
+ *           description: "Unauthorized. You must login to access this content."
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/UnauthorizedException"
+ *         '400':
+ *           description: "Validation Error"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/ValidationException"
+ *         '500':
+ *           description: "Internal Server Error"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/responses/InternalServerErrorException"
  */

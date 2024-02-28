@@ -15,6 +15,7 @@ export class UserProjectRoleServiceImpl implements UserProjectRoleService {
   ) {}
 
   async create(userId: string, projectId: string, roleId: string, userEmitterId: string): Promise<UserProjectRoleDTO> {
+    console.log(projectId);
     const user = await this.userRepository.getById(userId);
     if (user == null || user.deletedAt !== null) throw new NotFoundException('User');
     const project = await this.projectRepository.getById(projectId);

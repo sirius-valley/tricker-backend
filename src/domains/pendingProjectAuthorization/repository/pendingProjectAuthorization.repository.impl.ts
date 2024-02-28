@@ -29,4 +29,14 @@ export class PendingProjectAuthorizationRepositoryImpl implements PendingProject
 
     return pendingProject === null ? null : new PendingProjectAuthorizationDTO(pendingProject);
   }
+
+  async delete(id: string): Promise<PendingProjectAuthorizationDTO> {
+    const pendingProject: PendingProjectAuthorization = await this.db.pendingProjectAuthorization.delete({
+      where: {
+        id,
+      },
+    });
+
+    return new PendingProjectAuthorizationDTO(pendingProject);
+  }
 }
