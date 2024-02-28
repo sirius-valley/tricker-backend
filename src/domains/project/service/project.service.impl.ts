@@ -3,9 +3,7 @@ import { type ProjectManagementTool } from '@domains/adapter/projectManagementTo
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, NotFoundException } from '@utils';
-import { type ProjectDataDTO, type ProjectDTO, type ProjectPreIntegratedDTO } from '@domains/project/dto';
-import { type ManagementProviderRepository } from '@domains/managementProvider/repository';
-import { type ManagementProviderDTO } from '@domains/managementProvider/dto';
+import { type ProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { RoleRepositoryImpl } from '@domains/role/repository';
@@ -20,21 +18,8 @@ export class ProjectServiceImpl implements ProjectService {
   constructor(
     private readonly projectTool: ProjectManagementTool,
     private readonly projectRepository: ProjectRepository,
-    private readonly userRepository: UserRepository,
-    private readonly managementProvider: ManagementProviderRepository
+    private readonly userRepository: UserRepository
   ) {}
-
-  async retrieveProjectsFromProvider(providerName: string, secret?: string | undefined): Promise<ProjectPreIntegratedDTO[]> {
-    const provider: ManagementProviderDTO | null = await this.managementProvider.getByName(providerName);
-    if (provider === null) {
-      throw new NotFoundException('ManagementProvider');
-    }
-    this.projectTool.validateSecret(secret);
-
-    const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.projectTool.getProjects(secret);
-    // retrieve only not integrated projects
-    return unfilteredProjects.filter(async (project) => (await this.projectRepository.getByProviderId(project.providerProjectId)) === null);
-  }
 
   async integrateProject(projectId: string, userId: string): Promise<ProjectDTO> {
     const user: UserDTO | null = await this.userRepository.getByProviderId(userId);

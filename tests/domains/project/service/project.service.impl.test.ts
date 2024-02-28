@@ -12,12 +12,13 @@ import { UserProjectRoleRepositoryMock } from '../../userProjectRole/mockReposit
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 import { type UserProjectRoleService, UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserRepositoryMock } from '../../user/mockRepository/user.repository.mock';
-import { ProjectDataDTO, ProjectDTO, type ProjectPreIntegratedDTO } from '@domains/project/dto';
+import { ProjectDataDTO, ProjectDTO } from '@domains/project/dto';
 import { UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 import { ProjectRepositoryMock } from '../mockRepository/project.repository.mock';
-import { type ManagementProviderRepository } from '@domains/managementProvider/repository';
+import { type IssueProviderRepository } from 'domains/issueProvider/repository';
 import { ManagementProviderRepositoryMock } from '../../managementProvider/mockRepository/managementProvider.repository.mock';
-import { ManagementProviderDTO } from '@domains/managementProvider/dto';
+import { IssueProviderDTO } from 'domains/issueProvider/dto';
+import { type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 
 let userMockRepository: UserRepository;
 let roleMockRepository: RoleRepository;
@@ -30,8 +31,8 @@ let user: UserDTO;
 let project: ProjectDTO;
 let projectData: ProjectDataDTO;
 let userProjectRole: UserProjectRoleDTO;
-let managementProviderRepository: ManagementProviderRepository;
-let managementProvider: ManagementProviderDTO;
+let managementProviderRepository: IssueProviderRepository;
+let managementProvider: IssueProviderDTO;
 
 describe('Project service', () => {
   before(() => {
@@ -73,7 +74,7 @@ describe('Project service', () => {
       updatedAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     });
-    managementProvider = new ManagementProviderDTO({
+    managementProvider = new IssueProviderDTO({
       id: 'mpId',
       name: 'Linear',
     });

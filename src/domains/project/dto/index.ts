@@ -18,18 +18,6 @@ export class ProjectDTO {
   }
 }
 
-export class ProjectPreIntegratedDTO {
-  providerProjectId: string;
-  name: string;
-  image: string | undefined;
-
-  constructor(project: ProjectPreIntegratedDTO) {
-    this.providerProjectId = project.providerProjectId;
-    this.image = project.image;
-    this.name = project.name;
-  }
-}
-
 export class ProjectDataDTO {
   projectId: string;
   members: UserRole[];

@@ -1,10 +1,11 @@
 import { type ProjectManagementTool } from '@domains/adapter/projectManagementTool';
-import { ProjectDataDTO, ProjectPreIntegratedDTO, UserRole } from '@domains/project/dto';
-import { ConflictException, UnauthorizedException } from '@utils';
+import { ProjectDataDTO, UserRole } from '@domains/project/dto';
+import { ConflictException } from '@utils';
 import { type RoleRepository } from '@domains/role/repository';
 import { LinearClient, type Organization, type Team, type TeamConnection, type User, type UserConnection } from '@linear/sdk';
 import { type RoleDTO } from '@domains/role/dto';
 import process from 'process';
+import { ProjectPreIntegratedDTO } from '@domains/integration/dto';
 
 export class LinearAdapter implements ProjectManagementTool {
   constructor(private readonly roleRepository: RoleRepository) {}
@@ -48,10 +49,5 @@ export class LinearAdapter implements ProjectManagementTool {
     const org: Organization = await linearClient.organization;
 
     return new ProjectDataDTO(linearProjectId, teamMembers, team.name, stages, org.logoUrl ?? null);
-  }
-
-  validateSecret(secret: string | undefined): void {
-    if (secret === '' || secret === undefined) throw new UnauthorizedException(undefined, 'MISSING_SECRET');
-    if (!secret.startsWith('lin_api_')) throw new UnauthorizedException(undefined, 'NOT_VALID_SECRET');
   }
 }

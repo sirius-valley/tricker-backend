@@ -1,8 +1,8 @@
-import { type ManagementProviderRepository } from '@domains/managementProvider/repository';
-import { type ManagementProviderDTO } from '@domains/managementProvider/dto';
+import { type IssueProviderRepository } from 'domains/issueProvider/repository';
+import { type IssueProviderDTO } from 'domains/issueProvider/dto';
 
-export class ManagementProviderRepositoryMock implements ManagementProviderRepository {
-  async getByName(name: string): Promise<ManagementProviderDTO | null> {
+export class ManagementProviderRepositoryMock implements IssueProviderRepository {
+  async getByName(name: string): Promise<IssueProviderDTO | null> {
     return null;
   }
 }

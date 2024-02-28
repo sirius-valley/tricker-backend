@@ -1,12 +1,12 @@
-import { type ManagementProviderRepository } from '@domains/managementProvider/repository/managementProvider.repository';
-import { type ManagementProviderDTO } from '@domains/managementProvider/dto';
+import { type IssueProviderRepository } from '@domains/issueProvider/repository/IssueProvider.repository';
+import { type IssueProviderDTO } from '@domains/issueProvider/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
-export class ManagementProviderRepositoryImpl implements ManagementProviderRepository {
+export class IssueProviderRepositoryImpl implements IssueProviderRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
-  async getByName(name: string): Promise<ManagementProviderDTO | null> {
+  async getByName(name: string): Promise<IssueProviderDTO | null> {
     /* const provider = await this.db.managementProvider.findUnique({
             data: {
                 name
