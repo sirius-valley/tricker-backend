@@ -307,8 +307,94 @@
  *         - projectId
  *       example:
  *         projectId: "1"
+ *     ProjectPreIntegratedDTO:
+ *       type: object
+ *       properties:
+ *         providerProjectId:
+ *           type: string
+ *           description: The ID of the project in the provider's system.
+ *         name:
+ *           type: string
+ *           description: The name of the project.
+ *         image:
+ *           type: string
+ *           nullable: true
+ *           description: The URL of the project's image, if available.
+ *       example:
+ *         providerProjectId: "123"
+ *         name: "Example Project"
+ *         image: "http://example.com/image.jpg"
+ *     ProjectsPreIntegratedInputDTO:
+ *       type: object
+ *       properties:
+ *         providerName:
+ *           type: string
+ *           description: The name of the provider.
+ *         apiKey:
+ *           type: string
+ *           description: The API key for accessing the provider's services.
+ *         pmProviderId:
+ *           type: string
+ *           description: The ID of the project manager in the provider's system.
+ *       example:
+ *         providerName: "Linear"
+ *         apiKey: "xxxxxxxxxxxxxxxxxxxx"
+ *         pmProviderId: "456"
+ *     ProjectMemberDataDTO:
+ *       type: object
+ *       properties:
+ *         providerId:
+ *           type: string
+ *           description: The ID of the project member in the provider's system.
+ *         name:
+ *           type: string
+ *           description: The name of the project member.
+ *         email:
+ *           type: string
+ *           description: The email of the project member.
+ *       example:
+ *         providerId: "789"
+ *         name: "John Doe"
+ *         email: "john@example.com"
  * paths:
- *   /integration/linear:
+ *   /api/integration/projects/linear:
+ *     get:
+ *       summary: Retrieves projects from Linear provider.
+ *       tags:
+ *         - Integration
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: query
+ *           name: key
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The API key of the Linear provider.
+ *         - in: query
+ *           name: provider
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The name of the Linear provider.
+ *       responses:
+ *         200:
+ *           description: Project data retrieved successfully.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/ProjectPreIntegratedDTO'
+ *         400:
+ *           $ref: '#/components/responses/ValidationException'
+ *         401:
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         404:
+ *           $ref: '#/components/responses/NotFoundException'
+ *         500:
+ *           $ref: '#/components/responses/InternalServerErrorException'
+ *   /api/integration/project/linear:
  *     post:
  *       summary: Integrate a project into Linear
  *       tags:
