@@ -25,7 +25,7 @@ const organizationRepository: OrganizationRepository = new OrganizationRepositor
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
 const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository);
 
-integrationRouter.post('/project/linear', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
+integrationRouter.post('/linear/project', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
   const { projectId } = req.body;
 
   const project: ProjectDTO = await service.integrateProject(projectId);
@@ -33,7 +33,7 @@ integrationRouter.post('/project/linear', validateRequest(ProjectIdIntegrationIn
   res.status(HttpStatus.CREATED).json(project);
 });
 
-integrationRouter.get('/projects/linear', withAwsAuth, validateRequest(ProviderKeyDTO, 'query'), async (req: Request, res: Response): Promise<void> => {
+integrationRouter.get('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'query'), async (req: Request, res: Response): Promise<void> => {
   const { key, provider } = req.query as unknown as ProviderKeyDTO;
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
 

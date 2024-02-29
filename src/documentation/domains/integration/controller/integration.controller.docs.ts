@@ -357,7 +357,7 @@
  *         name: "John Doe"
  *         email: "john@example.com"
  * paths:
- *   /api/integration/projects/linear:
+ *   /api/integration/linear/projects:
  *     get:
  *       summary: Retrieves projects from Linear provider.
  *       tags:
@@ -394,7 +394,7 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         500:
  *           $ref: '#/components/responses/InternalServerErrorException'
- *   /api/integration/project/linear:
+ *   /api/integration/linear/project:
  *     post:
  *       summary: Integrate a project into Linear
  *       tags:
