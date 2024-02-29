@@ -21,7 +21,11 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
+import { type AuthorizationRequest, type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
+import { type EmailService } from '@email/email.service';
+import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
+import jwt from 'jsonwebtoken';
+import process from 'process';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -30,7 +34,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly userRepository: UserRepository,
     private readonly pendingAuthProjectRepository: PendingProjectAuthorizationRepository,
     private readonly pendingMemberMailsRepository: PendingMemberMailsRepository,
-    private readonly organizationRepository: OrganizationRepository
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly administratorRepository: AdministratorRepository,
+    private readonly emailService: EmailService
   ) {}
 
   /**
@@ -150,5 +156,17 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
     return await this.projectTool.getMembersByProjectId(projectId);
+  }
+
+  async createPendingAuthorization(authReq: AuthorizationRequest): Promise<PendingProjectAuthorizationDTO> {
+    const pendingAuth = await this.pendingAuthProjectRepository.create(authReq);
+    const admins = await this.administratorRepository.getByName(authReq.organizationName);
+    const token = jwt.sign({ projectId: authReq.projectId }, process.env.AUTHORIZATION_SECRET!);
+
+    for (const admin of admins) {
+      await this.emailService.sendAuthorizationMail(admin.email, { token });
+    }
+
+    return pendingAuth;
   }
 }

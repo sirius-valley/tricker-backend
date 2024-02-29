@@ -10,7 +10,12 @@ import { type PendingProjectAuthorizationRepository, PendingProjectAuthorization
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from 'domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { AuthorizationRequest, LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { type EmailService } from '@email/email.service';
+import { MailgunEmailService } from '@email/mailgun.email.service';
+import { mailgunClient } from '@utils/mail';
+import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
+import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 
 require('express-async-errors');
 
@@ -22,7 +27,9 @@ const pendingAuthRepository: PendingProjectAuthorizationRepository = new Pending
 const projectTool: ProjectManagementToolAdapter = new LinearAdapter();
 const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository);
+const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
+const emailService: EmailService = new MailgunEmailService(mailgunClient);
+const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, emailService);
 
 integrationRouter.post('/linear/project', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
@@ -42,4 +49,12 @@ integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembe
   const members = await service.getMembers(projectId);
 
   return res.status(HttpStatus.OK).json(members);
+});
+
+integrationRouter.post('/linear/authorization', validateRequest(AuthorizationRequest, 'body'), async (_req: Request<any, any, AuthorizationRequest>, res: Response) => {
+  const authorizationReq = _req.body;
+
+  await service.createPendingAuthorization(authorizationReq);
+
+  return res.status(HttpStatus.CREATED).send();
 });
