@@ -1,12 +1,9 @@
 import { before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { type RoleRepository } from '@domains/role/repository';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
-import { RoleRepositoryMock } from '../../role/mockRepository/role.repository.mock';
 import process from 'process';
 import { LinearClient, type LinearFetch, type Team, type UserConnection } from '@linear/sdk';
 
-let mockRepository: RoleRepository;
 let mockLinearClient: LinearClient;
 let adapter: LinearAdapter;
 let team: Team;
@@ -14,9 +11,8 @@ let members: UserConnection | PromiseLike<UserConnection>;
 
 describe('Linear Adapter tests', () => {
   before(() => {
-    mockRepository = new RoleRepositoryMock();
     mockLinearClient = new LinearClient({ apiKey: process.env.LINEAR_SECRET });
-    adapter = new LinearAdapter(mockRepository);
+    adapter = new LinearAdapter();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     members = { nodes: [{ id: '1' }, { id: '2' }] };
@@ -45,7 +41,7 @@ describe('Linear Adapter tests', () => {
       return { logoUrl: 'url' };
     });
 
-    const receivedProject = await adapter.integrateProjectData('1', '1');
+    const receivedProject = await adapter.adaptProjectData({ providerProjectId: 'ppid', pmEmail: 'pm@mail.com', token: 'token', memberMails: ['pm@mail.com'] });
 
     assert.equal('1', receivedProject.projectId);
   });
@@ -60,7 +56,7 @@ describe('Linear Adapter tests', () => {
 
     await assert.rejects(
       async () => {
-        await adapter.integrateProjectData('8', 'idNull');
+        await adapter.adaptProjectData({ providerProjectId: 'ppid', pmEmail: 'pm@mail.com', token: 'token', memberMails: ['pm@mail.com'] });
       },
       { message: 'Conflict. Provided Project Manager ID not correct.' }
     );

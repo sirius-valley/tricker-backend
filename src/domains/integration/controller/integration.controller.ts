@@ -1,6 +1,6 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateRequest } from '@utils';
-import { type ProjectDTO, ProviderSecretDTO } from '@domains/project/dto';
+import { db, validateRequest, withAwsAuth } from '@utils';
+import { type ProjectDTO, ProviderKeyDTO } from '@domains/project/dto';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type CustomCognitoIdTokenPayload, type UserRepository, UserRepositoryImpl } from '@domains/user';
@@ -19,25 +19,25 @@ export const integrationRouter: Router = Router();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
 const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);
-const projectTool: ProjectManagementToolAdapter = new LinearAdapter();
+const adapter: ProjectManagementToolAdapter = new LinearAdapter();
 const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository);
+const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository);
 
 integrationRouter.post('/project/linear', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
-  const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
   const { projectId } = req.body;
 
-  const project: ProjectDTO = await service.integrateProject(projectId, sub);
+  const project: ProjectDTO = await service.integrateProject(projectId);
 
   res.status(HttpStatus.CREATED).json(project);
 });
 
-integrationRouter.get('/integration/projects/linear', validateRequest(ProviderSecretDTO, 'query'), async (req: Request, res: Response): Promise<void> => {
-  const { secret, provider } = req.query as unknown as ProviderSecretDTO;
+integrationRouter.get('/projects/linear', withAwsAuth, validateRequest(ProviderKeyDTO, 'query'), async (req: Request, res: Response): Promise<void> => {
+  const { key, provider } = req.query as unknown as ProviderKeyDTO;
+  const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
 
-  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider(provider, secret);
+  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: provider, apyKey: key, pmProviderId: sub });
 
   res.status(HttpStatus.OK).json(projects);
 });

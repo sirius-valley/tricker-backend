@@ -20,19 +20,9 @@ export class ProjectDTO {
   }
 }
 
-export class UserRole {
-  email: string;
-  role: string;
-
-  constructor(userRole: UserRole) {
-    this.email = userRole.email;
-    this.role = userRole.role;
-  }
-}
-
-export class ProviderSecretDTO {
+export class ProviderKeyDTO {
   @IsString()
-  secret!: string;
+  key!: string;
 
   @IsString()
   provider!: string;

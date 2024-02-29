@@ -19,3 +19,11 @@ export class UserProjectRoleDTO {
     this.updatedAt = userProjectRole.updatedAt;
   }
 }
+
+export interface UserProjectRoleInputDTO {
+  userId: string;
+  projectId: string;
+  roleId: string;
+  userEmitterId: string;
+  isAccepted: boolean;
+}

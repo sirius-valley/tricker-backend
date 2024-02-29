@@ -147,6 +147,7 @@ model UserProjectRole {
   projectId     String    @db.Uuid
   roleId        String    @db.Uuid
   userEmitterId String    @db.Uuid
+  isAccepted    Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now())
   deletedAt     DateTime?

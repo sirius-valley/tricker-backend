@@ -16,7 +16,7 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
   async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
     return {
       projectId: 'idP',
-      members: [{ email: 'mockUser@mock.com', role: 'Project Manager' }],
+      members: [{ email: 'mockUser@mock.com', name: 'John Doe', providerId: 'pId' }],
       projectName: 'Tricker',
       image: 'imageUrl',
       stages: [],
@@ -28,5 +28,13 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
 
   async getProjects(key: string | undefined): Promise<ProjectPreIntegratedDTO[]> {
     return [];
+  }
+
+  async getAndAdaptProjects(apiKey: string): Promise<ProjectPreIntegratedDTO[]> {
+    return [];
+  }
+
+  async getMyEmail(apiKey: string): Promise<string> {
+    return '';
   }
 }
