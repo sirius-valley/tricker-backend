@@ -7,7 +7,7 @@ import { UserRole } from '@domains/project/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
-import { ProjectMemberDataDTO , ProjectDataDTO } from '@domains/integration/dto';
+import { ProjectMemberDataDTO, ProjectDataDTO } from '@domains/integration/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   private linearClient?: LinearClient;
@@ -84,7 +84,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * @throws {LinearIntegrationException} If there is an issue with authentication or retrieving project details.
    */
   async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
-    const key = decryptData(input.token, process.env.ENCRYPT_SECRET!);
+    const key = decryptData(input.token);
     this.setKey(key);
     if (this.linearClient === undefined) {
       throw new LinearIntegrationException('Linear Client not created');
