@@ -82,7 +82,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
-    // await this.emailSenderService.sendConfirmationMail(pm.email, project.name);
+    await this.emailSenderService.sendConfirmationMail(pm.email, project.name);
     // await this.pendingAuthProjectRepository.delete(pendingProject.id);
 
     return project;

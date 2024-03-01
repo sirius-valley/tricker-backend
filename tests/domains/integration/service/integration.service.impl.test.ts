@@ -128,6 +128,7 @@ describe('Integration service', () => {
       mock.method(db, '$transaction').mock.mockImplementation(() => {
         return project;
       });
+      mock.method(emailSender, 'sendConfirmationMail').mock.mockImplementation(() => {});
 
       const expectedProject: ProjectDTO = project;
       const receivedProject: ProjectDTO = await service.integrateProject('id');
