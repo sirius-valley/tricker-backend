@@ -307,6 +307,19 @@
  *         - projectId
  *       example:
  *         projectId: "1"
+ *     ProjectMemberDTO:
+ *       type: object
+ *       properties:
+ *         providerId:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *       example:
+ *         providerId: "123456"
+ *         name: "John Doe"
+ *         email: "john.doe@example.com"
  * paths:
  *   /integration/linear:
  *     post:
@@ -362,4 +375,32 @@
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/InternalServerErrorException"
+ *   /linear/project/{id}/members:
+ *     post:
+ *       summary: Get members of a project
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
+ *           schema:
+ *             type: string
+ *           description: The ID of the project
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 apiToken:
+ *                   type: string
+ *       responses:
+ *         '200':
+ *           description: OK
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/ProjectMemberDTO'
  */
