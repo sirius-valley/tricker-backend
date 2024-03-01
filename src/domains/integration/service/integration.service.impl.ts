@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type ProjectDTO } from '@domains/project/dto';
 import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, NotFoundException, UnauthorizedException } from '@utils';
+import { ConflictException, db, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
@@ -24,6 +24,7 @@ import type { OrganizationRepository } from '@domains/organization/repository';
 import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
 import { type IssueProviderDTO } from '@domains/issueProvider/dto';
 import { type IssueProviderRepository } from '@domains/issueProvider/repository';
+import { type EmailService } from '@domains/email/service';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -33,7 +34,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly pendingAuthProjectRepository: PendingProjectAuthorizationRepository,
     private readonly pendingMemberMailsRepository: PendingMemberMailsRepository,
     private readonly organizationRepository: OrganizationRepository,
-    private readonly issueProviderRepository: IssueProviderRepository
+    private readonly issueProviderRepository: IssueProviderRepository,
+    private readonly emailSenderService: EmailService
   ) {}
 
   /**
@@ -80,6 +82,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
+    await this.emailSenderService.sendConfirmationMail(pm.email, project.name);
     // await this.pendingAuthProjectRepository.delete(pendingProject.id);
 
     return project;
@@ -207,7 +210,11 @@ export class IntegrationServiceImpl implements IntegrationService {
         throw new Error();
       }
     } catch (e) {
-      throw new UnauthorizedException('', 'Linear api key is not valid');
+      if (e instanceof LinearIntegrationException) {
+        throw e;
+      } else {
+        throw new UnauthorizedException('401', 'Linear api key is not valid');
+      }
     }
   }
 }

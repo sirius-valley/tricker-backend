@@ -394,23 +394,18 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         500:
  *           $ref: '#/components/responses/InternalServerErrorException'
- *   /api/integration/linear/project:
+ *   /api/integration/linear/{projectId}:
  *     post:
  *       summary: Integrate a project into Linear
  *       tags:
  *         - "Integration"
- *       requestBody:
- *         required: true
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 projectId:
- *                   type: string
- *                   description: ID of the project to integrate
- *               required:
- *                 - projectId
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The id of the project we will integrate
  *       responses:
  *         '201':
  *           description: Project integrated successfully

@@ -12,6 +12,9 @@ import { ProjectIdIntegrationInputDTO, type ProjectPreIntegratedDTO } from '@dom
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
+import { type EmailService, MailgunEmailService } from '@domains/email/service';
+import FormData from 'form-data';
+import Mailgun from 'mailgun.js';
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
@@ -23,10 +26,13 @@ const adapter: ProjectManagementToolAdapter = new LinearAdapter();
 const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository);
+const mailgun = new Mailgun(FormData);
+const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY! });
+const mailSender: EmailService = new MailgunEmailService(mg);
+const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository, mailSender);
 
-integrationRouter.post('/linear/project', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
-  const { projectId } = req.body;
+integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
 
   const project: ProjectDTO = await service.integrateProject(projectId);
 

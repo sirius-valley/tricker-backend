@@ -9,7 +9,7 @@ type RequestPart = 'body' | 'query' | 'params';
 
 export function validateRequest<T>(target: ClassType<T>, reqKey: RequestPart) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const instance = plainToInstance(target, req[reqKey] as T);
+    const instance = plainToInstance(target, req[reqKey]);
     const errors = await validate(instance as object, {
       whitelist: true,
       forbidNonWhitelisted: true,

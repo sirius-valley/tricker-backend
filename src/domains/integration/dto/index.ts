@@ -85,3 +85,8 @@ export class ProjectMemberDataDTO {
     this.email = input.email;
   }
 }
+
+export interface HtmlReplaceWords {
+  wordToReplace: string;
+  replacingWord: string;
+}
