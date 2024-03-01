@@ -1,5 +1,5 @@
 import { type IssueDataDTO } from '@domains/issue/dto';
-import { type ProjectDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
@@ -36,5 +36,9 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
 
   async getMyEmail(apiKey: string): Promise<string> {
     return '';
+  }
+
+  async getMembersByProjectId(providerProjectId: string): Promise<ProjectMemberDataDTO[]> {
+    return [];
   }
 }

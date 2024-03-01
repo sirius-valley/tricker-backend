@@ -2,7 +2,9 @@ import { before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import process from 'process';
-import { LinearClient, type LinearFetch, type Team, type UserConnection } from '@linear/sdk';
+import { LinearClient, type LinearFetch, type Team, type User, type UserConnection } from '@linear/sdk';
+import teamData from './data/team-data.json';
+import membersData from './data/members-data.json';
 
 let mockLinearClient: LinearClient;
 let adapter: LinearAdapter;
@@ -60,5 +62,23 @@ describe('Linear Adapter tests', () => {
       },
       { message: 'Conflict. Provided Project Manager ID not correct.' }
     );
+  });
+});
+
+describe('getMembersByProjectId', { skip: true }, () => {
+  it('should return project members for a given project ID', async () => {
+    // Given
+    const linearProjectId = 'project123';
+    const mockTeam = teamData as unknown as Team;
+    const mockMembers = membersData as unknown as User[];
+
+    mock.method(mockLinearClient, 'team').mock.mockImplementationOnce(() => mockTeam);
+    mock.method(team, 'members').mock.mockImplementation(() => mockMembers);
+
+    // When
+    const members = await adapter.getMembersByProjectId(linearProjectId);
+
+    // Then
+    assert.strictEqual(members.length, 0);
   });
 });

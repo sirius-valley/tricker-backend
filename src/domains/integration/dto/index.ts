@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class ProjectDataDTO {
   projectId: string;
@@ -89,4 +89,15 @@ export class ProjectMemberDataDTO {
 export interface HtmlReplaceWords {
   wordToReplace: string;
   replacingWord: string;
+}
+
+export class LinearMembersPreIntegrationParams {
+  @IsUUID()
+  readonly id!: string;
+}
+
+export class LinearMembersPreIntegrationBody {
+  @IsString()
+  @IsDefined()
+  readonly apiToken!: string;
 }

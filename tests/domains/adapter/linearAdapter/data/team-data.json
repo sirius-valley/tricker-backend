@@ -1,0 +1,50 @@
+{
+  "autoArchivePeriod": 6,
+  "autoClosePeriod": 6,
+  "autoCloseStateId": "b7acba00-3745-4b9e-bf3a-63ef9b2dca65",
+  "color": "#f85911",
+  "createdAt": "2024-02-16T19:29:08.859Z",
+  "cycleCalenderUrl": "https://client-api.linear.app/ical/1d65be17-8239-4e3b-844d-2f19f0a7c602/57143066-2643-4c74-a23a-00cfeed0ca53/cycles.ics",
+  "cycleCooldownTime": 0,
+  "cycleDuration": 2,
+  "cycleIssueAutoAssignCompleted": true,
+  "cycleIssueAutoAssignStarted": true,
+  "cycleLockToActive": false,
+  "cycleStartDay": 6,
+  "cyclesEnabled": false,
+  "defaultIssueEstimate": 1,
+  "groupIssueHistory": true,
+  "icon": "Computer",
+  "id": "57143066-2643-4c74-a23a-00cfeed0ca53",
+  "inviteHash": "c1b8b20afe0d2715",
+  "issueCount": 12,
+  "issueEstimationAllowZero": false,
+  "issueEstimationExtended": false,
+  "issueEstimationType": "tShirt",
+  "issueOrderingNoPriorityFirst": false,
+  "issueSortOrderDefaultToBottom": false,
+  "key": "PRO",
+  "name": "Devs",
+  "private": false,
+  "requirePriorityToLeaveTriage": false,
+  "setIssueSortOrderOnStateChange": "first",
+  "slackIssueComments": true,
+  "slackIssueStatuses": true,
+  "slackNewIssue": true,
+  "timezone": "America/Argentina/Buenos_Aires",
+  "triageEnabled": false,
+  "upcomingCycleCount": 2,
+  "updatedAt": "2024-02-26T17:45:48.162Z",
+  "_defaultIssueState": {
+    "id": "6bdc79db-bbeb-489d-9fca-59d9c5162a34"
+  },
+  "_markedAsDuplicateWorkflowState": {
+    "id": "f694320b-723a-4054-8e40-19236bfb2142"
+  },
+  "_mergeWorkflowState": {
+    "id": "e9181bc9-1c44-4050-a184-e9146aa4bc2b"
+  },
+  "_startWorkflowState": {
+    "id": "af02ff81-32e2-4fe4-8870-b33d883edd0f"
+  }
+}

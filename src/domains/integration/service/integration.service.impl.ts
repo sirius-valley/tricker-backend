@@ -82,7 +82,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
-    await this.emailSenderService.sendConfirmationMail(pm.email, project.name);
+    // await this.emailSenderService.sendConfirmationMail(pm.email, project.name);
     // await this.pendingAuthProjectRepository.delete(pendingProject.id);
 
     return project;
@@ -216,5 +216,9 @@ export class IntegrationServiceImpl implements IntegrationService {
         throw new UnauthorizedException('401', 'Linear api key is not valid');
       }
     }
+  }
+
+  async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
+    return await this.adapter.getMembersByProjectId(projectId);
   }
 }

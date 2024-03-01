@@ -8,13 +8,15 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from 'domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { ProjectIdIntegrationInputDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
 import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
+import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
@@ -46,4 +48,15 @@ integrationRouter.get('/linear/projects', withAwsAuth, validateRequest(ProviderK
   const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: provider, apyKey: key, pmProviderId: sub });
 
   res.status(HttpStatus.OK).json(projects);
+});
+
+integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (_req: Request, res: Response) => {
+  const { id: projectId } = _req.params;
+  // draft
+  // const { apiToken } : { apiToken: string } = _req.body
+  // process.env.CURRENT_API_TOKEN = apiToken
+
+  const members = await service.getMembers(projectId);
+
+  return res.status(HttpStatus.OK).json(members);
 });

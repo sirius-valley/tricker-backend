@@ -22,6 +22,9 @@ import { ProjectDataDTO, type ProjectPreIntegratedDTO } from '@domains/integrati
 import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 import { IssueProviderRepositoryMock } from '../../issueProvider/mockRepository/IssueProvider.repository.mock';
 import { IssueProviderDTO } from '@domains/issueProvider/dto';
+import { type EmailService, MailgunEmailService } from '@domains/email/service';
+import Mailgun from 'mailgun.js';
+import FormData from 'form-data';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -38,9 +41,14 @@ let pendingProject: PendingProjectAuthorizationDTO;
 let pendingMemberMail: PendingMemberMailDTO;
 let organization: OrganizationDTO;
 let issueProvider: IssueProviderDTO;
+let emailSender: EmailService;
 
 describe('Integration service', () => {
   before(() => {
+    const mailgun = new Mailgun(FormData);
+    const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY! });
+    // eslint-disable-next-line no-import-assign
+    emailSender = new MailgunEmailService(mg);
     userMockRepository = new UserRepositoryMock();
     mockAdapterTool = new LinearAdapterMock();
     projectMockRepository = new ProjectRepositoryMock();
@@ -48,7 +56,7 @@ describe('Integration service', () => {
     pendingMemberMailsMockRepository = new PendingMemberMailsRepositoryMock();
     pendingAuthProjectMockRepository = new PendingProjectAuthorizationRepositoryMock();
     issueProviderMockRepository = new IssueProviderRepositoryMock();
-    service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, issueProviderMockRepository);
+    service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, issueProviderMockRepository, emailSender);
     user = new UserDTO({
       id: 'userId',
       profileImage: null,
@@ -253,8 +261,8 @@ describe('Integration service', () => {
         return [{ providerProjectId: 'ppID', image: undefined, name: 'Tricker' }];
       });
 
-      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: undefined, name: 'Tricker' }];
-      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmEmail: 'mail@mail.com' });
+      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker' }];
+      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
 
       assert.strictEqual(expected[0].providerProjectId, received[0].providerProjectId);
       assert.equal(received.length, 1);
@@ -267,7 +275,7 @@ describe('Integration service', () => {
 
       await assert.rejects(
         async () => {
-          await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmEmail: 'mail@mail.com' });
+          await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
         },
         { message: "Not found. Couldn't find IssueProvider" }
       );
@@ -280,7 +288,7 @@ describe('Integration service', () => {
 
       await assert.rejects(
         async () => {
-          await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmEmail: 'mail@mail.com' });
+          await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
         },
         { message: "Not found. Couldn't find IssueProvider" }
       );
