@@ -17,14 +17,6 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install Dependencies
         run: npm install
 
@@ -35,7 +27,8 @@ jobs:
 
       - name: Build server
         run: npm run build
-
+        
+        # TODO USE OIDC PROVIDER
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
