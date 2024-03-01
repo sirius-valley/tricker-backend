@@ -123,7 +123,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async integrateMembers(input: MembersIntegrationInputDTO): Promise<void> {
     const userRepository: UserRepositoryImpl = new UserRepositoryImpl(input.db);
-    const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(db);
+    const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(input.db);
     const integratedUsers = [];
     for (const member of input.memberRoles) {
       let user: UserDTO | null = await userRepository.getByEmail(member.email);
