@@ -9,7 +9,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   environment:
-    DATABASE_URL: ${file(./env.json):DATABASE_URL}
+    DATABASE_URL: ${env:DATABASE_URL}
 functions:
   app:
     handler: dist/src/app.handler
@@ -26,8 +26,8 @@ resources:
         AllocatedStorage: "20"
         DBName: tricker
         Engine: postgres
-        MasterUsername:  tricker
-        MasterUserPassword: Sirius1234!
+        MasterUsername:  ${env:DB_USER}
+        MasterUserPassword: ${env:DB_PASSWORD}
         PubliclyAccessible: true
         DeletionProtection: false
         Tags:
