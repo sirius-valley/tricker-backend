@@ -33,6 +33,9 @@ jobs:
 
       # TODO RUN TESTS
 
+      - name: Build server
+        run: npm run build
+
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
