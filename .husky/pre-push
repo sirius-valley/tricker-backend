@@ -3,7 +3,7 @@
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 
-if [ "$branch" = "main" ] || [ "$branch" = "dev" ]; then
+if [ "$branch" = "main" ] || [ "$branch" = "staging" ] || [ "$branch" = "dev" ]; then
   echo "Direct pushes to main branch are not allowed."
   exit 1
 fi
