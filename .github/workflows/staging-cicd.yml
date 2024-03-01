@@ -1,4 +1,4 @@
-name: Deploy Serverless Application
+name: Deploy Staging
 
 on:
   push:
