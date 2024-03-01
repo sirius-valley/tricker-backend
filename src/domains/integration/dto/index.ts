@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsUUID, IsString } from 'class-validator';
 import { type UserRole } from '@domains/project/dto';
 
 export class ProjectDataDTO {
@@ -44,4 +44,27 @@ export class ProjectIdIntegrationInputDTO {
   @IsString()
   @IsNotEmpty()
   projectId!: string;
+}
+
+export class ProjectMemberDataDTO {
+  readonly providerId: string;
+  readonly name: string;
+  readonly email: string;
+
+  constructor(input: ProjectMemberDataDTO) {
+    this.providerId = input.providerId;
+    this.name = input.name;
+    this.email = input.email;
+  }
+}
+
+export class LinearMembersPreIntegrationParams {
+  @IsUUID()
+  readonly id!: string;
+}
+
+export class LinearMembersPreIntegrationBody {
+  @IsString()
+  @IsDefined()
+  readonly apiToken!: string;
 }

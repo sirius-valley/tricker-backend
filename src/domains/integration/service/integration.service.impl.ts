@@ -21,7 +21,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
+import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -146,5 +146,9 @@ export class IntegrationServiceImpl implements IntegrationService {
       }
       await projectLabel.create(input.projectId, label.id);
     }
+  }
+
+  async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
+    return await this.projectTool.getMembersByProjectId(projectId);
   }
 }

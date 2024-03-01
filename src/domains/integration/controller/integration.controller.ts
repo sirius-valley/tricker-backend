@@ -10,7 +10,8 @@ import { type PendingProjectAuthorizationRepository, PendingProjectAuthorization
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from 'domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
@@ -23,11 +24,22 @@ const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMe
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const service: IntegrationService = new IntegrationServiceImpl(projectTool, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository);
 
-integrationRouter.post('/project/linear', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
+integrationRouter.post('/linear/project', validateRequest(ProjectIdIntegrationInputDTO, 'body'), async (req: Request<any, any, ProjectIdIntegrationInputDTO>, res: Response) => {
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
   const { projectId } = req.body;
 
   const project: ProjectDTO = await service.integrateProject(projectId, sub);
 
   res.status(HttpStatus.CREATED).json(project);
+});
+
+integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (_req: Request, res: Response) => {
+  const { id: projectId } = _req.params;
+  // draft
+  // const { apiToken } : { apiToken: string } = _req.body
+  // process.env.CURRENT_API_TOKEN = apiToken
+
+  const members = await service.getMembers(projectId);
+
+  return res.status(HttpStatus.OK).json(members);
 });

@@ -7,7 +7,7 @@ import { UserRole } from '@domains/project/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
-import { ProjectDataDTO } from '@domains/integration/dto';
+import { ProjectMemberDataDTO , ProjectDataDTO } from '@domains/integration/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   private linearClient?: LinearClient;
@@ -29,10 +29,38 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   }
 
   /**
-   * Integrates issue events for a given Linear issue ID.
+   * Retrieves members(users) asociated with a Linear project identified by its Linear project ID and adapt them.
+   * @param {string} linearProjectId - The ID of the Linear project.
+   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves with an array of ProjectMemberDTO objects representing the project members.
+   * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
+   */
+  async getMembersByProjectId(linearProjectId: string): Promise<ProjectMemberDataDTO[]> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+
+    try {
+      const team = await linearClient.team(linearProjectId);
+      const members = await team.members();
+      return members.nodes.map(
+        (member) =>
+          new ProjectMemberDataDTO({
+            providerId: member.id,
+            name: member.name,
+            email: member.email,
+          })
+      );
+    } catch (err: any) {
+      const linearError = err as LinearError;
+      throw new LinearIntegrationException(linearError.message, linearError.errors);
+    }
+  }
+
+  /**
+   * Adapt Linear issue events for a given Linear issue ID to Tricker issue events.
    * @param {string} linearIssueId - The ID of the Linear issue.
    * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
-   * @throws {LinearIntegrationException} If there is an issue with retrieving the issue details or processing the events.
+   * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
   async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
     const linearClient = new LinearClient({

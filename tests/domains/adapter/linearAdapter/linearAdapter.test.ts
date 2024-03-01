@@ -4,7 +4,9 @@ import { type RoleRepository } from '@domains/role/repository';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { RoleRepositoryMock } from '../../role/mockRepository/role.repository.mock';
 import process from 'process';
-import { LinearClient, type LinearFetch, type Team, type UserConnection } from '@linear/sdk';
+import { LinearClient, type LinearFetch, type Team, type User, type UserConnection } from '@linear/sdk';
+import teamData from './data/team-data.json';
+import membersData from './data/members-data.json';
 
 let mockRepository: RoleRepository;
 let mockLinearClient: LinearClient;
@@ -64,5 +66,23 @@ describe('Linear Adapter tests', () => {
       },
       { message: 'Conflict. Provided Project Manager ID not correct.' }
     );
+  });
+});
+
+describe('getMembersByProjectId', { skip: true }, () => {
+  it('should return project members for a given project ID', async () => {
+    // Given
+    const linearProjectId = 'project123';
+    const mockTeam = teamData as unknown as Team;
+    const mockMembers = membersData as unknown as User[];
+
+    mock.method(mockLinearClient, 'team').mock.mockImplementationOnce(() => mockTeam);
+    mock.method(team, 'members').mock.mockImplementation(() => mockMembers);
+
+    // When
+    const members = await adapter.getMembersByProjectId(linearProjectId);
+
+    // Then
+    assert.strictEqual(members.length, 0);
   });
 });
