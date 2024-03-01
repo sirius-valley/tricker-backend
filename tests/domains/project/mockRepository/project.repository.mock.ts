@@ -8,6 +8,7 @@ export class ProjectRepositoryMock implements ProjectRepository {
       providerId: 'pId',
       name: 'Tricker',
       image: 'url',
+      organizationId: 'test',
       createdAt: new Date('2023-11-18T19:28:40.065Z'),
       deletedAt: null,
     };

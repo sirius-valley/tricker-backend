@@ -1,0 +1,35 @@
+service: tricker
+plugins:
+  - serverless-offline
+package:
+  include:
+    - src/*
+provider:
+  stage: staging
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    DATABASE_URL: ${file(./env.json):DATABASE_URL}
+functions:
+  app:
+    handler: dist/src/app.handler
+    events:
+      - http: ANY /
+      - http: ANY /{proxy+}
+
+resources:
+  Resources:
+    TrickerStagingDB:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceClass: db.t3.micro
+        AllocatedStorage: "20"
+        DBName: tricker
+        Engine: postgres
+        MasterUsername:  tricker
+        MasterUserPassword: Sirius1234!
+        PubliclyAccessible: true
+        DeletionProtection: false
+        Tags:
+          - Key: Name
+            Value: TrickerStagingDB

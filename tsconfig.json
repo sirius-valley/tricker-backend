@@ -15,7 +15,7 @@
     "target": "ES2022",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "rootDirs": ["src", "tests"],
     "moduleResolution": "node",
     "incremental": true,
@@ -26,7 +26,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@*": ["./*"]
+      "@*": ["./src/*"]
     }
   },
   "lib": ["es2022"],

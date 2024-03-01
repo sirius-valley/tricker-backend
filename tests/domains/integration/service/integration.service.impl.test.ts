@@ -10,13 +10,13 @@ import { ProjectDTO } from '@domains/project/dto';
 import { ProjectRepositoryMock } from '../../project/mockRepository/project.repository.mock';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
 import { type PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
-import { type PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
+import { type PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import { type OrganizationRepository } from '@domains/organization/repository';
 import { OrganizationMockRepository } from '../../organization/mockRepository/organization.mock.repository';
 import { PendingMemberMailsMockRepository } from '../../pendingMemberMails/mockRepository/pendingMemberMails.mock.repository';
 import { PendingProjectAuthorizationMockRepository } from '../../pendingProjectAuthorization/mockRepository/pendingProjectAuthorization.mock.repository';
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import { PendingMemberMailDTO } from 'domains/pendingMemberMail/dto';
+import { PendingMemberMailDTO } from '@domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
 import { ProjectDataDTO } from '@domains/integration/dto';
 

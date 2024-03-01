@@ -16,4 +16,17 @@ export class PendingProjectAuthorizationMockRepository implements PendingProject
   async getByProjectId(providerProjectId: string): Promise<PendingProjectAuthorizationDTO | null> {
     return null;
   }
+
+  async delete(id: string): Promise<PendingProjectAuthorizationDTO> {
+    return await Promise.resolve(
+      new PendingProjectAuthorizationDTO({
+        id: 'ppaId',
+        providerProjectId: 'ppId',
+        token: 'token',
+        issueProviderId: 'ipId',
+        integratorId: 'iId',
+        organizationId: 'oId',
+      })
+    );
+  }
 }

@@ -19,7 +19,7 @@ import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
 import type { LabelDTO } from '@domains/label/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
-import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
+import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
 import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
 

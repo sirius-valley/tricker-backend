@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -247,8 +248,8 @@ model Organization {
   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String @unique
 
-  projects       Project[]
-  administrators OrganizationAdministrator[]
+  projects        Project[]
+  administrators  OrganizationAdministrator[]
   pendingProjects PendingProjectAuthorization[]
 }
 
@@ -270,7 +271,7 @@ model PendingProjectAuthorization {
   organizationId    String @db.Uuid
 
   issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization  Organization  @relation(fields: [organizationId], references: [id])
   emails        MemberEmail[]
 }
 

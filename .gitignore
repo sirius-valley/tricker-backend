@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .env
+env.json
+.serverless
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +29,4 @@ dist-ssr
 
 # Random folders
 /linear/
+
