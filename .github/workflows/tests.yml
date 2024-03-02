@@ -28,12 +28,3 @@ jobs:
 
       - name: Run Tests
         run: npm test
-
-  handle-failure:
-    name: Handle Test Failure
-    runs-on: ubuntu-latest
-    needs: backend-tests
-    if: failure()
-    steps:
-      - name: Stop Workflow
-        run: exit 1
