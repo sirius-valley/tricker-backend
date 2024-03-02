@@ -1,6 +1,6 @@
 import { type Request, type Response, Router } from 'express';
 import { db, validateRequest, withAwsAuth } from '@utils';
-import { type ProjectDTO, ProviderKeyDTO } from '@domains/project/dto';
+import { type ProjectDTO } from '@domains/project/dto';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type CustomCognitoIdTokenPayload, type UserRepository, UserRepositoryImpl } from '@domains/user';
@@ -8,14 +8,12 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from 'domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { type ProjectPreIntegratedDTO } from '@domains/integration/dto';
-import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
+import { type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
-import FormData from 'form-data';
-import Mailgun from 'mailgun.js';
-import { LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { mailgunClient } from '@utils/mail';
 
 require('express-async-errors');
 
@@ -27,11 +25,8 @@ const pendingAuthRepository: PendingProjectAuthorizationRepository = new Pending
 const adapter: ProjectManagementToolAdapter = new LinearAdapter();
 const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
-const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
-const mailgun = new Mailgun(FormData);
-const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY! });
-const mailSender: EmailService = new MailgunEmailService(mg);
-const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, issueProviderRepository, mailSender);
+const mailSender: EmailService = new MailgunEmailService(mailgunClient);
+const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, mailSender);
 
 integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
@@ -50,7 +45,7 @@ integrationRouter.get('/linear/projects', withAwsAuth, validateRequest(ProviderK
   res.status(HttpStatus.OK).json(projects);
 });
 
-integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (_req: Request, res: Response) => {
+integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params') /* , validateRequest(LinearMembersPreIntegrationBody, 'body') */, async (_req: Request, res: Response) => {
   const { id: projectId } = _req.params;
   // draft
   // const { apiToken } : { apiToken: string } = _req.body

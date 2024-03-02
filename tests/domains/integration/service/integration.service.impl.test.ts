@@ -19,12 +19,8 @@ import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthoriza
 import { PendingMemberMailDTO } from 'domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
 import { ProjectDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
-import { type IssueProviderRepository } from '@domains/issueProvider/repository';
-import { IssueProviderRepositoryMock } from '../../issueProvider/mockRepository/IssueProvider.repository.mock';
-import { IssueProviderDTO } from '@domains/issueProvider/dto';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
-import Mailgun from 'mailgun.js';
-import FormData from 'form-data';
+import { mailgunClient } from '@utils/mail';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -32,7 +28,6 @@ let mockAdapterTool: ProjectManagementToolAdapter;
 let pendingAuthProjectMockRepository: PendingProjectAuthorizationRepository;
 let pendingMemberMailsMockRepository: PendingMemberMailsRepository;
 let organizationMockRepository: OrganizationRepository;
-let issueProviderMockRepository: IssueProviderRepository;
 let service: IntegrationService;
 let user: UserDTO;
 let project: ProjectDTO;
@@ -40,23 +35,18 @@ let projectData: ProjectDataDTO;
 let pendingProject: PendingProjectAuthorizationDTO;
 let pendingMemberMail: PendingMemberMailDTO;
 let organization: OrganizationDTO;
-let issueProvider: IssueProviderDTO;
 let emailSender: EmailService;
 
 describe('Integration service', () => {
   before(() => {
-    const mailgun = new Mailgun(FormData);
-    const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY! });
-    // eslint-disable-next-line no-import-assign
-    emailSender = new MailgunEmailService(mg);
+    emailSender = new MailgunEmailService(mailgunClient);
     userMockRepository = new UserRepositoryMock();
     mockAdapterTool = new LinearAdapterMock();
     projectMockRepository = new ProjectRepositoryMock();
     organizationMockRepository = new OrganizationRepositoryMock();
     pendingMemberMailsMockRepository = new PendingMemberMailsRepositoryMock();
     pendingAuthProjectMockRepository = new PendingProjectAuthorizationRepositoryMock();
-    issueProviderMockRepository = new IssueProviderRepositoryMock();
-    service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, issueProviderMockRepository, emailSender);
+    service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, emailSender);
     user = new UserDTO({
       id: 'userId',
       profileImage: null,
@@ -94,10 +84,6 @@ describe('Integration service', () => {
     organization = new OrganizationDTO({
       id: 'oId',
       name: 'orgName',
-    });
-    issueProvider = new IssueProviderDTO({
-      id: 'ipId',
-      name: 'Linear',
     });
   });
 
@@ -254,9 +240,6 @@ describe('Integration service', () => {
 
   describe('retrieveProjectsFromProvider method', () => {
     it('should successfully retrieve a projects list', async () => {
-      mock.method(issueProviderMockRepository, 'getByName').mock.mockImplementation(async () => {
-        return issueProvider;
-      });
       mock.method(service, 'validateIdentity').mock.mockImplementation(async () => {});
       mock.method(mockAdapterTool, 'getAndAdaptProjects').mock.mockImplementation(async () => {
         return [{ providerProjectId: 'ppID', image: undefined, name: 'Tricker' }];
@@ -269,29 +252,12 @@ describe('Integration service', () => {
       assert.equal(received.length, 1);
     });
 
-    it('should throw an error when the manager provider name is not supported', async () => {
-      mock.method(issueProviderMockRepository, 'getByName').mock.mockImplementation(async () => {
-        return null;
-      });
-
-      await assert.rejects(
-        async () => {
-          await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
-        },
-        { message: "Not found. Couldn't find IssueProvider" }
-      );
-    });
-
     it('should throw an error when the provider apikey is not correct', async () => {
-      mock.method(issueProviderMockRepository, 'getByName').mock.mockImplementation(async () => {
-        return null;
-      });
-
       await assert.rejects(
         async () => {
           await service.retrieveProjectsFromProvider({ providerName: 'NotExistingProvider', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
         },
-        { message: "Not found. Couldn't find IssueProvider" }
+        { message: 'Linear api key is not valid' }
       );
     });
   });

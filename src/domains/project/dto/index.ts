@@ -1,5 +1,3 @@
-import { IsString } from 'class-validator';
-
 export class ProjectDTO {
   id: string;
   name: string;
@@ -18,12 +16,4 @@ export class ProjectDTO {
     this.createdAt = project.createdAt;
     this.deletedAt = project.deletedAt;
   }
-}
-
-export class ProviderKeyDTO {
-  @IsString()
-  key!: string;
-
-  @IsString()
-  provider!: string;
 }

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { IsDefined, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsValidIssueProvider } from '@utils/validation-annotations';
 
 export class ProjectDataDTO {
   projectId: string;
@@ -100,4 +101,15 @@ export class LinearMembersPreIntegrationBody {
   @IsString()
   @IsDefined()
   readonly apiToken!: string;
+}
+
+export class ProviderKeyDTO {
+  @IsNotEmpty()
+  @IsString()
+  key!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  provider!: string;
 }

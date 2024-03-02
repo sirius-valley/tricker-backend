@@ -22,8 +22,6 @@ import type { PendingProjectAuthorizationRepository } from '@domains/pendingProj
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
 import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
-import { type IssueProviderDTO } from '@domains/issueProvider/dto';
-import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 import { type EmailService } from '@domains/email/service';
 
 export class IntegrationServiceImpl implements IntegrationService {
@@ -34,7 +32,6 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly pendingAuthProjectRepository: PendingProjectAuthorizationRepository,
     private readonly pendingMemberMailsRepository: PendingMemberMailsRepository,
     private readonly organizationRepository: OrganizationRepository,
-    private readonly issueProviderRepository: IssueProviderRepository,
     private readonly emailSenderService: EmailService
   ) {}
 
@@ -95,10 +92,6 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const provider: IssueProviderDTO | null = await this.issueProviderRepository.getByName(input.providerName);
-    if (provider === null) {
-      throw new NotFoundException('IssueProvider');
-    }
     const pm = await this.userRepository.getByProviderId(input.pmProviderId);
     await this.validateIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects(input.apyKey);
@@ -204,8 +197,6 @@ export class IntegrationServiceImpl implements IntegrationService {
   async validateIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
     try {
       const userEmail = await this.adapter.getMyEmail(apiKey);
-      console.log(userEmail);
-      console.log(pmEmail);
       if (userEmail !== pmEmail) {
         throw new Error();
       }

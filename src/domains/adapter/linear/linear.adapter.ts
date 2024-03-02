@@ -147,8 +147,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   }
 
   async getAndAdaptProjects(linearKey: string): Promise<ProjectPreIntegratedDTO[]> {
-    const key: string = decryptData(linearKey, process.env.ENCRYPT_SECRET!);
-    this.setKey(key);
+    this.setKey(linearKey);
     if (this.linearClient === undefined) {
       throw new LinearIntegrationException('Linear Client not created');
     }
@@ -159,9 +158,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   }
 
   async getMyEmail(linearKey: string): Promise<string> {
-    const key: string = decryptData(linearKey, process.env.ENCRYPT_SECRET!);
-    this.setKey(key);
-    console.log(key);
+    this.setKey(linearKey);
     if (this.linearClient === undefined) {
       throw new LinearIntegrationException('Linear Client not created');
     }

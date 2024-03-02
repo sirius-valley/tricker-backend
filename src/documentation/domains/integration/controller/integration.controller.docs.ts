@@ -36,12 +36,20 @@
  *               message:
  *                 type: "string"
  *                 description: "The error message"
- *               error_code:
- *                 type: "string"
+ *               code:
+ *                 type: "number"
  *                 description: "Error code"
+ *               errors:
+ *                 type: "object"
+ *                 properties:
+ *                   error_code:
+ *                   type: "string"
+ *                   description: "Error code"
  *           example:
  *             message: "Unauthorized. You must login to access this content."
- *             error_code: "UNAUTHORIZED_ERROR"
+ *             code: 401
+ *             errors:
+ *               error_code: "UNAUTHORIZED_ERROR"
  *     ValidationException:
  *       description: "Validation Error"
  *       content:
@@ -443,8 +451,8 @@
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/InternalServerErrorException"
- *   api/integration/linear/project/{id}/members:
- *     post:
+ *   /api/integration/linear/project/{id}/members:
+ *     get:
  *       summary: Get members of a project
  *       parameters:
  *         - in: path
@@ -453,15 +461,6 @@
  *           schema:
  *             type: string
  *           description: The ID of the project
- *       requestBody:
- *         required: true
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 apiToken:
- *                   type: string
  *       responses:
  *         '200':
  *           description: OK
