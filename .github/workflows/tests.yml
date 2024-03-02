@@ -29,6 +29,6 @@ jobs:
       - name: Run Tests
         run: npm test
         if: failure()
-        steps:
-          - name: Stop Workflow
-            run: exit 1
+          run: exit 1
+
+
