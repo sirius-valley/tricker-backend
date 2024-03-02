@@ -30,6 +30,7 @@
     "express-async-errors": "^3.1.1",
     "http-status": "^1.7.3",
     "jsonwebtoken": "^9.0.2",
+    "mailgun.js": "^10.2.1",
     "morgan": "^1.10.0",
     "prisma": "^5.9.1",
     "signale": "^1.4.0",
