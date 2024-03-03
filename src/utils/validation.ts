@@ -16,7 +16,6 @@ export function validateRequest<T>(target: ClassType<T>, reqKey: RequestPart) {
     });
 
     if (errors.length > 0) {
-      console.log('no pasa la validacion del cuerpo');
       throw new ValidationException(
         errors.map((error) => ({
           ...error,

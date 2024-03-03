@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
@@ -27,3 +26,6 @@ dist-ssr
 
 # Random folders
 /linear/
+/coverage/lcov-report
+/coverage/lcov.info
+/coverage/clover.xml

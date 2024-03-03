@@ -1,50 +1,50 @@
-import { before, beforeEach, describe, it, mock } from 'node:test';
-import assert from 'node:assert';
+import { UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type UserService, UserServiceImpl } from '@domains/user/service';
+import { createMockContext, type MockContext } from '@context';
+import type { PrismaClient } from '@prisma/client';
 import { NotFoundException } from '@utils';
-import { UserServiceImpl, type UserService } from '@domains/user/service';
-import { UserDTO, type UserRepository } from '@domains/user';
-import { UserRepositoryMock } from '../mockRepository/user.repository.mock';
 
 let mockRepository: UserRepository;
 let service: UserService;
 let user: UserDTO;
+let prismaMockCtx: MockContext;
+let prismaMock: PrismaClient;
 
-describe('linear adapter tests', () => {
-  before(() => {
-    mockRepository = new UserRepositoryMock();
-    service = new UserServiceImpl(mockRepository);
-    user = new UserDTO({
-      id: 'id',
-      cognitoId: 'cogId',
-      email: 'mail@mail.com',
-      name: 'random name',
-      profileImage: null,
-      projectsRoleAssigned: [],
-      createdAt: new Date('2023-11-18T19:28:40.065Z'),
-      deletedAt: null,
-      emittedUserProjectRole: [],
-    });
+beforeEach(() => {
+  prismaMockCtx = createMockContext();
+  prismaMock = prismaMockCtx.prisma;
+  mockRepository = new UserRepositoryImpl(prismaMock);
+  service = new UserServiceImpl(mockRepository);
+  user = new UserDTO({
+    id: 'id',
+    cognitoId: 'cogId',
+    email: 'mail@mail.com',
+    name: 'random name',
+    profileImage: null,
+    projectsRoleAssigned: [],
+    createdAt: new Date('2023-11-18T19:28:40.065Z'),
+    deletedAt: null,
+    emittedUserProjectRole: [],
   });
+});
 
-  beforeEach(() => {
-    mock.restoreAll();
-  });
-
+describe('user service tests', () => {
   it('Should successfully get a user by a provided id', async () => {
-    mock.method(mockRepository, 'getByProviderId').mock.mockImplementation(async () => {
-      return user;
-    });
+    jest.spyOn(mockRepository, 'getByProviderId').mockResolvedValue(user);
     const receivedUser: UserDTO = await service.getByProviderUserId('id');
 
-    assert.strictEqual(user.id, receivedUser.id);
-    assert.equal(receivedUser.createdAt.toISOString(), user.createdAt.toISOString());
+    expect.assertions(2);
+
+    expect(receivedUser.id).toEqual(user.id);
+    expect(receivedUser.createdAt.toISOString()).toEqual(user.createdAt.toISOString());
   });
 
   it('Should throw exception when user is null', async () => {
-    try {
-      await service.getByProviderUserId('nullId');
-    } catch (error) {
-      assert.ok(error instanceof NotFoundException);
-    }
+    jest.spyOn(mockRepository, 'getByProviderId').mockResolvedValue(null);
+
+    expect.assertions(2);
+
+    await expect(service.getByProviderUserId('id')).rejects.toThrow(NotFoundException);
+    await expect(service.getByProviderUserId('id')).rejects.toThrow("Not found. Couldn't find User");
   });
 });
