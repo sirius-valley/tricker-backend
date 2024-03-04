@@ -3,8 +3,7 @@ import process from 'process';
 import { type EmailService } from '@domains/email/service/email.service';
 import type { AuthorizationEmailVariables, IntegrationConfirmationEmailVariables } from 'domains/email/dto';
 import path from 'path';
-import { readFile } from 'node:fs/promises';
-import { ConflictException } from '@utils';
+import { prepareHtmlTemplate } from '@utils/templating';
 
 export class MailgunEmailService implements EmailService {
   constructor(private readonly client: IMailgunClient) {}
@@ -21,7 +20,7 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Confirmation',
-      html: await this.prepareHtmlTemplate(path.join(__dirname, 'email-templates/project_integration_finished.html'), variables),
+      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/project_integration_finished.html'), variables),
     });
   }
 
@@ -37,26 +36,7 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Authorization',
-      html: await this.prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_request.html'), variables),
+      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_request.html'), variables),
     });
-  }
-
-  /**
-   * Reads an HTML template file from the specified path and replaces placeholders with provided variables.
-   * @param {string} path - The path to the HTML template file.
-   * @param {AuthorizationEmailVariables} variables - The variables to be replaced in the HTML template.
-   * @returns {Promise<string>} A Promise that resolves with the HTML content after replacing placeholders.
-   * @throws {ConflictException} Throws a ConflictException if HTML conversion fails.
-   */
-  private async prepareHtmlTemplate(path: string, variables: Record<string, string>): Promise<string> {
-    try {
-      let html: string = await readFile(path, 'utf8');
-      for (const key of Object.keys(variables)) {
-        html = html.replace(`{{${key}}}`, variables[key]);
-      }
-      return html;
-    } catch (err) {
-      throw new ConflictException('Html conversion failed');
-    }
   }
 }
