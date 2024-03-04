@@ -26,6 +26,4 @@ dist-ssr
 
 # Random folders
 /linear/
-/coverage/lcov-report
-/coverage/lcov.info
-/coverage/clover.xml
+/coverage/
