@@ -1,9 +1,6 @@
 name: Backend Tests CI
 
 on:
-  push:
-    branches:
-      - '*'
   pull_request:
     branches:
       - main
@@ -28,5 +25,3 @@ jobs:
 
       - name: Run Tests
         run: npm test
-
-
