@@ -89,14 +89,30 @@ export class ProjectMemberDataDTO {
   }
 }
 
-// TODO: document
+/**
+ * Class only exists with validation purposes
+ * Represents the URL Params of the HTTP request for retrieving project members
+ * */
 export class LinearMembersPreIntegrationParams {
+  /**
+   * Provider specific project ID
+   * @type {string}
+   * @example "projectId123"
+   * */
   @IsUUID()
   readonly id!: string;
 }
 
-// TODO: document
+/**
+ * Class only exists with validation purposes
+ * Represents the body of the HTTP request for retrieving project members
+ * */
 export class LinearMembersPreIntegrationBody {
+  /**
+   * Provider specific API token to authorize API usage to make integration
+   * @type {string}
+   * @example "token123"
+   * */
   @IsString()
   @IsDefined()
   readonly apiToken!: string;
@@ -105,11 +121,11 @@ export class LinearMembersPreIntegrationBody {
 // TODO: document
 
 /**
- * Represents a request for an integration authorization of a project.
+ * Represents a request for an integration authorization of a project
  */
 export class AuthorizationRequest {
   /**
-   * The provider specific API token/key to have access to the provider API.
+   * The provider specific API token/key to have access to the provider API
    * @type {string}
    * @example "token123"
    */
@@ -117,18 +133,21 @@ export class AuthorizationRequest {
   readonly apiToken!: string;
 
   /**
-   * The provider specific project ID associated with the integration authorization.
+   * The provider specific project ID associated with the integration authorization
    * @type {string}
    * @example "projectId123"
    */
   @IsNotEmpty()
   readonly projectId!: string;
 
+  /**
+   * The provider specific ID of the user that is trying to integrate the project
+   * */
   @IsNotEmpty()
   readonly integratorId!: string;
 
   /**
-   * An array of provider specific member emails that will have access to working on the project.
+   * An array of provider specific member emails that will have access to working on the project
    * @type {AuthorizedMemberDTO[]}
    * @example ["user1@example.com.ar", "user1@example.edu.ch", "user1@example.com"]
    */
@@ -137,19 +156,42 @@ export class AuthorizationRequest {
   @ArrayMinSize(1)
   readonly members!: AuthorizedMemberDTO[];
 
+  /**
+   * The name of the current organization trying to integrate the project
+   * @type {string}
+   * @example "SIRIUS", "MANDIANT", "GOOGLE"
+   * */
   @IsValidOrganization()
   @IsNotEmpty()
   readonly organizationName!: string;
 
+  /**
+   * The name of the selected issue provider to make the integration
+   * @type {string}
+   * @example "LINEAR", "JIRA", "TRELLO"
+   * */
   @IsValidIssueProvider()
   @IsNotEmpty()
   readonly issueProviderName!: string;
 }
 
+/**
+ * Represents a member of the project that is pending for authorization
+ * */
 export class AuthorizedMemberDTO {
+  /**
+   * The provider specific ID of the member
+   * @type {string}
+   * @example "memberId123"
+   * */
   @IsNotEmpty()
   readonly id!: string;
 
+  /**
+   * The email associated with the member
+   * @type {string}
+   * @example "memberId123"
+   * */
   @IsEmail()
   readonly email!: string;
 }
