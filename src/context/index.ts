@@ -1,1 +1,1 @@
-export * from './linearContext';
+export * from './prismaContext';
