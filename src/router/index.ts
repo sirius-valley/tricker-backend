@@ -7,5 +7,5 @@ import { integrationRouter } from '@domains/integration/controller';
 export const router = Router();
 
 router.use('/user', withAwsAuth, userRouter);
-router.use('/integration', withAwsAuth, integrationRouter);
+router.use('/integration', integrationRouter);
 router.use('/issue', withAwsAuth, issueRouter);

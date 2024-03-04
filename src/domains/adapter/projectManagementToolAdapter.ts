@@ -1,7 +1,7 @@
 import { type IssueDataDTO } from '@domains/issue/dto';
 import type { EventInput } from '@domains/event/dto';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
-import { type ProjectDataDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
+import { type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 
 export interface ProjectManagementToolAdapter {
   adaptProjectData: (input: AdaptProjectDataInputDTO) => Promise<ProjectDataDTO>;
@@ -9,4 +9,6 @@ export interface ProjectManagementToolAdapter {
   adaptIssueEventsData: (providerIssueId: string) => Promise<EventInput[]>;
   getMembersByProjectId: (providerProjectId: string) => Promise<ProjectMemberDataDTO[]>;
   setKey: (apiKey: string) => void;
+  getAndAdaptProjects: (apiKey: string) => Promise<ProjectPreIntegratedDTO[]>;
+  getMyEmail: (apiKey: string) => Promise<string>;
 }

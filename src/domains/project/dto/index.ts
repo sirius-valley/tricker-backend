@@ -17,13 +17,3 @@ export class ProjectDTO {
     this.deletedAt = project.deletedAt;
   }
 }
-
-export class UserRole {
-  email: string;
-  role: string;
-
-  constructor(userRole: UserRole) {
-    this.email = userRole.email;
-    this.role = userRole.role;
-  }
-}
