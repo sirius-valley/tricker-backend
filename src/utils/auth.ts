@@ -23,7 +23,6 @@ export const withAuth = (req: Request, res: Response, next: () => any): void => 
 
 export const withAwsAuth = async (req: Request, res: Response, next: () => any): Promise<void> => {
   const [bearer, token] = req.headers.authorization?.split(' ') ?? [];
-
   if ((bearer ?? '') === '' || (token ?? '') === '' || bearer !== 'Bearer') throw new UnauthorizedException('MISSING_TOKEN');
 
   try {
