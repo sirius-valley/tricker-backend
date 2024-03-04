@@ -13,9 +13,6 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Run Test Workflow
         uses: ./test.yml
 
