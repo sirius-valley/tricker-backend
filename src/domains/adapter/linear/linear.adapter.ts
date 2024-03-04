@@ -3,11 +3,12 @@ import { type EventInput } from '@domains/event/dto';
 import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { ConflictException, decryptData, LinearIntegrationException } from '@utils';
-import { UserRole } from '@domains/project/dto';
+import { type BasicProjectDataDTO, UserRole } from '@domains/project/dto';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
 import { ProjectMemberDataDTO, ProjectDataDTO } from '@domains/integration/dto';
+import { type UserDataDTO } from '@domains/user';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   private linearClient?: LinearClient;
@@ -164,5 +165,25 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
       const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
       return new UserRole({ email: member.email, role });
     });
+  }
+
+  async getMemberById(memberId: string): Promise<UserDataDTO> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+
+    const user = await linearClient.user(memberId);
+
+    return { name: user.name };
+  }
+
+  async getProjectById(projectId: string): Promise<BasicProjectDataDTO> {
+    const linearClient = new LinearClient({
+      apiKey: process.env.LINEAR_SECRET,
+    });
+
+    const team = await linearClient.team(projectId);
+
+    return { name: team.name };
   }
 }

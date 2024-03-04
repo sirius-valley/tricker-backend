@@ -11,8 +11,8 @@ import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } f
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
 import { AuthorizationRequest, LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
-import { type EmailService } from '@email/email.service';
-import { MailgunEmailService } from '@email/mailgun.email.service';
+import { type EmailService } from '@email/service/email.service';
+import { MailgunEmailService } from '@email/service/mailgun.email.service';
 import { mailgunClient } from '@utils/mail';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';

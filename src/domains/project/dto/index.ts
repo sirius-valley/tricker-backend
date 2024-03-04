@@ -27,3 +27,8 @@ export class UserRole {
     this.role = userRole.role;
   }
 }
+
+// todo: replace this with something more useful in the future
+export interface BasicProjectDataDTO {
+  name: string;
+}

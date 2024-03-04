@@ -1,6 +1,6 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
-import type { ProjectDTO } from '@domains/project/dto';
-import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import type { BasicProjectDataDTO, ProjectDTO } from '@domains/project/dto';
+import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, NotFoundException } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { OrganizationDTO } from '@domains/organization/dto';
@@ -22,10 +22,11 @@ import type { PendingProjectAuthorizationRepository } from '@domains/pendingProj
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
 import { type AuthorizationRequest, type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type StageIntegrationInputDTO } from '@domains/integration/dto';
-import { type EmailService } from '@email/email.service';
+import { type EmailService } from '@email/service/email.service';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import jwt from 'jsonwebtoken';
 import process from 'process';
+import { type EmailVariables } from '@email/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -154,19 +155,43 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
+  /**
+   * Gets basic members info that belong to a specific project
+   * @param {string} projectId - The Project ID to which members belong
+   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrival is done and contains an array of basic data about project users
+   */
   async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
     return await this.projectTool.getMembersByProjectId(projectId);
   }
 
+  /**
+   * Creates a pending project authorization for later admin approval
+   * @param {AuthorizationRequest} authReq - Already validated input data to create the pending authorization
+   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
+   */
   async createPendingAuthorization(authReq: AuthorizationRequest): Promise<PendingProjectAuthorizationDTO> {
     const pendingAuth = await this.pendingAuthProjectRepository.create(authReq);
+    const integrator = await this.projectTool.getMemberById(authReq.integratorId);
+    const project = await this.projectTool.getProjectById(authReq.projectId);
+
     const admins = await this.administratorRepository.getByName(authReq.organizationName);
-    const token = jwt.sign({ projectId: authReq.projectId }, process.env.AUTHORIZATION_SECRET!);
+    const variables = this.createEmailVariables(authReq, project, integrator);
 
     for (const admin of admins) {
-      await this.emailService.sendAuthorizationMail(admin.email, { token });
+      await this.emailService.sendAuthorizationMail(admin.email, variables);
     }
 
     return pendingAuth;
+  }
+
+  /**
+   * Method that encapsulates logic for creating the email variables that will be used to send the email
+   * */
+  private createEmailVariables(authReq: AuthorizationRequest, project: BasicProjectDataDTO, integrator: UserDataDTO): EmailVariables {
+    return {
+      token: jwt.sign({ projectId: authReq.projectId }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' }),
+      projectName: project.name,
+      integratorName: integrator.name,
+    };
   }
 }
