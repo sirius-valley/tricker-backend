@@ -1,27 +1,76 @@
-import { type LinearClient } from '@linear/sdk';
+import { type Issue, type IssueHistory, type IssueLabel, LinearClient, type Organization, type Team, type User, type WorkflowState } from '@linear/sdk';
+import { LinearIntegrationException } from '@utils';
+import { type LinearIssueData } from '@domains/adapter/dto';
 
 export class LinearDataRetriever {
-  private readonly linearClient: LinearClient | undefined;
+  private linearClient: LinearClient | undefined;
   private apiKey: string | undefined;
 
-  setKey(apiKey: string): void {
-    if (this.linearClient !== undefined) return;
+  configureRetriever(apiKey: string): void {
+    if (this.apiKey !== apiKey) {
+      this.linearClient = new LinearClient({ apiKey });
+    }
     this.apiKey = apiKey;
-    // this.linearClient = this.initializeLinearClient();
+  }
+
+  async getTeam(projectId: string): Promise<Team> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return await this.linearClient.team(projectId);
+  }
+
+  async getProjects(): Promise<Team[]> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return (await this.linearClient.teams()).nodes;
+  }
+
+  async getMembers(projectId: string): Promise<User[]> {
+    const team = await this.getTeam(projectId);
+    return (await team.members()).nodes;
+  }
+
+  async getStages(projectId: string): Promise<WorkflowState[]> {
+    const team = await this.getTeam(projectId);
+    return (await team.states()).nodes;
+  }
+
+  async getLabels(projectId: string): Promise<IssueLabel[]> {
+    const team = await this.getTeam(projectId);
+    return (await team.labels()).nodes;
+  }
+
+  async getOrganization(): Promise<Organization> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return await this.linearClient.organization;
+  }
+
+  async getMyMail(): Promise<string> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return (await this.linearClient.viewer).email;
+  }
+
+  async getIssues(projectId: string): Promise<Issue[]> {
+    const team = await this.getTeam(projectId);
+    return (await team.issues()).nodes;
+  }
+
+  async getIssue(issueId: string): Promise<Issue> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return await this.linearClient.issue(issueId);
+  }
+
+  async getIssueHistory(issueId: string): Promise<IssueHistory[]> {
+    const issue = await this.getIssue(issueId);
+    return (await issue.history()).nodes;
+  }
+
+  async getIssueData(issueId: string): Promise<LinearIssueData> {
+    const issue = await this.getIssue(issueId);
+    const state = await issue.state;
+    const creator = await issue.creator;
+    const assignee = await issue.assignee;
+    const priority = issue.priority;
+    const labels = (await issue.labels()).nodes;
+
+    return { assignee, creator, priority, labels, stage: state };
   }
 }
-/*
-const key: string = decryptData(input.token, process.env.ENCRYPT_SECRET!);
-this.setKey(key);
-if (this.linearClient === undefined) {
-    throw new LinearIntegrationException('Linear Client not created');
-}
-const team: Team = await this.linearClient.team(input.providerProjectId);
-const members: User[] = (await team.members()).nodes.map((member) => member);
-const stages: string[] = await this.getStages(team);
-const teamMembers: ProjectMemberDataDTO[] = members.map((member) => new ProjectMemberDataDTO({ providerId: member.id, email: member.email, name: member.name }));
-const labels: string[] = await this.getLabels(team);
-const org: Organization = await this.linearClient.organization;
-
-return new ProjectDataDTO(input.providerProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null);
- */

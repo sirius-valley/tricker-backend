@@ -92,9 +92,9 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByProviderId(input.pmProviderId);
+    const pm: UserDTO | null = await this.userRepository.getByProviderId(input.pmProviderId);
     await this.validateIdentity(input.apyKey, pm?.email);
-    const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects(input.apyKey);
+    const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
     // retrieve only not integrated projects
     for (const project of unfilteredProjects) {
@@ -209,7 +209,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
-  async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId);
+  async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
+    return await this.adapter.getMembersByProjectId(projectId, apiKey);
   }
 }

@@ -8,21 +8,23 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from '@domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
+import { LinearMembersPreIntegrationBody, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
 import { LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
 import { mailgunClient } from '@utils/mail';
+import { LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
 
+const dataRetriever: LinearDataRetriever = new LinearDataRetriever();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
 const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);
-const adapter: ProjectManagementToolAdapter = new LinearAdapter();
+const adapter: ProjectManagementToolAdapter = new LinearAdapter(dataRetriever);
 const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMemberMailsRepositoryImpl(db);
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const mailSender: EmailService = new MailgunEmailService(mailgunClient);
@@ -36,8 +38,8 @@ integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegratio
   res.status(HttpStatus.CREATED).json(project);
 });
 
-integrationRouter.get('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'query'), async (req: Request, res: Response): Promise<void> => {
-  const { key, provider } = req.query as unknown as ProviderKeyDTO;
+integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'body'), async (req: Request, res: Response): Promise<void> => {
+  const { key, provider } = req.body as unknown as ProviderKeyDTO;
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
 
   const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: provider, apyKey: key, pmProviderId: sub });
@@ -45,13 +47,11 @@ integrationRouter.get('/linear/projects', withAwsAuth, validateRequest(ProviderK
   res.status(HttpStatus.OK).json(projects);
 });
 
-integrationRouter.get('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params') /* , validateRequest(LinearMembersPreIntegrationBody, 'body') */, async (_req: Request, res: Response) => {
-  const { id: projectId } = _req.params;
-  // draft
-  // const { apiToken } : { apiToken: string } = _req.body
-  // process.env.CURRENT_API_TOKEN = apiToken
+integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (req: Request, res: Response) => {
+  const { id: projectId } = req.params;
+  const { apiToken }: { apiToken: string } = req.body;
 
-  const members = await service.getMembers(projectId);
+  const members: ProjectMemberDataDTO[] = await service.getMembers(projectId, apiToken);
 
   return res.status(HttpStatus.OK).json(members);
 });

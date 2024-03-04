@@ -1,47 +1,29 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
-import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team, type TeamConnection } from '@linear/sdk';
+import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
-import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
+import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
-  private linearClient?: LinearClient;
-  private apiKey?: string;
-
-  private initializeLinearClient(): LinearClient {
-    if (this.apiKey === null) {
-      throw new LinearIntegrationException('API key not set.');
-    }
-    return new LinearClient({
-      apiKey: this.apiKey,
-    });
-  }
-
-  setKey(apiKey: string): void {
-    if (this.linearClient !== undefined) return;
-    this.apiKey = apiKey;
-    this.linearClient = this.initializeLinearClient();
-  }
+  constructor(private readonly dataRetriever: LinearDataRetriever) {}
 
   /**
-   * Retrieves members(users) asociated with a Linear project identified by its Linear project ID and adapt them.
+   * Retrieves members(users) associated with a Linear project identified by its Linear project ID and adapt them.
    * @param {string} linearProjectId - The ID of the Linear project.
+   * @param {string} apiKey - The API key from Linear.
    * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves with an array of ProjectMemberDTO objects representing the project members.
    * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
-  async getMembersByProjectId(linearProjectId: string): Promise<ProjectMemberDataDTO[]> {
-    const linearClient = new LinearClient({
-      apiKey: process.env.LINEAR_SECRET,
-    });
-
+  async getMembersByProjectId(linearProjectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
+    this.dataRetriever.configureRetriever(apiKey);
     try {
-      const team = await linearClient.team(linearProjectId);
-      const members = await team.members();
-      return members.nodes.map(
+      const members: User[] = await this.dataRetriever.getMembers(linearProjectId);
+      return members.map(
         (member) =>
           new ProjectMemberDataDTO({
             providerId: member.id,
@@ -61,14 +43,12 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
    * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
+  // Retriever not configured because it has been already configured in the flow
   async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
-    const linearClient = new LinearClient({
-      apiKey: process.env.LINEAR_SECRET,
-    });
-
     try {
-      const issue = await linearClient.issue(linearIssueId);
-      return await processIssueEvents(issue);
+      const issue: Issue = await this.dataRetriever.getIssue(linearIssueId);
+      const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(linearIssueId);
+      return await processIssueEvents(issue, history);
     } catch (err: any) {
       const linearError = err as LinearError;
       throw new LinearIntegrationException(linearError.message, linearError.errors);
@@ -84,31 +64,27 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    */
   async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
     const key: string = decryptData(input.token, process.env.ENCRYPT_SECRET!);
-    this.setKey(key);
-    if (this.linearClient === undefined) {
-      throw new LinearIntegrationException('Linear Client not created');
-    }
-    const team: Team = await this.linearClient.team(input.providerProjectId);
-    const members: User[] = (await team.members()).nodes.map((member) => member);
-    const stages: string[] = await this.getStages(team);
-    const teamMembers: ProjectMemberDataDTO[] = members.map((member) => new ProjectMemberDataDTO({ providerId: member.id, email: member.email, name: member.name }));
-    const labels: string[] = await this.getLabels(team);
-    const org: Organization = await this.linearClient.organization;
+    this.dataRetriever.configureRetriever(key);
+    const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
+    const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(key, input.providerProjectId);
+    const stages: string[] = await this.getAndAdaptStages(input.providerProjectId);
+    const labels: string[] = await this.getAndAdaptLabels(input.providerProjectId);
+    const org: Organization = await this.dataRetriever.getOrganization();
 
     return new ProjectDataDTO(input.providerProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null);
   }
 
+  /**
+   * Adapts all project issues data including issue details, priorities, and labels.
+   * @param {string} providerProjectId - Project's provider ID.
+   * @returns {Promise<IssueDataDTO[]>} A promise resolving with project issues data.
+   */
+  // Retriever not configured because it has been already configured in the flow
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
-    const linearClient = new LinearClient({
-      apiKey: process.env.LINEAR_SECRET,
-    });
-    const project: Team = await linearClient.team(providerProjectId);
-    const issues = await project.issues();
+    const issues: Issue[] = await this.dataRetriever.getIssues(providerProjectId);
     const integratedIssuesData: IssueDataDTO[] = [];
-    for (const issue of issues.nodes) {
-      const stage = await issue.state;
-      const creator = await issue.creator;
-      const assignee = await issue.assignee;
+    for (const issue of issues) {
+      const issueData: LinearIssueData = await this.dataRetriever.getIssueData(providerProjectId);
       let priority: Priority;
       switch (issue.priority) {
         case 1:
@@ -130,15 +106,16 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
       integratedIssuesData.push(
         new IssueDataDTO({
           providerIssueId: issue.id,
-          authorEmail: creator !== undefined ? creator.email : null,
-          assigneeEmail: assignee !== undefined ? assignee.email : null,
+          authorEmail: issueData.creator !== undefined ? issueData.creator.email : null,
+          assigneeEmail: issueData.assignee !== undefined ? issueData.assignee.email : null,
           providerProjectId,
           name: issue.identifier,
           title: issue.title,
           description: issue.description ?? null,
           priority,
           storyPoints: issue.estimate ?? null,
-          stage: stage != null ? stage.name : null,
+          stage: issueData.stage != null ? issueData.stage.name : null,
+          labels: issueData.labels.map((label) => label.name),
         })
       );
     }
@@ -146,30 +123,41 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     return integratedIssuesData;
   }
 
-  async getAndAdaptProjects(linearKey: string): Promise<ProjectPreIntegratedDTO[]> {
-    this.setKey(linearKey);
-    if (this.linearClient === undefined) {
-      throw new LinearIntegrationException('Linear Client not created');
-    }
-
-    const teams: TeamConnection = await this.linearClient.teams();
-    const workspace: Organization = await this.linearClient.organization;
-    return teams.nodes.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null }));
+  /**
+   * Retrieves and adapts projects including their names and logos.
+   * @returns {Promise<ProjectPreIntegratedDTO[]>} A promise resolving with pre-integrated projects.
+   */
+  async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
+    const teams: Team[] = await this.dataRetriever.getProjects();
+    const workspace: Organization = await this.dataRetriever.getOrganization();
+    return teams.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null }));
   }
 
-  async getMyEmail(linearKey: string): Promise<string> {
-    this.setKey(linearKey);
-    if (this.linearClient === undefined) {
-      throw new LinearIntegrationException('Linear Client not created');
-    }
-    return (await this.linearClient.viewer).email;
+  /**
+   * Retrieves and adapts project stages by ID.
+   * @param {string} providerProjectId - Project's provider ID.
+   * @returns {Promise<string[]>} A promise resolving with project stage names.
+   */
+  private async getAndAdaptStages(providerProjectId: string): Promise<string[]> {
+    return (await this.dataRetriever.getStages(providerProjectId)).map((stage) => stage.name);
   }
 
-  private async getStages(team: Team): Promise<string[]> {
-    return (await team.states()).nodes.map((stage: WorkflowState) => stage.name);
+  /**
+   * Retrieves and adapts project labels by ID.
+   * @param {string} providerProjectId - Project's provider ID.
+   * @returns {Promise<string[]>} A promise resolving with project label names.
+   */
+  private async getAndAdaptLabels(providerProjectId: string): Promise<string[]> {
+    return (await this.dataRetriever.getLabels(providerProjectId)).map((label) => label.name);
   }
 
-  private async getLabels(team: Team): Promise<string[]> {
-    return (await team.labels()).nodes.map((label: IssueLabel) => label.name);
+  /**
+   * Retrieves the current user's email using an API key.
+   * @param {string} apiKey - API key for authentication.
+   * @returns {Promise<string>} A promise resolving with the current user's email.
+   */
+  async getMyEmail(apiKey: string): Promise<string> {
+    this.dataRetriever.configureRetriever(apiKey);
+    return await this.dataRetriever.getMyMail();
   }
 }
