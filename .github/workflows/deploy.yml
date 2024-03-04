@@ -1,6 +1,10 @@
   name: Publish Docker image at DockerHub
 
   on:
+    pull_request:
+      branches:
+        - main
+        - dev
     push:
       branches:
         - dev
