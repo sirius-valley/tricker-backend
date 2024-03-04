@@ -3,7 +3,7 @@ name: Publish Docker image at DockerHub
 on:
   push:
     branches:
-      - '*'
+      - dev
   release:
     types: [published]
 
