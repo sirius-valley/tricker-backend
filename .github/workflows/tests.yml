@@ -24,4 +24,7 @@ jobs:
         run: npm install
 
       - name: Run Tests
+        env:
+          LINEAR_SECRET: ${{ secrets.LINEAR_SECRET }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
         run: npm test
