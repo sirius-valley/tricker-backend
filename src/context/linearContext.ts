@@ -1,7 +1,6 @@
-import { LinearClient } from '@linear/sdk';
+/* import { LinearClient } from '@linear/sdk';
+import process from 'process';
 
-export const initializeLinearClient = (apikey: string): LinearClient => {
-  return new LinearClient({
-    apiKey: apikey,
-  });
-};
+export const linearClient = new LinearClient({
+  apiKey: process.env.LINEAR_SECRET,
+}); */

@@ -5,3 +5,7 @@ export * from './validation';
 export * from './errors';
 export * from './swagger';
 export * from './auth';
+export * from './aws';
+export * from './enums';
+export * from './mail';
+export * from './validation-annotations';
