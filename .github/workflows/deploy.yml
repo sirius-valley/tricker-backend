@@ -3,8 +3,7 @@ name: Publish Docker image at DockerHub
 on:
   push:
     branches:
-      - dev
-      - TRI-108/Github-action-to-Build-Docker-Image-and-ECR-Deployment-on-Merge-to-Main
+      - '*'
   release:
     types: [published]
 
