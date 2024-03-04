@@ -16,8 +16,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Run Test Workflow
-        uses: ./test.yml
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        env:
+          LINEAR_SECRET: ${{ secrets.LINEAR_SECRET }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+        run: npm test
 
   push_to_registry:
     name: Push Docker image to Docker Hub
