@@ -14,6 +14,8 @@ import { AuthorizationRequest, LinearMembersPreIntegrationParams, ProjectIdInteg
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
+import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
+import { IntegrationRepositoryImpl } from '../../../../integration.repository.impl';
 
 require('express-async-errors');
 
@@ -27,7 +29,8 @@ const pendingMemberMailsRepository: PendingMemberMailsRepository = new PendingMe
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const emailService: EmailService = new MailgunEmailService(mailgunClient);
 const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, emailService);
+const integrationRepository: IntegrationRepository = new IntegrationRepositoryImpl(db);
+const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService);
 
 integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;

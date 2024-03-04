@@ -27,6 +27,7 @@ import jwt from 'jsonwebtoken';
 import process from 'process';
 import { type AuthorizationEmailVariables } from 'domains/email/dto';
 import { type EmailService } from '@domains/email/service';
+import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -37,6 +38,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly pendingMemberMailsRepository: PendingMemberMailsRepository,
     private readonly organizationRepository: OrganizationRepository,
     private readonly administratorRepository: AdministratorRepository,
+    private readonly integrationRepository: IntegrationRepository,
     private readonly emailService: EmailService
   ) {}
 
@@ -239,7 +241,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
    */
   async createPendingAuthorization(authReq: AuthorizationRequest): Promise<PendingProjectAuthorizationDTO> {
-    const pendingAuth = await this.pendingAuthProjectRepository.create(authReq);
+    const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId);
     const project = await this.adapter.getProjectById(authReq.projectId);
 

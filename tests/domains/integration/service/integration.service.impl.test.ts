@@ -19,6 +19,8 @@ import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter
 
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
+import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
+import { IntegrationRepositoryImpl } from '../../../../integration.repository.impl';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -38,6 +40,7 @@ let prismaMockCtx: MockContext;
 let prismaMock: PrismaClient;
 let projectMember: ProjectMemberDataDTO;
 let administratorMockRepository: AdministratorRepository;
+let integrationRepository: IntegrationRepository;
 
 beforeEach(() => {
   prismaMockCtx = createMockContext();
@@ -50,7 +53,9 @@ beforeEach(() => {
   pendingMemberMailsMockRepository = new PendingMemberMailsRepositoryImpl(prismaMock);
   pendingAuthProjectMockRepository = new PendingProjectAuthorizationRepositoryImpl(prismaMock);
   administratorMockRepository = new AdministratorRepositoryImpl(prismaMock);
-  service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, administratorMockRepository, emailSender);
+  integrationRepository = new IntegrationRepositoryImpl(prismaMock);
+
+  service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, administratorMockRepository, integrationRepository, emailSender);
   user = new UserDTO({
     id: 'userId',
     profileImage: null,
@@ -189,4 +194,6 @@ describe('Integration service', () => {
       expect(received).toHaveLength(1);
     });
   });
+
+  it('should create a pending project authorization successfully', async () => {});
 });
