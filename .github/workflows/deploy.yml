@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Test Workflow
-        uses: test.yml
+        uses: ./test.yml
 
   push_to_registry:
     name: Push Docker image to Docker Hub
