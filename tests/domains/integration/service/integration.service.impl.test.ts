@@ -1,24 +1,24 @@
-import { before, beforeEach, describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import { db } from '@utils';
-import { UserDTO, type UserRepository } from '@domains/user';
-import { type ProjectRepository } from '@domains/project/repository';
-import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
-import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
-import { UserRepositoryMock } from '../../user/mockRepository/user.repository.mock';
-import { ProjectDTO } from '@domains/project/dto';
-import { ProjectRepositoryMock } from '../../project/mockRepository/project.repository.mock';
+import { createMockContext, type MockContext } from '@context';
+import type { PrismaClient } from '@prisma/client';
+import { type EmailService, MailgunEmailService } from '@domains/email/service';
+import { mailgunClient } from '@utils/mail';
+import { UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
+import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
+import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from '@domains/pendingMemberMail/repository';
+import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { type PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
-import { type PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
-import { type OrganizationRepository } from '@domains/organization/repository';
-import { OrganizationMockRepository } from '../../organization/mockRepository/organization.mock.repository';
-import { PendingMemberMailsMockRepository } from '../../pendingMemberMails/mockRepository/pendingMemberMails.mock.repository';
-import { PendingProjectAuthorizationMockRepository } from '../../pendingProjectAuthorization/mockRepository/pendingProjectAuthorization.mock.repository';
+import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
+import { ProjectDTO } from '@domains/project/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import { PendingMemberMailDTO } from 'domains/pendingMemberMail/dto';
+import { PendingMemberMailDTO } from '@domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
-import { ProjectDataDTO } from '@domains/integration/dto';
+import { ConflictException, db, NotFoundException } from '@utils';
+import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
+
+import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
+import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -33,186 +33,160 @@ let projectData: ProjectDataDTO;
 let pendingProject: PendingProjectAuthorizationDTO;
 let pendingMemberMail: PendingMemberMailDTO;
 let organization: OrganizationDTO;
+let emailSender: EmailService;
+let prismaMockCtx: MockContext;
+let prismaMock: PrismaClient;
+let projectMember: ProjectMemberDataDTO;
+let administratorMockRepository: AdministratorRepository;
 
-describe('Integrate project method tests', () => {
-  before(() => {
-    userMockRepository = new UserRepositoryMock();
-    mockAdapterTool = new LinearAdapterMock();
-    projectMockRepository = new ProjectRepositoryMock();
-    organizationMockRepository = new OrganizationMockRepository();
-    pendingMemberMailsMockRepository = new PendingMemberMailsMockRepository();
-    pendingAuthProjectMockRepository = new PendingProjectAuthorizationMockRepository();
-    service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository);
-    user = new UserDTO({
-      id: 'userId',
-      profileImage: null,
-      cognitoId: 'cognitoId',
-      email: 'mail@mail.com',
-      name: 'John Doe',
-      projectsRoleAssigned: [],
-      createdAt: new Date('2023-11-18T19:28:40.065Z'),
-      deletedAt: null,
-      emittedUserProjectRole: [],
+beforeEach(() => {
+  prismaMockCtx = createMockContext();
+  prismaMock = prismaMockCtx.prisma;
+  emailSender = new MailgunEmailService(mailgunClient);
+  userMockRepository = new UserRepositoryImpl(prismaMock);
+  mockAdapterTool = new LinearAdapterMock();
+  projectMockRepository = new ProjectRepositoryImpl(prismaMock);
+  organizationMockRepository = new OrganizationRepositoryImpl(prismaMock);
+  pendingMemberMailsMockRepository = new PendingMemberMailsRepositoryImpl(prismaMock);
+  pendingAuthProjectMockRepository = new PendingProjectAuthorizationRepositoryImpl(prismaMock);
+  administratorMockRepository = new AdministratorRepositoryImpl(prismaMock);
+  service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, administratorMockRepository, emailSender);
+  user = new UserDTO({
+    id: 'userId',
+    profileImage: null,
+    cognitoId: 'cognitoId',
+    email: 'mail@mail.com',
+    name: 'John Doe',
+    projectsRoleAssigned: [],
+    createdAt: new Date('2023-11-18T19:28:40.065Z'),
+    deletedAt: null,
+    emittedUserProjectRole: [],
+  });
+  project = new ProjectDTO({
+    id: 'idP',
+    providerId: 'pId',
+    name: 'Tricker',
+    organizationId: 'oId',
+    image: 'url',
+    createdAt: new Date('2023-11-18T19:28:40.065Z'),
+    deletedAt: null,
+  });
+  projectMember = new ProjectMemberDataDTO({ email: 'mockUser@mock.com', name: 'John Doe', providerId: 'pId' });
+  projectData = new ProjectDataDTO('idP', [projectMember], 'Tricker', [], [], null);
+  pendingProject = new PendingProjectAuthorizationDTO({
+    id: 'ppaId',
+    providerProjectId: 'ppId',
+    token: 'token',
+    issueProviderId: 'ipId',
+    integratorId: 'iId',
+    organizationId: 'oId',
+  });
+  pendingMemberMail = new PendingMemberMailDTO({
+    id: 'pmmId',
+    email: 'mail@mail.com',
+    pendingProjectAuthorizationId: 'ppaId',
+  });
+  organization = new OrganizationDTO({
+    id: 'oId',
+    name: 'orgName',
+  });
+});
+
+describe('Integration service', () => {
+  describe('Integrate project method tests', () => {
+    it('Should successfully integrate a project to tricker', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([{ ...pendingMemberMail, email: 'mail@mail.com' }]);
+      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(user);
+      jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(organization);
+      jest.spyOn(mockAdapterTool, 'adaptProjectData').mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'mail@mail.com' }] });
+      jest.spyOn(db, '$transaction').mockResolvedValue(project);
+      jest.spyOn(emailSender, 'sendConfirmationMail').mockResolvedValue();
+
+      const expectedProject: ProjectDTO = project;
+      const receivedProject: ProjectDTO = await service.integrateProject('id');
+
+      expect.assertions(2);
+      expect(receivedProject.id).toEqual(expectedProject.id);
+      expect(receivedProject.createdAt.toISOString()).toEqual(expectedProject.createdAt.toISOString());
     });
-    project = new ProjectDTO({
-      id: 'idP',
-      providerId: 'pId',
-      name: 'Tricker',
-      organizationId: 'oId',
-      image: 'url',
-      createdAt: new Date('2023-11-18T19:28:40.065Z'),
-      deletedAt: null,
+
+    it('Should throw exception when user is null', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([{ ...pendingMemberMail, email: 'mail@mail.com' }]);
+      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(null);
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(NotFoundException);
+      await expect(service.integrateProject('8')).rejects.toThrow("Not found. Couldn't find User");
     });
-    projectData = new ProjectDataDTO('idP', [{ email: 'mockUser@mock.com', role: 'Project Manager' }], 'Tricker', [], [], null);
-    pendingProject = new PendingProjectAuthorizationDTO({
-      id: 'ppaId',
-      providerProjectId: 'ppId',
-      token: 'token',
-      issueProviderId: 'ipId',
-      integratorId: 'iId',
-      organizationId: 'oId',
+
+    it('Should throw exception when project has already been integrated', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(project);
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(ConflictException);
+      await expect(service.integrateProject('8')).rejects.toThrow('Conflict. Project has been already integrated');
     });
-    pendingMemberMail = new PendingMemberMailDTO({
-      id: 'pmmId',
-      email: 'mail@mail.com',
-      pendingProjectAuthorizationId: 'ppaId',
+
+    it('Should throw exception when project is inactive', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue({ ...project, deletedAt: new Date('2023-11-18T19:28:40.065Z') });
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(ConflictException);
+      await expect(service.integrateProject('8')).rejects.toThrow('Conflict. Project is currently inactive. Please, re-active it if you need');
     });
-    organization = new OrganizationDTO({
-      id: 'oId',
-      name: 'orgName',
+
+    it('Should throw an exception if there is not a pending project with the provided Id', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(NotFoundException);
+      await expect(service.integrateProject('8')).rejects.toThrow("Not found. Couldn't find PendingAuthProject");
     });
-    /* userProjectRole = new UserProjectRoleDTO({
-      id: 'idUPR',
-      userId: 'userId',
-      projectId: 'idP',
-      roleId: 'idR',
-      userEmitterId: 'idE',
-      createdAt: new Date('2023-11-18T19:28:40.065Z'),
-      updatedAt: new Date('2023-11-18T19:28:40.065Z'),
-      deletedAt: null,
-    }); */
+
+    it('Should throw an exception if there is not an organization with the provided name', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([{ ...pendingMemberMail, email: 'mail@mail.com' }]);
+      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(user);
+      jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(null);
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(NotFoundException);
+      await expect(service.integrateProject('8')).rejects.toThrow("Not found. Couldn't find Organization");
+    });
+
+    it('Should throw an exception if project manager is not included in accepted users', async () => {
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([pendingMemberMail]);
+      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(user);
+      jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(organization);
+      jest.spyOn(mockAdapterTool, 'adaptProjectData').mockResolvedValue(projectData);
+
+      expect.assertions(2);
+      await expect(service.integrateProject('8')).rejects.toThrow(ConflictException);
+      await expect(service.integrateProject('8')).rejects.toThrow('Conflict. Provided Project Manager email not correct.');
+    });
   });
 
-  beforeEach(() => {
-    mock.restoreAll();
-  });
+  describe('retrieveProjectsFromProvider method', () => {
+    it('should successfully retrieve a projects list', async () => {
+      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(user);
+      jest.spyOn(service, 'validateIdentity').mockResolvedValue();
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
 
-  it('Should successfully integrate a project to tricker', async () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(() => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return null;
-    });
-    mock.method(pendingAuthProjectMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
-      return pendingProject;
-    });
-    mock.method(pendingMemberMailsMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
-      return [pendingMemberMail];
-    });
-    mock.method(organizationMockRepository, 'getById').mock.mockImplementation(async () => {
-      return organization;
-    });
-    mock.method(mockAdapterTool, 'adaptProjectData').mock.mockImplementation(() => {
-      return projectData;
-    });
-    mock.method(db, '$transaction').mock.mockImplementation(() => {
-      return project;
-    });
+      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker' }];
+      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
 
-    const expectedProject: ProjectDTO = project;
-    const receivedProject: ProjectDTO = await service.integrateProject('id', 'idE');
-
-    assert.strictEqual(expectedProject.id, receivedProject.id);
-    assert.equal(receivedProject.createdAt.toISOString(), expectedProject.createdAt.toISOString());
-  });
-
-  it('Should throw exception when user is null', async () => {
-    mock.method(userMockRepository, 'getById').mock.mockImplementation(() => {
-      return null;
+      expect.assertions(2);
+      expect(received[0].providerProjectId).toEqual(expected[0].providerProjectId);
+      expect(received).toHaveLength(1);
     });
-
-    await assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: "Not found. Couldn't find User" }
-    );
-  });
-
-  it('Should throw exception when project has already been integrated', () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return project;
-    });
-
-    assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: 'Conflict. Project has been already integrated' }
-    );
-  });
-
-  it('Should throw exception when project is inactive', () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(async () => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return { ...project, deletedAt: new Date('2023-11-18T19:28:40.065Z') };
-    });
-
-    assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: 'Conflict. Project is currently inactive. Please, re-active it if you need' }
-    );
-  });
-
-  it('Should throw an exception if there is not a pending project with the provided Id', async () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(() => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return null;
-    });
-    mock.method(pendingAuthProjectMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
-      return null;
-    });
-
-    await assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: "Not found. Couldn't find PendingAuthProject" }
-    );
-  });
-
-  it('Should throw an exception if there is not an organization with the provided name', async () => {
-    mock.method(userMockRepository, 'getByProviderId').mock.mockImplementation(() => {
-      return user;
-    });
-    mock.method(projectMockRepository, 'getByProviderId').mock.mockImplementation(async (): Promise<ProjectDTO | null> => {
-      return null;
-    });
-    mock.method(pendingAuthProjectMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
-      return pendingProject;
-    });
-    mock.method(pendingMemberMailsMockRepository, 'getByProjectId').mock.mockImplementation(async () => {
-      return [pendingMemberMail];
-    });
-    mock.method(organizationMockRepository, 'getById').mock.mockImplementation(async () => {
-      return null;
-    });
-
-    await assert.rejects(
-      async () => {
-        await service.integrateProject('8', 'idNull');
-      },
-      { message: "Not found. Couldn't find Organization" }
-    );
   });
 });

@@ -1,8 +1,5 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import { createBlockEvent, filterRelationChanges, getCommentForBlockEvent } from '@domains/adapter/linear/event-util';
 import { type Issue, type IssueHistory, type IssueRelationHistoryPayload } from '@linear/sdk';
-import { reverseEnumMap } from '@utils/enums';
 import issueData from './data/issue-data.json';
 import issueHistoryData from './data/issue-history-data.json';
 import { TrickerBlockEventType } from '@domains/event/dto';
@@ -17,9 +14,9 @@ describe('filterRelationChanges', () => {
 
     const filteredChanges = filterRelationChanges(changes);
 
-    assert.strictEqual(filteredChanges.length, 2);
-    assert.strictEqual(filteredChanges[0].identifier, 'PRO-7');
-    assert.strictEqual(filteredChanges[1].identifier, 'PRO-8');
+    expect(filteredChanges.length).toBe(2);
+    expect(filteredChanges[0].identifier).toBe('PRO-7');
+    expect(filteredChanges[1].identifier).toBe('PRO-8');
   });
 
   it('should not filter changes to unrelated relations', () => {
@@ -27,7 +24,7 @@ describe('filterRelationChanges', () => {
 
     const filteredChanges = filterRelationChanges(changes);
 
-    assert.strictEqual(filteredChanges.length, 0);
+    expect(filteredChanges.length).toBe(0);
   });
 
   it('should handle empty changes array', () => {
@@ -35,7 +32,7 @@ describe('filterRelationChanges', () => {
 
     const filteredChanges = filterRelationChanges(changes);
 
-    assert.strictEqual(filteredChanges.length, 0);
+    expect(filteredChanges.length).toBe(0);
   });
 });
 
@@ -43,26 +40,24 @@ describe('createBlockEvent', () => {
   it('should create a BlockEventInput for adding a block', () => {
     const issue = issueData as unknown as Issue;
     const event = issueHistoryData[4] as unknown as IssueHistory;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    const change = event.relationChanges[0] as unknown as IssueRelationHistoryPayload;
+    const change = event.relationChanges![0] as unknown as IssueRelationHistoryPayload;
+    const eventUtilMock = {
+      reverseEnumMap: jest.fn(),
+      getCommentForBlockEvent: jest.fn(),
+    };
+    jest.mock('@domains/adapter/linear/event-util', () => eventUtilMock);
 
-    mock.fn(reverseEnumMap).mock.mockImplementationOnce(() => {
-      return 'BLOCKED_BY';
-    });
-
-    mock.fn(getCommentForBlockEvent).mock.mockImplementationOnce(() => {
-      return 'Blocked by PRO-5';
-    });
+    eventUtilMock.reverseEnumMap.mockReturnValueOnce('BLOCKED_BY');
+    eventUtilMock.getCommentForBlockEvent.mockReturnValueOnce('Blocked by PRO-5');
 
     const result = createBlockEvent(change, event, issue);
 
-    assert.strictEqual(result.reason, 'Block by other ticket');
-    assert.strictEqual(result.providerEventId, event.id);
-    assert.strictEqual(result.issueId, issue.id);
-    assert.strictEqual(result.type, TrickerBlockEventType.BLOCKED_BY);
-    assert.strictEqual(result.userEmitterId, event.actorId);
-    assert.strictEqual(result.createdAt, event.createdAt);
+    expect(result.reason).toBe('Block by other ticket');
+    expect(result.providerEventId).toBe(event.id);
+    expect(result.issueId).toBe(issue.id);
+    expect(result.type).toBe(TrickerBlockEventType.BLOCKED_BY);
+    expect(result.userEmitterId).toBe(event.actorId);
+    expect(result.createdAt).toBe(event.createdAt);
   });
 });
 
@@ -74,7 +69,7 @@ describe('getCommentForBlockEvent', () => {
 
     const result = getCommentForBlockEvent(action, blockType, identifier);
 
-    assert.strictEqual(result, 'Blocked by PRO-1');
+    expect(result).toBe('Blocked by PRO-1');
   });
 
   it('should return the comment for removing a block', () => {
@@ -84,7 +79,7 @@ describe('getCommentForBlockEvent', () => {
 
     const result = getCommentForBlockEvent(action, blockType, identifier);
 
-    assert.strictEqual(result, 'No longer blocked by PRO-1');
+    expect(result).toBe('No longer blocked by PRO-1');
   });
 
   it('should return the comment for blocking to', () => {
@@ -94,7 +89,7 @@ describe('getCommentForBlockEvent', () => {
 
     const result = getCommentForBlockEvent(action, blockType, identifier);
 
-    assert.strictEqual(result, 'Blocking to PRO-1');
+    expect(result).toBe('Blocking to PRO-1');
   });
 
   it('should return the comment for no longer blocking to', () => {
@@ -104,6 +99,6 @@ describe('getCommentForBlockEvent', () => {
 
     const result = getCommentForBlockEvent(action, blockType, identifier);
 
-    assert.strictEqual(result, 'No longer blocking to PRO-1');
+    expect(result).toBe('No longer blocking to PRO-1');
   });
 });

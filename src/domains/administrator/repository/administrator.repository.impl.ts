@@ -1,6 +1,6 @@
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import type { PrismaClient } from '@prisma/client';
-import { type AdministratorDTO } from '../dto';
+import { AdministratorDTO } from '../dto';
 
 export class AdministratorRepositoryImpl implements AdministratorRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -21,6 +21,12 @@ export class AdministratorRepositoryImpl implements AdministratorRepository {
       },
     });
 
-    return admins.map((admin) => admin.user.email);
+    return admins.map(
+      (admin) =>
+        new AdministratorDTO({
+          id: admin.id,
+          email: admin.user.email,
+        })
+    );
   }
 }

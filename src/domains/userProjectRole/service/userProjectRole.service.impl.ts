@@ -1,5 +1,5 @@
 import { type UserProjectRoleService } from '@domains/userProjectRole/service/userProjectRole.service';
-import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 import { type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -14,17 +14,16 @@ export class UserProjectRoleServiceImpl implements UserProjectRoleService {
     private readonly roleRepository: RoleRepository
   ) {}
 
-  async create(userId: string, projectId: string, roleId: string, userEmitterId: string): Promise<UserProjectRoleDTO> {
-    console.log(projectId);
-    const user = await this.userRepository.getById(userId);
+  async create(input: UserProjectRoleInputDTO): Promise<UserProjectRoleDTO> {
+    const user = await this.userRepository.getById(input.userId);
     if (user == null || user.deletedAt !== null) throw new NotFoundException('User');
-    const project = await this.projectRepository.getById(projectId);
+    const project = await this.projectRepository.getById(input.projectId);
     if (project == null || project.deletedAt !== null) throw new NotFoundException('Project');
-    const role = await this.roleRepository.getById(roleId);
+    const role = await this.roleRepository.getById(input.roleId);
     if (role == null) throw new NotFoundException('Role');
-    const userEmitter = await this.userRepository.getById(userEmitterId);
+    const userEmitter = await this.userRepository.getById(input.userEmitterId);
     if (userEmitter == null || userEmitter.deletedAt !== null) throw new NotFoundException('User');
 
-    return await this.userProjectRoleRepository.create(userId, projectId, roleId, userEmitterId);
+    return await this.userProjectRoleRepository.create(input);
   }
 }

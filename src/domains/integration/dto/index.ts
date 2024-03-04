@@ -1,18 +1,17 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { IsDefined, IsNotEmpty, IsUUID, IsString, ValidateNested, ArrayMinSize, IsArray, IsEmail } from 'class-validator';
-import { type UserRole } from '@domains/project/dto';
+import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
 
 export class ProjectDataDTO {
   projectId: string;
-  members: UserRole[];
+  members: ProjectMemberDataDTO[];
   projectName: string;
   image: string | null;
   stages: string[];
   labels: string[];
 
-  constructor(projectId: string, members: UserRole[], name: string, stages: string[], labels: string[], image: string | null) {
+  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: string[], labels: string[], image: string | null) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;
@@ -22,10 +21,21 @@ export class ProjectDataDTO {
   }
 }
 
+export class UserRole {
+  email: string;
+  role: string;
+
+  constructor(userRole: UserRole) {
+    this.email = userRole.email;
+    this.role = userRole.role;
+  }
+}
+
 export interface MembersIntegrationInputDTO {
-  projectData: ProjectDataDTO;
+  memberRoles: UserRole[];
   projectId: string;
   emitterId: string;
+  acceptedUsers: string[];
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
@@ -49,6 +59,24 @@ export class ProjectIdIntegrationInputDTO {
 }
 
 // TODO: document
+export class ProjectPreIntegratedDTO {
+  providerProjectId: string;
+  name: string;
+  image: string | null;
+
+  constructor(project: ProjectPreIntegratedDTO) {
+    this.providerProjectId = project.providerProjectId;
+    this.name = project.name;
+    this.image = project.image;
+  }
+}
+
+export interface ProjectsPreIntegratedInputDTO {
+  providerName: string;
+  apyKey: string;
+  pmProviderId: string;
+}
+
 export class ProjectMemberDataDTO {
   readonly providerId: string;
   readonly name: string;
@@ -124,4 +152,15 @@ export class AuthorizedMemberDTO {
 
   @IsEmail()
   readonly email!: string;
+}
+
+export class ProviderKeyDTO {
+  @IsNotEmpty()
+  @IsString()
+  key!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  provider!: string;
 }

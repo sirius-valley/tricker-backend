@@ -1,14 +1,14 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
-import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team } from '@linear/sdk';
+import { type IssueLabel, LinearClient, type Organization, type User, type WorkflowState, type LinearError, type Team, type TeamConnection } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
-import { ConflictException, decryptData, LinearIntegrationException } from '@utils';
-import { type BasicProjectDataDTO, UserRole } from '@domains/project/dto';
+import { decryptData, LinearIntegrationException } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import process from 'process';
 import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
-import { ProjectMemberDataDTO, ProjectDataDTO } from '@domains/integration/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type UserDataDTO } from '@domains/user';
+import { type BasicProjectDataDTO } from '@domains/project/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   private linearClient?: LinearClient;
@@ -91,13 +91,9 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
       throw new LinearIntegrationException('Linear Client not created');
     }
     const team: Team = await this.linearClient.team(input.providerProjectId);
-    const members: User[] = (await team.members()).nodes.filter((member: User): boolean => input.memberMails.find((email: string): boolean => email === member.email) !== undefined);
+    const members: User[] = (await team.members()).nodes.map((member) => member);
     const stages: string[] = await this.getStages(team);
-    const pm: User | undefined = members.find((member: User): boolean => member.email === input.pmEmail);
-    if (pm === undefined) {
-      throw new ConflictException('Provided Project Manager email not correct.');
-    }
-    const teamMembers: UserRole[] = await this.assignRoles(members, input.pmEmail);
+    const teamMembers: ProjectMemberDataDTO[] = members.map((member) => new ProjectMemberDataDTO({ providerId: member.id, email: member.email, name: member.name }));
     const labels: string[] = await this.getLabels(team);
     const org: Organization = await this.linearClient.organization;
 
@@ -152,19 +148,31 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     return integratedIssuesData;
   }
 
+  async getAndAdaptProjects(linearKey: string): Promise<ProjectPreIntegratedDTO[]> {
+    this.setKey(linearKey);
+    if (this.linearClient === undefined) {
+      throw new LinearIntegrationException('Linear Client not created');
+    }
+
+    const teams: TeamConnection = await this.linearClient.teams();
+    const workspace: Organization = await this.linearClient.organization;
+    return teams.nodes.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null }));
+  }
+
+  async getMyEmail(linearKey: string): Promise<string> {
+    this.setKey(linearKey);
+    if (this.linearClient === undefined) {
+      throw new LinearIntegrationException('Linear Client not created');
+    }
+    return (await this.linearClient.viewer).email;
+  }
+
   private async getStages(team: Team): Promise<string[]> {
     return (await team.states()).nodes.map((stage: WorkflowState) => stage.name);
   }
 
   private async getLabels(team: Team): Promise<string[]> {
     return (await team.labels()).nodes.map((label: IssueLabel) => label.name);
-  }
-
-  private async assignRoles(members: User[], pmEmail: string): Promise<UserRole[]> {
-    return members.map((member: User) => {
-      const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
-      return new UserRole({ email: member.email, role });
-    });
   }
 
   async getMemberById(memberId: string): Promise<UserDataDTO> {
