@@ -11,7 +11,7 @@ dist
 dist-ssr
 *.local
 .env
-coverage
+
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +27,4 @@ coverage
 
 # Random folders
 /linear/
+/coverage/
