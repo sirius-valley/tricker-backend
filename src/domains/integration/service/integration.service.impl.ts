@@ -1,6 +1,6 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
-import { type ProjectDTO, type BasicProjectDataDTO } from '@domains/project/dto';
-import { type UserDTO, type UserRepository, UserRepositoryImpl, type UserDataDTO } from '@domains/user';
+import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
+import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { OrganizationDTO } from '@domains/organization/dto';
@@ -23,10 +23,10 @@ import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/rep
 import type { OrganizationRepository } from '@domains/organization/repository';
 import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole, type AuthorizationRequest } from '@domains/integration/dto';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
-import jwt from 'jsonwebtoken';
 import process from 'process';
 import { type AuthorizationEmailVariables } from 'domains/email/dto';
 import { type EmailService } from '@domains/email/service';
+import jwt from 'jsonwebtoken';
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
@@ -96,7 +96,6 @@ export class IntegrationServiceImpl implements IntegrationService {
 
       return newProject;
     });
-
     await this.emailService.sendConfirmationMail(pm.email, { projectName: project.name });
 
     return project;
@@ -109,7 +108,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByProviderId(input.pmProviderId);
+    const pm: UserDTO | null = await this.userRepository.getByProviderId(input.pmProviderId);
     await this.validateIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects(input.apyKey);
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
@@ -229,10 +228,11 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Gets basic members info that belong to a specific project
    * @param {string} projectId - The Project ID to which members belong
+   * @param {string} apiKey - The API key for authentication.
    * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrival is done and contains an array of basic data about project users
    */
-  async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId);
+  async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
+    return await this.adapter.getMembersByProjectId(projectId, apiKey);
   }
 
   /**

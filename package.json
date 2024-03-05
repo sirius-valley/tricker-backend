@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx ./src/server.ts",
-    "test": "jest --forceExit --detectOpenHandles --maxWorkers=1 --verbose --coverage && prettier --write ./coverage/coverage-final.json",
+    "test": "jest --forceExit --detectOpenHandles --maxWorkers=1 --verbose --coverage",
     "prepare": "husky && husky install",
     "prod": "npm run db:migrate && node dist/server.js",
     "dev": "npm run db:migrate && npm run db:generate && nodemon -L",
