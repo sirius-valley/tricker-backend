@@ -17,8 +17,8 @@ import { mailgunClient } from '@utils/mail';
 import { LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
-import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
+import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
 
 require('express-async-errors');
 
@@ -45,7 +45,6 @@ integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(Provider
   res.status(HttpStatus.OK).json(projects);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (req: Request, res: Response) => {
   const { id: projectId } = req.params;
   const { apiToken }: { apiToken: string } = req.body;
@@ -55,18 +54,18 @@ integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMemb
   return res.status(HttpStatus.OK).json(members);
 });
 
+integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+
+  const project: ProjectDTO = await service.integrateProject(projectId);
+
+  res.status(HttpStatus.CREATED).json(project);
+});
+
 integrationRouter.post('/linear/authorization', validateRequest(AuthorizationRequest, 'body'), async (_req: Request<any, any, AuthorizationRequest>, res: Response) => {
   const authorizationReq = _req.body;
 
   await service.createPendingAuthorization(authorizationReq);
 
   return res.status(HttpStatus.CREATED).send();
-});
-
-integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
-  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
-
-  const project: ProjectDTO = await service.integrateProject(projectId);
-
-  res.status(HttpStatus.CREATED).json(project);
 });

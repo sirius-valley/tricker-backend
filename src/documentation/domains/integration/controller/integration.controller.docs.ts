@@ -481,8 +481,8 @@
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
 
- *   /api/integration/linear/{projectId}:
- *     post:
+ *   /api/integration/linear/{projectId}/accept:
+ *     get:
  *       summary: Integrate a project into Linear
  *       tags:
  *         - "Integration"
