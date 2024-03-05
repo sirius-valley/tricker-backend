@@ -24,9 +24,14 @@ import {
   mockUserDataDTO,
   mockedToken,
   mockedGeneratedId,
+  mockedIssueProviderName,
+  mockedOrganizationName,
 } from './mockData';
-import { type AuthorizationRequest } from '@domains/integration/dto';
+import { AuthorizationRequest } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
+import { type NextFunction, type Request, type Response } from 'express';
+import { validateRequest } from '@utils';
+import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 
 describe('new integration service tests', () => {
   const adapterMock: MockProxy<ProjectManagementToolAdapter> = mock<ProjectManagementToolAdapter>();
@@ -35,6 +40,7 @@ describe('new integration service tests', () => {
   const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
   const pendingMemberMailsRepositoryMock: MockProxy<PendingMemberMailsRepository> = mock<PendingMemberMailsRepository>();
   const organizationRepositoryMock: MockProxy<OrganizationRepository> = mock<OrganizationRepository>();
+  const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
   const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
   const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
   const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
@@ -79,5 +85,37 @@ describe('new integration service tests', () => {
     expect(emailServiceMock.sendAuthorizationMail).toHaveBeenNthCalledWith(1, '1' + mockedAdminEmail, { integratorName: mockedMemberName, projectName: mockedProjectName, token: expect.any(String) });
     expect(emailServiceMock.sendAuthorizationMail).toHaveBeenNthCalledWith(2, '2' + mockedAdminEmail, { integratorName: mockedMemberName, projectName: mockedProjectName, token: expect.any(String) });
     expect(actualPendingAuthorization).toEqual(expectedAuthRequest);
+  });
+
+  it('should validate and modify request AuthorizationRequest object correctly', async () => {
+    // GIVEN
+    const pendingAuthRequest: AuthorizationRequest = {
+      apiToken: mockedToken,
+      projectId: mockedProviderProjectId,
+      integratorId: mockedIntegratorId,
+      members: mocksAdministratorDTO,
+      organizationName: mockedOrganizationId,
+      issueProviderName: mockedIssueProviderName,
+    };
+
+    issueProviderRepositoryMock.getByName.mockResolvedValue({
+      id: mockedIssueProviderId,
+      name: mockedIssueProviderName,
+    });
+
+    organizationRepositoryMock.getByName.mockResolvedValue({
+      id: mockedOrganizationId,
+      name: mockedOrganizationName,
+    });
+
+    const req = {
+      body: pendingAuthRequest,
+    } as unknown as Request;
+
+    // WHEN
+    await validateRequest(AuthorizationRequest, 'body')(req, {} as unknown as Response, jest.fn() as NextFunction);
+
+    // THEN
+    expect(req.body).toBeInstanceOf(AuthorizationRequest);
   });
 });

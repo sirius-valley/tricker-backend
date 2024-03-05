@@ -3,6 +3,7 @@ import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
 import { Type } from 'class-transformer';
+import 'reflect-metadata';
 
 export class ProjectDataDTO {
   projectId: string;

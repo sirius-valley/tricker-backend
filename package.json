@@ -34,6 +34,7 @@
     "mailgun.js": "^10.2.1",
     "morgan": "^1.10.0",
     "prisma": "^5.9.1",
+    "reflect-metadata": "^0.2.1",
     "signale": "^1.4.0",
     "supertest": "^6.3.4",
     "swagger-jsdoc": "^6.2.8",
