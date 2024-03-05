@@ -41,6 +41,7 @@ export class IssueDataDTO {
   priority: Priority;
   storyPoints: number | null;
   stage: string | null;
+  labels: string[];
 
   constructor(data: IssueDataDTO) {
     this.providerIssueId = data.providerIssueId;
@@ -53,6 +54,7 @@ export class IssueDataDTO {
     this.priority = data.priority;
     this.storyPoints = data.storyPoints;
     this.stage = data.stage;
+    this.labels = data.labels;
   }
 }
 

@@ -7,7 +7,6 @@ export class PendingMemberMailsRepositoryImpl implements PendingMemberMailsRepos
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   async getByProjectId(projectId: string): Promise<PendingMemberMailDTO[]> {
-    console.log(projectId);
     const memberMails: MemberEmail[] = await this.db.memberEmail.findMany({
       where: {
         pendingProjectAuthorizationId: projectId,

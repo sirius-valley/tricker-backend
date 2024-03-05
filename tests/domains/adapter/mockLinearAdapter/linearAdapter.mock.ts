@@ -30,15 +30,15 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
     return [];
   }
 
-  async getAndAdaptProjects(apiKey: string): Promise<ProjectPreIntegratedDTO[]> {
-    return [];
-  }
-
   async getMyEmail(apiKey: string): Promise<string> {
     return '';
   }
 
   async getMembersByProjectId(providerProjectId: string): Promise<ProjectMemberDataDTO[]> {
     return [];
+  }
+
+  async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
+    return await Promise.resolve([]);
   }
 }
