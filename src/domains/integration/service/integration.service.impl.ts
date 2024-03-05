@@ -263,8 +263,8 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async createPendingAuthorization(authReq: AuthorizationRequest): Promise<PendingProjectAuthorizationDTO> {
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
-    const integrator = await this.adapter.getMemberById(authReq.integratorId);
-    const project = await this.adapter.getProjectById(authReq.projectId);
+    const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
+    const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
 
     const admins = await this.administratorRepository.getByName(authReq.organizationName);
     for (const admin of admins) {

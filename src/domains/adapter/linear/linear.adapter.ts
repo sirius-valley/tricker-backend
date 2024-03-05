@@ -1,10 +1,9 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
-import { LinearClient, type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
+import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
-import process from 'process';
 import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
@@ -163,22 +162,16 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     return await this.dataRetriever.getMyMail();
   }
 
-  async getMemberById(memberId: string): Promise<UserDataDTO> {
-    const linearClient = new LinearClient({
-      apiKey: process.env.LINEAR_SECRET,
-    });
-
-    const user = await linearClient.user(memberId);
+  async getMemberById(memberId: string, apiKey: string): Promise<UserDataDTO> {
+    this.dataRetriever.configureRetriever(apiKey);
+    const user = await this.dataRetriever.getUser(memberId);
 
     return { name: user.name };
   }
 
-  async getProjectById(projectId: string): Promise<BasicProjectDataDTO> {
-    const linearClient = new LinearClient({
-      apiKey: process.env.LINEAR_SECRET,
-    });
-
-    const team = await linearClient.team(projectId);
+  async getProjectById(projectId: string, apiKey: string): Promise<BasicProjectDataDTO> {
+    this.dataRetriever.configureRetriever(apiKey);
+    const team = await this.dataRetriever.getTeam(projectId);
 
     return { name: team.name };
   }

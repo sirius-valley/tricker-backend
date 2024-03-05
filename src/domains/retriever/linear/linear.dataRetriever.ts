@@ -73,4 +73,9 @@ export class LinearDataRetriever {
 
     return { assignee, creator, priority, labels, stage: state };
   }
+
+  async getUser(userId: string): Promise<User> {
+    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    return await this.linearClient.user(userId);
+  }
 }

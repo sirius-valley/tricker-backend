@@ -9,8 +9,8 @@ export interface ProjectManagementToolAdapter {
   adaptProjectData: (input: AdaptProjectDataInputDTO) => Promise<ProjectDataDTO>;
   adaptAllProjectIssuesData: (providerProjectId: string) => Promise<IssueDataDTO[]>;
   adaptIssueEventsData: (providerIssueId: string) => Promise<EventInput[]>;
-  getMemberById: (memberId: string) => Promise<UserDataDTO>;
-  getProjectById: (projectId: string) => Promise<BasicProjectDataDTO>;
+  getMemberById: (memberId: string, apiKey: string) => Promise<UserDataDTO>;
+  getProjectById: (projectId: string, apiKey: string) => Promise<BasicProjectDataDTO>;
   getAndAdaptProjects: (apiKey: string) => Promise<ProjectPreIntegratedDTO[]>;
   getMembersByProjectId: (providerProjectId: string, apiKey: string) => Promise<ProjectMemberDataDTO[]>;
   getMyEmail: (apiKey: string) => Promise<string>;
