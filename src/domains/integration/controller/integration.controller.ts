@@ -55,3 +55,11 @@ integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdInte
 
   res.status(HttpStatus.CREATED).json(project);
 });
+
+integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+
+  await service.declineProject(projectId);
+
+  res.status(HttpStatus.NO_CONTENT);
+});

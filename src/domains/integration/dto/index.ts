@@ -113,3 +113,7 @@ export class ProviderKeyDTO {
   @IsValidIssueProvider()
   provider!: string;
 }
+
+export interface MailPayload {
+  adminId: string;
+}

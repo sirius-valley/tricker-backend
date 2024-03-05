@@ -1,28 +1,29 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type ProjectDTO } from '@domains/project/dto';
 import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
-import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import type { OrganizationDTO } from '@domains/organization/dto';
+import { ConflictException, Constants, db, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
+import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
+import { type OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { RoleRepositoryImpl } from '@domains/role/repository';
-import type { RoleDTO } from '@domains/role/dto';
+import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import type { StageDTO } from '@domains/stage/dto';
+import { type StageDTO } from '@domains/stage/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
-import type { LabelDTO } from '@domains/label/dto';
+import { type LabelDTO } from '@domains/label/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
+import { type LabelIntegrationInputDTO, type MailPayload, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
+import jwt from 'jsonwebtoken';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -77,7 +78,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
     const pm = await this.userRepository.getByProviderId(input.pmProviderId);
-    await this.validateIdentity(input.apyKey, pm?.email);
+    await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
     // retrieve only not integrated projects
@@ -178,7 +179,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @returns {Promise<void>} - No return value, but throws an exception if validation fails.
    * @throws {UnauthorizedException} - Thrown if the API key is not valid for the provided email.
    */
-  async validateIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
+  async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
     try {
       const userEmail = await this.adapter.getMyEmail(apiKey);
       if (userEmail !== pmEmail) {
@@ -193,8 +194,26 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
+  async validateOrgAdminIdentity(mailToken: string, pendingProjectAdminId: string): Promise<void> {
+    const [bearer, token] = mailToken.split(' ') ?? [];
+
+    if ((bearer ?? '') === '' || (token ?? '') === '' || bearer !== 'Bearer') throw new UnauthorizedException('MISSING_TOKEN');
+
+    jwt.verify(token, Constants.TOKEN_SECRET, async (err, context) => {
+      if (err != null) throw new UnauthorizedException('INVALID_TOKEN');
+      const { adminId } = context as MailPayload;
+      if (pendingProjectAdminId !== adminId) throw new UnauthorizedException('INVALID_TOKEN');
+    });
+  }
+
   async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
     return await this.adapter.getMembersByProjectId(projectId, apiKey);
+  }
+
+  async declineProject(pendingProjectId: string, token: string): Promise<void> {
+    // const pendingProject: PendingProjectAuthorizationDTO = this.getPendingProject(pendingProjectId);
+
+    await this.pendingAuthProjectRepository.delete(pendingProjectId);
   }
 
   private async verifyProjectDuplication(projectProviderId: string): Promise<void> {

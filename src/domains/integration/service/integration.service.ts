@@ -8,5 +8,7 @@ export interface IntegrationService {
   integrateStages: (input: StageIntegrationInputDTO) => Promise<void>;
   integrateLabels: (input: LabelIntegrationInputDTO) => Promise<void>;
   retrieveProjectsFromProvider: (input: ProjectsPreIntegratedInputDTO) => Promise<ProjectPreIntegratedDTO[]>;
-  validateIdentity: (apiKey: string, pmEmail: string | undefined) => Promise<void>;
+  validateIntegratorIdentity: (apiKey: string, pmEmail: string | undefined) => Promise<void>;
+  declineProject: (projectId: string, token: string) => Promise<void>;
+  validateOrgAdminIdentity: (token: string, pendingProjectAdminId: string) => Promise<void>;
 }
