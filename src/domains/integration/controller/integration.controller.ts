@@ -15,7 +15,7 @@ import { type EmailService, MailgunEmailService } from '@domains/email/service';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
-import { IntegrationRepositoryImpl } from '../../../../integration.repository.impl';
+import { IntegrationRepositoryImpl } from '../repository/integration.repository.impl';
 
 require('express-async-errors');
 

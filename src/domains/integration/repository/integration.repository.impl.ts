@@ -1,8 +1,8 @@
-import { type IntegrationRepository } from './src/domains/integration/repository/integration.repository';
-import { type AuthorizationRequest } from './src/domains/integration/dto';
-import { PendingProjectAuthorizationDTO } from './src/domains/pendingProjectAuthorization/dto';
+import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
+import { type AuthorizationRequest } from '@domains/integration/dto';
+import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { PrismaClient } from '@prisma/client';
-import { encryptData } from './src/utils';
+import { encryptData } from '@utils';
 
 export class IntegrationRepositoryImpl implements IntegrationRepository {
   constructor(private readonly db: PrismaClient) {}

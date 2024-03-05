@@ -20,7 +20,7 @@ import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
-import { IntegrationRepositoryImpl } from '../../../../integration.repository.impl';
+import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -194,6 +194,4 @@ describe('Integration service', () => {
       expect(received).toHaveLength(1);
     });
   });
-
-  it('should create a pending project authorization successfully', async () => {});
 });
