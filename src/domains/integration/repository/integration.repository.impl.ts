@@ -14,7 +14,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
           integratorId: input.integratorId,
           providerProjectId: input.projectId,
           token: encryptData(input.apiToken),
-          members: {
+          emails: {
             createMany: {
               data: input.members.map((member) => {
                 return { email: member.email };
