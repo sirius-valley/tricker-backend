@@ -5,11 +5,11 @@ import { AdministratorDTO } from '../dto';
 export class AdministratorRepositoryImpl implements AdministratorRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async getByName(name: string): Promise<AdministratorDTO[]> {
+  async getByOrganizationName(orgName: string): Promise<AdministratorDTO[]> {
     const admins = await this.db.organizationAdministrator.findMany({
       where: {
         organization: {
-          name,
+          name: orgName,
         },
       },
       include: {

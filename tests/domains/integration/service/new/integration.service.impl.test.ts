@@ -59,7 +59,7 @@ describe('new integration service tests', () => {
     integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
     adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
     adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
-    administratorRepositoryMock.getByName.mockResolvedValue(mocksAdministratorDTO);
+    administratorRepositoryMock.getByOrganizationName.mockResolvedValue(mocksAdministratorDTO);
     emailServiceMock.sendAuthorizationMail.mockResolvedValue();
 
     // WHEN

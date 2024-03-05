@@ -266,7 +266,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
 
-    const admins = await this.administratorRepository.getByName(authReq.organizationName);
+    const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     for (const admin of admins) {
       const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
       const variables = this.createEmailVariables(token, project, integrator);
