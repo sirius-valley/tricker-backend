@@ -22,7 +22,7 @@ userRouter.get('/me', async (_req: Request, res: Response): Promise<Response> =>
 
 userRouter.post('/getOrCreate', async (_req: Request<any, any, { idToken: string }>, res: Response) => {
   const { idToken } = _req.body;
-
+  console.log(idToken);
   const { user, alreadyExists } = await service.getOrCreateUser(idToken);
 
   return res.status(alreadyExists ? HttpStatus.OK : HttpStatus.CREATED).json(user);

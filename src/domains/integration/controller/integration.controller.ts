@@ -48,7 +48,7 @@ integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMemb
   return res.status(HttpStatus.OK).json(members);
 });
 
-integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
 
   const project: ProjectDTO = await service.integrateProject(projectId);

@@ -60,7 +60,7 @@
  *           type: "array"
  *           description: "The projects and the roles assigned in those projects"
  *           items:
- *             $ref: "#/components/schemas/UserProjectRole"
+ *             $ref: "#/components/schemas/UserProjectRoleDTO"
  *         cognitoId:
  *            type: "string"
  *         email:
@@ -77,7 +77,7 @@
  *           type: "array"
  *           description: "The projects and the roles created for team members within those projects"
  *           items:
- *             $ref: "#/components/schemas/UserProjectRole"
+ *             $ref: "#/components/schemas/UserProjectRoleDTO"
  *       required:
  *         - "id"
  *         - "cognitoId"
@@ -175,6 +175,8 @@
  *     post:
  *       tags:
  *         - "User"
+ *       security:
+ *         - bearerAuth: []
  *       summary: "Get or create user"
  *       consumes:
  *         - "application/json"
