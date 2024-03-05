@@ -267,9 +267,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     const project = await this.adapter.getProjectById(authReq.projectId);
 
     const admins = await this.administratorRepository.getByName(authReq.organizationName);
-    const variables = this.createEmailVariables(authReq, project, integrator);
-
     for (const admin of admins) {
+      const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
+      const variables = this.createEmailVariables(token, project, integrator);
       await this.emailService.sendAuthorizationMail(admin.email, variables);
     }
 
@@ -279,9 +279,9 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Method that encapsulates logic for creating the email variables that will be used to send the email
    * */
-  private createEmailVariables(authReq: AuthorizationRequest, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
+  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
     return {
-      token: jwt.sign({ projectId: authReq.projectId }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' }),
+      token,
       projectName: project.name,
       integratorName: integrator.name,
     };
