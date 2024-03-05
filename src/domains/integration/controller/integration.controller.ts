@@ -30,14 +30,6 @@ const organizationRepository: OrganizationRepository = new OrganizationRepositor
 const mailSender: EmailService = new MailgunEmailService(mailgunClient);
 const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, mailSender);
 
-integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
-  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
-
-  const project: ProjectDTO = await service.integrateProject(projectId);
-
-  res.status(HttpStatus.CREATED).json(project);
-});
-
 integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'body'), async (req: Request, res: Response): Promise<void> => {
   const { key, provider } = req.body as unknown as ProviderKeyDTO;
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
@@ -54,4 +46,12 @@ integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMemb
   const members: ProjectMemberDataDTO[] = await service.getMembers(projectId, apiToken);
 
   return res.status(HttpStatus.OK).json(members);
+});
+
+integrationRouter.post('/linear/:projectId', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+
+  const project: ProjectDTO = await service.integrateProject(projectId);
+
+  res.status(HttpStatus.CREATED).json(project);
 });

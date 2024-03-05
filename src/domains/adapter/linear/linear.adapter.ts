@@ -66,7 +66,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const key: string = decryptData(input.token, process.env.ENCRYPT_SECRET!);
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
-    const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(key, input.providerProjectId);
+    const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(input.providerProjectId, key);
     const stages: string[] = await this.getAndAdaptStages(input.providerProjectId);
     const labels: string[] = await this.getAndAdaptLabels(input.providerProjectId);
     const org: Organization = await this.dataRetriever.getOrganization();
