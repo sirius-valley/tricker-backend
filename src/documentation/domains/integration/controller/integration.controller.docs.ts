@@ -364,29 +364,56 @@
  *         providerId: "789"
  *         name: "John Doe"
  *         email: "john@example.com"
+ *     LinearMembersPreIntegrationParams:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *       required:
+ *         - id
+ *       example:
+ *         id: "123e4567-e89b-12d3-a456-426614174000"
+ *     LinearMembersPreIntegrationBody:
+ *       type: object
+ *       properties:
+ *         apiToken:
+ *           type: string
+ *       required:
+ *         - apiToken
+ *       example:
+ *         apiToken: "your-api-token-here"
+ *     ProviderKeyDTO:
+ *       type: object
+ *       properties:
+ *         key:
+ *           type: string
+ *           description: The API key of the provider.
+ *         provider:
+ *           type: string
+ *           description: The name of the provider.
+ *       required:
+ *         - key
+ *         - provider
+ *       example:
+ *         key: "your-api-key-here"
+ *         provider: "linear"
  * paths:
  *   /api/integration/linear/projects:
- *     get:
+ *     post:
  *       summary: Retrieves projects from Linear provider.
  *       tags:
  *         - Integration
  *       security:
  *         - bearerAuth: []
- *       parameters:
- *         - in: query
- *           name: key
- *           schema:
- *             type: string
- *           required: true
- *           description: The API key of the Linear provider.
- *         - in: query
- *           name: provider
- *           schema:
- *             type: string
- *           required: true
- *           description: The name of the Linear provider.
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProviderKeyDTO'
  *       responses:
- *         200:
+ *         '200':
  *           description: Project data retrieved successfully.
  *           content:
  *             application/json:
@@ -394,14 +421,15 @@
  *                 type: array
  *                 items:
  *                   $ref: '#/components/schemas/ProjectPreIntegratedDTO'
- *         400:
+ *         '400':
  *           $ref: '#/components/responses/ValidationException'
- *         401:
+ *         '401':
  *           $ref: '#/components/responses/UnauthorizedException'
- *         404:
+ *         '404':
  *           $ref: '#/components/responses/NotFoundException'
- *         500:
+ *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
+
  *   /api/integration/linear/{projectId}:
  *     post:
  *       summary: Integrate a project into Linear
@@ -413,7 +441,7 @@
  *           schema:
  *             type: string
  *           required: true
- *           description: The id of the project we will integrate
+ *           description: The ID of the project we will integrate
  *       responses:
  *         '201':
  *           description: Project integrated successfully
@@ -452,8 +480,10 @@
  *               schema:
  *                 $ref: "#/components/responses/InternalServerErrorException"
  *   /api/integration/linear/project/{id}/members:
- *     get:
+ *     post:
  *       summary: Get members of a project
+ *       tags:
+ *         - Integration
  *       parameters:
  *         - in: path
  *           name: id
@@ -461,6 +491,12 @@
  *           schema:
  *             type: string
  *           description: The ID of the project
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LinearMembersPreIntegrationBody'
  *       responses:
  *         '200':
  *           description: OK

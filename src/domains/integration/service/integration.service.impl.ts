@@ -193,8 +193,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
-  async getMembers(projectId: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId);
+  async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
+    return await this.adapter.getMembersByProjectId(projectId, apiKey);
   }
 
   private async verifyProjectDuplication(projectProviderId: string): Promise<void> {

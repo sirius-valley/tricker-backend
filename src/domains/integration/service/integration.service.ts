@@ -3,7 +3,7 @@ import { type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type Pr
 
 export interface IntegrationService {
   integrateProject: (projectId: string) => Promise<ProjectDTO>;
-  getMembers: (projectId: string) => Promise<ProjectMemberDataDTO[]>;
+  getMembers: (projectId: string, apiToken: string) => Promise<ProjectMemberDataDTO[]>;
   integrateMembers: (input: MembersIntegrationInputDTO) => Promise<void>;
   integrateStages: (input: StageIntegrationInputDTO) => Promise<void>;
   integrateLabels: (input: LabelIntegrationInputDTO) => Promise<void>;

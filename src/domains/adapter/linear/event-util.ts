@@ -2,8 +2,7 @@ import type { Issue, IssueHistory, IssueRelationHistoryPayload } from '@linear/s
 import { BlockEventInput, ChangeScalarEventInput, type EventInput, LinearActionTypeConvention, LinearBlockTypeConvention } from '@domains/event/dto';
 import { reverseEnumMap } from '@utils/enums';
 
-export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> => {
-  const history = (await issue.history()).nodes;
+export const processIssueEvents = async (issue: Issue, history: IssueHistory[]): Promise<EventInput[]> => {
   const events: EventInput[] = [];
   for (const event of history) {
     if (event.relationChanges !== undefined) {
