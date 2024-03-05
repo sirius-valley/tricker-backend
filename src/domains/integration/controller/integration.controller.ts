@@ -45,7 +45,7 @@ integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(Provider
   res.status(HttpStatus.OK).json(projects);
 });
 
-integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (req: Request, res: Response) => {
+integrationRouter.post('/linear/project/:id/members', withAwsAuth, validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (req: Request, res: Response) => {
   const { id: projectId } = req.params;
   const { apiToken }: { apiToken: string } = req.body;
 
@@ -62,7 +62,7 @@ integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdInte
   res.status(HttpStatus.CREATED).json(project);
 });
 
-integrationRouter.post('/linear/authorization', validateRequest(AuthorizationRequest, 'body'), async (_req: Request<any, any, AuthorizationRequest>, res: Response) => {
+integrationRouter.post('/linear/authorization', withAwsAuth, validateRequest(AuthorizationRequest, 'body'), async (_req: Request<any, any, AuthorizationRequest>, res: Response) => {
   const authorizationReq = _req.body;
 
   await service.createPendingAuthorization(authorizationReq);
