@@ -524,6 +524,10 @@
  *   /api/integration/linear/authorization:
  *     post:
  *       summary: Create a pending authorization for project integration.
+ *       tags:
+ *         - Integration
+ *       security:
+ *         - bearerAuth: []
  *       requestBody:
  *         required: true
  *         content:
