@@ -3,10 +3,7 @@ name: Publish Docker image at DockerHub
 on:
   push:
     branches:
-      - dev
-  pull_request:
-    branches:
-      - dev
+      - main
 
 jobs:
   test:
@@ -34,7 +31,7 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     needs: test
-    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
