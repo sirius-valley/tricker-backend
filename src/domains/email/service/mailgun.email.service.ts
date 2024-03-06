@@ -26,6 +26,15 @@ export class MailgunEmailService implements EmailService {
     });
   }
 
+  async sendDenialMail(emailAddress: string, projectName: string): Promise<void> {
+    await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
+      from: 'Tricker <no-reply@tricker.com>',
+      to: emailAddress,
+      subject: 'Project Integration Confirmation',
+      html: await this.setDynamicWords('./src/utils/email-templates/declined_request.html', [{ wordToReplace: '{{projectName}}', replacingWord: projectName }]),
+    });
+  }
+
   private async setDynamicWords(path: string, words: HtmlReplaceWords[]): Promise<string> {
     try {
       let html: string = await fs.readFile(path, 'utf8');

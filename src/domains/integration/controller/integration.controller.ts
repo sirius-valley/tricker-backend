@@ -50,16 +50,18 @@ integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMemb
 
 integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+  const { token } = req.query;
 
-  const project: ProjectDTO = await service.integrateProject(projectId);
+  const project: ProjectDTO = await service.integrateProject(projectId, token as string);
 
   res.status(HttpStatus.CREATED).json(project);
 });
 
 integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+  const { token } = req.query;
 
-  await service.declineProject(projectId);
+  await service.declineProject(projectId, token as string);
 
-  res.status(HttpStatus.NO_CONTENT);
+  res.sendStatus(HttpStatus.NO_CONTENT);
 });
