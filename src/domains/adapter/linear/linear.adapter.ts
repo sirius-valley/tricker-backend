@@ -4,10 +4,11 @@ import { type Organization, type User, type LinearError, type Team, type Issue, 
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
-import process from 'process';
 import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
+import { type UserDataDTO } from '@domains/user';
+import { type BasicProjectDataDTO } from '@domains/project/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
@@ -63,7 +64,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * @throws {LinearIntegrationException} If there is an issue with authentication or retrieving project details.
    */
   async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
-    const key: string = decryptData(input.token, process.env.ENCRYPT_SECRET!);
+    const key: string = decryptData(input.token);
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
     const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(input.providerProjectId, key);
@@ -159,5 +160,19 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   async getMyEmail(apiKey: string): Promise<string> {
     this.dataRetriever.configureRetriever(apiKey);
     return await this.dataRetriever.getMyMail();
+  }
+
+  async getMemberById(memberId: string, apiKey: string): Promise<UserDataDTO> {
+    this.dataRetriever.configureRetriever(apiKey);
+    const user = await this.dataRetriever.getUser(memberId);
+
+    return { name: user.name };
+  }
+
+  async getProjectById(projectId: string, apiKey: string): Promise<BasicProjectDataDTO> {
+    this.dataRetriever.configureRetriever(apiKey);
+    const team = await this.dataRetriever.getTeam(projectId);
+
+    return { name: team.name };
   }
 }

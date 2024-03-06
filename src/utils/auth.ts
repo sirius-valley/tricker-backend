@@ -4,6 +4,7 @@ import { Constants } from '@utils';
 import { UnauthorizedException } from '@utils/errors';
 import { verifyAwsAccessToken } from '@utils/aws';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import process from 'process';
 import type { MailPayload } from '@domains/integration/dto';
 
 export const generateAccessToken = (payload: Record<string, string | boolean | number>): string => {
@@ -34,7 +35,8 @@ export const withAwsAuth = async (req: Request, res: Response, next: () => any):
   }
 };
 
-export const encryptData = (data: string, key: string): string => {
+export const encryptData = (data: string): string => {
+  const key = process.env.ENCRYPT_SECRET!;
   const iv: Buffer = randomBytes(16);
   const cipher = createCipheriv('aes-256-cbc', Buffer.from(key), iv);
   let encrypted = cipher.update(data);
@@ -43,7 +45,8 @@ export const encryptData = (data: string, key: string): string => {
   return iv.toString('hex') + ':' + encrypted.toString('hex');
 };
 
-export const decryptData = (encryptedData: string, key: string): string => {
+export const decryptData = (encryptedData: string): string => {
+  const key = process.env.ENCRYPT_SECRET!;
   const parts = encryptedData.split(':');
   const iv = Buffer.from(parts[0], 'hex');
   const encryptedText = Buffer.from(parts[1], 'hex');

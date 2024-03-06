@@ -17,6 +17,11 @@ import { OrganizationDTO } from '@domains/organization/dto';
 import { ConflictException, db, NotFoundException } from '@utils';
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 
+import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
+import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
+import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
+import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
+
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
 let mockAdapterTool: ProjectManagementToolAdapter;
@@ -34,6 +39,8 @@ let emailSender: EmailService;
 let prismaMockCtx: MockContext;
 let prismaMock: PrismaClient;
 let projectMember: ProjectMemberDataDTO;
+let administratorMockRepository: AdministratorRepository;
+let integrationRepository: IntegrationRepository;
 
 beforeEach(() => {
   prismaMockCtx = createMockContext();
@@ -45,7 +52,10 @@ beforeEach(() => {
   organizationMockRepository = new OrganizationRepositoryImpl(prismaMock);
   pendingMemberMailsMockRepository = new PendingMemberMailsRepositoryImpl(prismaMock);
   pendingAuthProjectMockRepository = new PendingProjectAuthorizationRepositoryImpl(prismaMock);
-  service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, emailSender);
+  administratorMockRepository = new AdministratorRepositoryImpl(prismaMock);
+  integrationRepository = new IntegrationRepositoryImpl(prismaMock);
+
+  service = new IntegrationServiceImpl(mockAdapterTool, projectMockRepository, userMockRepository, pendingAuthProjectMockRepository, pendingMemberMailsMockRepository, organizationMockRepository, administratorMockRepository, integrationRepository, emailSender);
   user = new UserDTO({
     id: 'userId',
     profileImage: null,
