@@ -455,6 +455,7 @@
  *       summary: Retrieves projects from Linear provider.
  *       tags:
  *         - Integration
+ *         - Linear
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -486,6 +487,7 @@
  *       summary: Integrate a project into Linear
  *       tags:
  *         - "Integration"
+ *         - Linear
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -535,6 +537,7 @@
  *       summary: Get members of a project
  *       tags:
  *         - Integration
+ *         - Linear
  *       parameters:
  *         - in: path
  *           name: id
@@ -562,6 +565,7 @@
  *       summary: Create a pending authorization for project integration.
  *       tags:
  *         - Integration
+ *         - Linear
  *       security:
  *         - bearerAuth: []
  *       requestBody:
