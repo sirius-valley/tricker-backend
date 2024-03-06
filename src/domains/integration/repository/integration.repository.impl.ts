@@ -1,5 +1,5 @@
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
-import { type AuthorizationRequest } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO } from '@domains/integration/dto';
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { PrismaClient } from '@prisma/client';
 import { encryptData } from '@utils';
@@ -7,7 +7,7 @@ import { encryptData } from '@utils';
 export class IntegrationRepositoryImpl implements IntegrationRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async createIntegrationProjectRequest(input: AuthorizationRequest): Promise<PendingProjectAuthorizationDTO> {
+  async createIntegrationProjectRequest(input: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
     const result = await this.db.$transaction(async (tx) => {
       return await tx.pendingProjectAuthorization.create({
         data: {

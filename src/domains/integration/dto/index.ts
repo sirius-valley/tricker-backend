@@ -125,7 +125,7 @@ export class LinearMembersPreIntegrationBody {
 /**
  * Represents a request for an integration authorization of a project
  */
-export class AuthorizationRequest {
+export class AuthorizationRequestDTO {
   /**
    * The provider specific API token/key to have access to the provider API
    * @type {string}
@@ -193,7 +193,7 @@ export class AuthorizedMemberDTO {
   /**
    * The email associated with the member
    * @type {string}
-   * @example "memberId123"
+   * @example "example@example.com"
    * */
   @IsEmail()
   readonly email!: string;

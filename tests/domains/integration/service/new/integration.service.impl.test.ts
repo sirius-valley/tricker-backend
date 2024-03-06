@@ -27,11 +27,11 @@ import {
   mockedIssueProviderName,
   mockedOrganizationName,
 } from './mockData';
-import { AuthorizationRequest } from '@domains/integration/dto';
+import { AuthorizationRequestDTO, AuthorizedMemberDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type NextFunction, type Request, type Response } from 'express';
-import { validateRequest } from '@utils';
-import { type IssueProviderRepository } from '@domains/issueProvider/repository';
+import { IsValidIssueProviderConstraint, IsValidOrganizationConstraint, validateRequest } from '@utils';
+import { plainToInstance } from 'class-transformer';
 
 describe('new integration service tests', () => {
   const adapterMock: MockProxy<ProjectManagementToolAdapter> = mock<ProjectManagementToolAdapter>();
@@ -40,7 +40,7 @@ describe('new integration service tests', () => {
   const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
   const pendingMemberMailsRepositoryMock: MockProxy<PendingMemberMailsRepository> = mock<PendingMemberMailsRepository>();
   const organizationRepositoryMock: MockProxy<OrganizationRepository> = mock<OrganizationRepository>();
-  const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
+  // const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
   const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
   const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
   const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
@@ -54,12 +54,12 @@ describe('new integration service tests', () => {
   it('should create a pending project authorization successfully', async () => {
     // GIVEN
     process.env.AUTHORIZATION_SECRET = 'secret';
-    const pendingAuthRequest: AuthorizationRequest = {
+    const pendingAuthRequest: AuthorizationRequestDTO = {
       apiToken: mockedToken,
       projectId: mockedProviderProjectId,
       integratorId: mockedIntegratorId,
       members: mocksAdministratorDTO,
-      organizationName: mockedOrganizationId,
+      organizationName: mockedOrganizationName,
       issueProviderName: mockedIssueProviderId,
     };
     integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
@@ -87,35 +87,45 @@ describe('new integration service tests', () => {
     expect(actualPendingAuthorization).toEqual(expectedAuthRequest);
   });
 
-  it('should validate and modify request AuthorizationRequest object correctly', async () => {
+  it('should validate and modify request AuthorizationRequestDTO object correctly', async () => {
     // GIVEN
-    const pendingAuthRequest: AuthorizationRequest = {
+    const pendingAuthRequest: AuthorizationRequestDTO = {
       apiToken: mockedToken,
       projectId: mockedProviderProjectId,
       integratorId: mockedIntegratorId,
       members: mocksAdministratorDTO,
-      organizationName: mockedOrganizationId,
+      organizationName: mockedOrganizationName,
       issueProviderName: mockedIssueProviderName,
     };
 
-    issueProviderRepositoryMock.getByName.mockResolvedValue({
-      id: mockedIssueProviderId,
-      name: mockedIssueProviderName,
-    });
-
-    organizationRepositoryMock.getByName.mockResolvedValue({
-      id: mockedOrganizationId,
-      name: mockedOrganizationName,
-    });
+    const spiedIssueProviderConstraint = jest.spyOn(IsValidIssueProviderConstraint.prototype, 'validate').mockResolvedValue(true);
+    const spiedOrganizationConstraint = jest.spyOn(IsValidOrganizationConstraint.prototype, 'validate').mockResolvedValue(true);
 
     const req = {
       body: pendingAuthRequest,
     } as unknown as Request;
 
     // WHEN
-    await validateRequest(AuthorizationRequest, 'body')(req, {} as unknown as Response, jest.fn() as NextFunction);
+    await validateRequest(AuthorizationRequestDTO, 'body')(req, {} as unknown as Response, jest.fn() as NextFunction);
 
     // THEN
-    expect(req.body).toBeInstanceOf(AuthorizationRequest);
+    expect(req.body).toBeInstanceOf(AuthorizationRequestDTO);
+    req.body.members.forEach((member: AuthorizedMemberDTO) => {
+      expect(member).toBeInstanceOf(AuthorizedMemberDTO);
+    });
+    expect(spiedIssueProviderConstraint).toHaveBeenCalledWith(mockedIssueProviderName, {
+      constraints: [],
+      object: plainToInstance(AuthorizationRequestDTO, pendingAuthRequest),
+      property: 'issueProviderName',
+      targetName: 'AuthorizationRequestDTO',
+      value: mockedIssueProviderName,
+    });
+    expect(spiedOrganizationConstraint).toHaveBeenCalledWith(mockedOrganizationName, {
+      constraints: [],
+      object: plainToInstance(AuthorizationRequestDTO, pendingAuthRequest),
+      property: 'organizationName',
+      targetName: 'AuthorizationRequestDTO',
+      value: mockedOrganizationName,
+    });
   });
 });
