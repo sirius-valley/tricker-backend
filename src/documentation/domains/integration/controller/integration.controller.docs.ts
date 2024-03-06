@@ -364,6 +364,57 @@
  *         providerId: "789"
  *         name: "John Doe"
  *         email: "john@example.com"
+ *     AuthorizedMemberDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Provider specific ID of the member.
+ *           example: memberId123
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: Email associated with the member.
+ *           example: user1@example.com
+ *       required:
+ *         - id
+ *         - email
+ *     AuthorizationRequest:
+ *       type: object
+ *       properties:
+ *         apiToken:
+ *           type: string
+ *           description: Provider specific API token/key to access the provider API.
+ *           example: token123
+ *         projectId:
+ *           type: string
+ *           description: Provider specific project ID associated with the integration authorization.
+ *           example: projectId123
+ *         integratorId:
+ *           type: string
+ *           description: Provider specific ID of the user trying to integrate the project.
+ *           example: userId123
+ *         members:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/AuthorizedMemberDTO'
+ *           description: Array of provider specific member details.
+ *         organizationName:
+ *           type: string
+ *           description: Name of the current organization trying to integrate the project.
+ *           example: SIRIUS
+ *         issueProviderName:
+ *           type: string
+ *           description: Name of the selected issue provider for integration.
+ *           example: LINEAR
+ *       required:
+ *         - apiToken
+ *         - projectId
+ *         - integratorId
+ *         - members
+ *         - organizationName
+ *         - issueProviderName
+ *
  *     LinearMembersPreIntegrationParams:
  *       type: object
  *       properties:
@@ -404,6 +455,7 @@
  *       summary: Retrieves projects from Linear provider.
  *       tags:
  *         - Integration
+ *         - Linear
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -435,6 +487,7 @@
  *       summary: Integrate a project into Linear
  *       tags:
  *         - "Integration"
+ *         - Linear
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -484,6 +537,7 @@
  *       summary: Get members of a project
  *       tags:
  *         - Integration
+ *         - Linear
  *       parameters:
  *         - in: path
  *           name: id
@@ -506,4 +560,21 @@
  *                 type: array
  *                 items:
  *                   $ref: '#/components/schemas/ProjectMemberDTO'
+ *   /api/integration/linear/authorization:
+ *     post:
+ *       summary: Create a pending authorization for project integration.
+ *       tags:
+ *         - Integration
+ *         - Linear
+ *       security:
+ *         - bearerAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthorizationRequest'
+ *       responses:
+ *         '201':
+ *           description: Authorization request created successfully.
  */

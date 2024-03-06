@@ -58,3 +58,8 @@ export interface UserUpdateInputDTO {
   cognitoId: string;
   email?: string;
 }
+
+// todo: replace this with something more useful in the future
+export interface UserDataDTO {
+  name: string;
+}
