@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
+import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
@@ -23,11 +23,11 @@ import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/rep
 import type { OrganizationRepository } from '@domains/organization/repository';
 import { type AuthorizationRequestDTO, type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
-
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
-import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
-import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
+import { type AdministratorDTO } from '@domains/administrator/dto';
+import { type AdministratorRepository } from '@domains/administrator/repository';
+import { type IntegrationRepository } from '@domains/integration/repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -227,12 +227,12 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
-    // const adminId: string = verifyToken(mailToken);
+    const adminId: string = verifyToken(mailToken);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    /* const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId)
-    if(admins.find(admin => admin.id as string === adminId) === null) {
+    const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
+    if (admins.find((admin) => admin.id === adminId) === null) {
       throw new NotFoundException('Administrator');
-    } */
+    }
 
     return pendingProject;
   }
@@ -256,7 +256,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   private async getProjectIntegrator(apikey: string): Promise<UserDTO> {
-    const userEmail = await this.adapter.getMyEmail(decryptData(apikey));
+    const userEmail: string = await this.adapter.getMyEmail(decryptData(apikey));
     const user: UserDTO | null = await this.userRepository.getByEmail(userEmail);
     if (user == null) {
       throw new NotFoundException('User');
@@ -274,6 +274,8 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   private async verifyPmExistence(members: ProjectMemberDataDTO[], pmEmail: string): Promise<void> {
+    console.log(pmEmail);
+    members.forEach((member) => { console.log(member); });
     const pm: ProjectMemberDataDTO | undefined = members.find((member): boolean => member.email === pmEmail);
     if (pm === undefined) {
       throw new ConflictException('Provided Project Manager email not correct.');
