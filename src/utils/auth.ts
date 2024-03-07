@@ -60,8 +60,7 @@ export const verifyToken = (mailToken: string): string => {
   if ((mailToken ?? '') === '') throw new UnauthorizedException('MISSING_TOKEN');
   let content: MailPayload;
   try {
-    content = jwt.verify(mailToken, Constants.TOKEN_SECRET) as MailPayload;
-    const { adminId } = content;
+    const { adminId } = jwt.verify(mailToken, Constants.TOKEN_SECRET) as MailPayload;
     return adminId;
   } catch (e) {
     throw new UnauthorizedException('INVALID_TOKEN');
