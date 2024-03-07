@@ -283,7 +283,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     return {
       token,
       projectName: project.name,
+      projectId: project.id,
       integratorName: integrator.name,
+      url: process.env.BACKEND_URL!,
     };
   }
 }
