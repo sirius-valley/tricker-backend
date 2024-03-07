@@ -57,14 +57,18 @@ export interface LabelIntegrationInputDTO {
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
-// TODO: document
+/**
+ * Represents the provider project id pending to be integrated
+ * */
 export class ProjectIdIntegrationInputDTO {
   @IsString()
   @IsNotEmpty()
   projectId!: string;
 }
 
-// TODO: document
+/**
+ * Represents a project sent to the integrator in the project integration request flow
+ * */
 export class ProjectPreIntegratedDTO {
   providerProjectId: string;
   name: string;
@@ -223,4 +227,20 @@ export class ProviderKeyDTO {
   @IsNotEmpty()
   @IsValidIssueProvider()
   provider!: string;
+}
+
+/**
+ * Represents a token sent by email with the admin identity
+ * */
+export class MailToken {
+  @IsNotEmpty()
+  @IsString()
+  token!: string;
+}
+
+/**
+ * Represents the decoded payload of the token sent by email
+ * */
+export interface MailPayload {
+  adminId: string;
 }

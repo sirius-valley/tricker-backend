@@ -8,7 +8,7 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from '@domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
+import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, MailToken, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
@@ -16,9 +16,8 @@ import { LinearMembersPreIntegrationParams, ProjectIdIntegrationInputDTO } from 
 import { mailgunClient } from '@utils/mail';
 import { LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
-import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
-import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
+import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
 
 require('express-async-errors');
 
@@ -54,10 +53,11 @@ integrationRouter.post('/linear/project/:id/members', withAwsAuth, validateReque
   return res.status(HttpStatus.OK).json(members);
 });
 
-integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request, res: Response): Promise<void> => {
+integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+  const { token } = req.query as unknown as MailToken;
 
-  const project: ProjectDTO = await service.integrateProject(projectId);
+  const project: ProjectDTO = await service.integrateProject(projectId, token);
 
   res.status(HttpStatus.CREATED).json(project);
 });
@@ -68,4 +68,13 @@ integrationRouter.post('/linear/authorization', withAwsAuth, validateRequest(Aut
   await service.createPendingAuthorization(authorizationReq);
 
   return res.status(HttpStatus.CREATED).send();
+});
+
+integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
+  const { token } = req.query as unknown as MailToken;
+
+  await service.declineProject(projectId, token);
+
+  res.sendStatus(HttpStatus.NO_CONTENT);
 });

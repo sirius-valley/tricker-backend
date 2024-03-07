@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, LinearIntegrationException, NotFoundException, UnauthorizedException } from '@utils';
+import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
 import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
@@ -35,10 +35,10 @@ import {
   UserRole,
 } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
-import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
-import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
-import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import jwt from 'jsonwebtoken';
+import { type AuthorizationEmailVariables } from '@domains/email/dto';
+import { type AdministratorRepository } from '@domains/administrator/repository';
+import { type IntegrationRepository } from '@domains/integration/repository';
 import { IssueRepositoryImpl } from '@domains/issue/repository';
 import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
@@ -58,15 +58,16 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   /**
    * Integrate a project into the Linear platform.
-   * @param projectId The ID of the project to integrate.
+   * @param projectId {string} The ID of the project to integrate.
+   * @param mailToken {string} Token provided in mail
    * @returns The integrated project.
    * @throws {ConflictException} If the project has already been integrated or is inactive.
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
-  async integrateProject(projectId: string): Promise<ProjectDTO> {
+  async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
     await this.verifyProjectDuplication(projectId);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
-    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.integratorId);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(mailToken, projectId);
+    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
 
@@ -140,7 +141,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
     const pm = await this.userRepository.getByProviderId(input.pmProviderId);
-    await this.validateIdentity(input.apyKey, pm?.email);
+    await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
     // retrieve only not integrated projects
@@ -241,7 +242,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @returns {Promise<void>} - No return value, but throws an exception if validation fails.
    * @throws {UnauthorizedException} - Thrown if the API key is not valid for the provided email.
    */
-  async validateIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
+  async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
     try {
       const userEmail = await this.adapter.getMyEmail(apiKey);
       if (userEmail !== pmEmail) {
@@ -266,6 +267,26 @@ export class IntegrationServiceImpl implements IntegrationService {
     return await this.adapter.getMembersByProjectId(projectId, apiKey);
   }
 
+  async declineProject(providerProjectId: string, mailToken: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(providerProjectId, mailToken);
+    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
+    const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
+
+    await this.pendingAuthProjectRepository.delete(pendingProject.id);
+    await this.emailService.sendDenialMail(integrator.email, { projectName: project.name });
+  }
+
+  async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
+    const adminId: string = verifyToken(mailToken);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
+    const admins = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
+    if (admins.find((admin) => admin.id === adminId) === null) {
+      throw new NotFoundException('Administrator');
+    }
+
+    return pendingProject;
+  }
+
   private async verifyProjectDuplication(projectProviderId: string): Promise<void> {
     const previousProject: ProjectDTO | null = await this.projectRepository.getByProviderId(projectProviderId);
     if (previousProject != null) {
@@ -284,8 +305,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     return pendingProject;
   }
 
-  private async getProjectIntegrator(integratorId: string): Promise<UserDTO> {
-    const user: UserDTO | null = await this.userRepository.getByProviderId(integratorId);
+  private async getProjectIntegrator(apikey: string): Promise<UserDTO> {
+    const userEmail: string = await this.adapter.getMyEmail(decryptData(apikey));
+    const user: UserDTO | null = await this.userRepository.getByEmail(userEmail);
     if (user == null) {
       throw new NotFoundException('User');
     }
