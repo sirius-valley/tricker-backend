@@ -8,4 +8,6 @@ export interface AuthorizationEmailVariables extends Record<string, string> {
 
 export interface IntegrationConfirmationEmailVariables extends Record<string, string> {
   projectName: string;
+  projectId: string;
+  url: string;
 }

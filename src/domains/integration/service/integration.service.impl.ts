@@ -75,7 +75,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
-    await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name });
+    await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
 
     return project;
   }
