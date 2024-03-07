@@ -21,12 +21,27 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
+import {
+  type AuthorizationRequestDTO,
+  type EventIntegrationInputDTO,
+  type IssueIntegrationInputDTO,
+  type LabelIntegrationInputDTO,
+  type MembersIntegrationInputDTO,
+  type ProjectDataDTO,
+  type ProjectMemberDataDTO,
+  type ProjectPreIntegratedDTO,
+  type ProjectsPreIntegratedInputDTO,
+  type StageIntegrationInputDTO,
+  UserRole,
+} from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import jwt from 'jsonwebtoken';
+import { IssueRepositoryImpl } from '@domains/issue/repository';
+import { EventRepositoryImpl } from '@domains/event/repository';
+import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -71,6 +86,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       });
       await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
       await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
+      await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
 
       return newProject;
     });
@@ -78,6 +94,42 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name });
 
     return project;
+  }
+
+  async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
+    const issueRepository = new IssueRepositoryImpl(input.db);
+
+    for (const issueData of input.issues) {
+      const author = issueData.authorEmail !== null ? await this.userRepository.getByEmail(issueData.authorEmail) : null;
+      const assignee = issueData.assigneeEmail !== null ? await this.userRepository.getByEmail(issueData.assigneeEmail) : null;
+      const newIssue = await issueRepository.create({
+        providerIssueId: issueData.providerIssueId,
+        authorId: author != null ? author.id : null,
+        assigneeId: assignee != null ? assignee.id : null,
+        projectId: input.projectId,
+        stageId: issueData.stage,
+        issueLabelId: null,
+        name: issueData.name,
+        title: issueData.title,
+        description: issueData.description,
+        priority: issueData.priority,
+        storyPoints: issueData.storyPoints,
+      });
+      await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
+    }
+  }
+
+  async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
+    const eventRepository = new EventRepositoryImpl(input.db);
+    for (const eventData of input.events) {
+      if (eventData instanceof ChangeScalarEventInput) {
+        await eventRepository.createIssueChangeLog(eventData);
+      }
+
+      if (eventData instanceof BlockEventInput) {
+        await eventRepository.createIssueBlockEvent(eventData);
+      }
+    }
   }
 
   /**
@@ -262,6 +314,11 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
    */
   async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
+    const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
+    if (existingPendingAuth != null) {
+      throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
+    }
+
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
