@@ -45,7 +45,7 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Confirmation',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_request.html'), variables), // await this.setDynamicWords('./src/utils/email-templates/declined_request.html', [{ wordToReplace: '{{projectName}}', replacingWord: projectName }]),
+      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
     });
   }
 }
