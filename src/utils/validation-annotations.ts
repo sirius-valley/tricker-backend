@@ -55,7 +55,6 @@ export function IsValidIssueProvider(validationOptions?: ValidationOptions) {
 export class IsValidApiKeyConstraint implements ValidatorConstraintInterface {
   async validate(apiKey: string, args: ValidationArguments): Promise<boolean> {
     const issueProviderName = (args.object as AuthorizationRequestDTO).issueProviderName;
-    console.log(issueProviderName);
     if (issueProviderName === 'LINEAR') {
       try {
         const linearClient = new LinearClient({ apiKey });
