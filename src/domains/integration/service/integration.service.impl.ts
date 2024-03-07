@@ -66,7 +66,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
     await this.verifyProjectDuplication(projectId);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(mailToken, projectId);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
@@ -349,6 +349,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     for (const admin of admins) {
       const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
       const variables = this.createEmailVariables(token, project, integrator);
+      console.log(variables);
       await this.emailService.sendAuthorizationMail(admin.email, variables);
     }
 

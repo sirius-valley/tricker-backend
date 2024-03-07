@@ -71,6 +71,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const stages: string[] = await this.getAndAdaptStages(input.providerProjectId);
     const labels: string[] = await this.getAndAdaptLabels(input.providerProjectId);
     const org: Organization = await this.dataRetriever.getOrganization();
+    console.log('llega hasta aca');
     const issues = await this.adaptAllProjectIssuesData(input.providerProjectId);
 
     return new ProjectDataDTO(input.providerProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null, issues);
@@ -86,7 +87,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const issues: Issue[] = await this.dataRetriever.getIssues(providerProjectId);
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues) {
-      const issueData: LinearIssueData = await this.dataRetriever.getIssueData(providerProjectId);
+      const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue.id);
       let priority: Priority;
       switch (issue.priority) {
         case 1:
