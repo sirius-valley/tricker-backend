@@ -44,7 +44,7 @@ export class MailgunEmailService implements EmailService {
     await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
-      subject: 'Project Integration Confirmation',
+      subject: 'Project Integration Denial',
       html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
     });
   }

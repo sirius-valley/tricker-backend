@@ -57,11 +57,10 @@ export const decryptData = (encryptedData: string): string => {
 };
 
 export const verifyToken = (mailToken: string): string => {
-  const [bearer, token] = mailToken.split(' ') ?? [];
-  if ((bearer ?? '') === '' || (token ?? '') === '' || bearer !== 'Bearer') throw new UnauthorizedException('MISSING_TOKEN');
+  if ((mailToken ?? '') === '') throw new UnauthorizedException('MISSING_TOKEN');
   let content: MailPayload;
   try {
-    content = jwt.verify(token, Constants.TOKEN_SECRET) as MailPayload;
+    content = jwt.verify(mailToken, Constants.TOKEN_SECRET) as MailPayload;
     const { adminId } = content;
     return adminId;
   } catch (e) {

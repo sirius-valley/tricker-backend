@@ -221,9 +221,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
+    await this.pendingAuthProjectRepository.delete(pendingProject.id);
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name });
-
-    await this.pendingAuthProjectRepository.delete(providerProjectId);
   }
 
   async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
@@ -274,8 +273,6 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   private async verifyPmExistence(members: ProjectMemberDataDTO[], pmEmail: string): Promise<void> {
-    console.log(pmEmail);
-    members.forEach((member) => { console.log(member); });
     const pm: ProjectMemberDataDTO | undefined = members.find((member): boolean => member.email === pmEmail);
     if (pm === undefined) {
       throw new ConflictException('Provided Project Manager email not correct.');
