@@ -481,7 +481,6 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
-
  *   /api/integration/linear/{projectId}/accept:
  *     get:
  *       summary: Integrate a project into Linear
@@ -532,6 +531,38 @@
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/InternalServerErrorException"
+ *   /api/integration/linear/{projectId}/decline:
+ *     get:
+ *       summary: Decline integration of a project with Linear provider.
+ *       tags:
+ *         - Integration
+ *         - Linear
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The ID of the project to decline integration.
+ *         - in: query
+ *           name: token
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The token associated with the project to decline integration.
+ *       responses:
+ *         '204':
+ *           description: Project integration declined successfully.
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '500':
+ *           $ref: '#/components/responses/InternalServerErrorException'
  *   /api/integration/linear/project/{id}/members:
  *     post:
  *       summary: Get members of a project
