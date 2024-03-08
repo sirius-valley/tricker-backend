@@ -99,16 +99,20 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
     const issueRepository = new IssueRepositoryImpl(input.db);
-
+    const stageRepository = new StageRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await this.userRepository.getByEmail(issueData.authorEmail) : null;
       const assignee = issueData.assigneeEmail !== null ? await this.userRepository.getByEmail(issueData.assigneeEmail) : null;
+      let stage: StageDTO | null = null;
+      if (issueData.stage !== null) {
+        stage = await stageRepository.getByName(issueData.stage);
+      }
       const newIssue = await issueRepository.create({
         providerIssueId: issueData.providerIssueId,
         authorId: author != null ? author.id : null,
         assigneeId: assignee != null ? assignee.id : null,
         projectId: input.projectId,
-        stageId: issueData.stage,
+        stageId: stage !== null ? stage.id : null,
         issueLabelId: null,
         name: issueData.name,
         title: issueData.title,
@@ -123,6 +127,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
     const eventRepository = new EventRepositoryImpl(input.db);
     for (const eventData of input.events) {
+      eventData.issueId = input.issueId;
       if (eventData instanceof ChangeScalarEventInput) {
         await eventRepository.createIssueChangeLog(eventData);
       }

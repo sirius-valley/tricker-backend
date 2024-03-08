@@ -19,7 +19,7 @@ export enum LinearActionTypeConvention {
 
 export class EventInput {
   readonly providerEventId: string;
-  readonly issueId: string;
+  issueId: string;
   readonly userEmitterId: string;
   readonly createdAt: Date;
 

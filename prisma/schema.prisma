@@ -169,7 +169,7 @@ model Label {
 model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerEventId   String    @unique
-  userEmitterId     String    @db.Uuid
+  userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   status            BlockType
   eventRegisteredAt DateTime?
@@ -178,7 +178,7 @@ model BlockerStatusModification {
   comment           String
 
   issue       Issue @relation(fields: [issueId], references: [id])
-  userEmitter User  @relation(fields: [userEmitterId], references: [id])
+  userEmitter User? @relation(fields: [userEmitterId], references: [id])
 }
 
 model ManualTimeModification {
@@ -196,7 +196,7 @@ model ManualTimeModification {
 model IssueChangeLog {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerEventId   String    @unique
-  userEmitterId     String    @db.Uuid
+  userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   field             String
   from              String?
@@ -204,7 +204,7 @@ model IssueChangeLog {
   eventRegisteredAt DateTime?
   createdAt         DateTime  @default(now())
 
-  userEmitter User  @relation(fields: [userEmitterId], references: [id])
+  userEmitter User? @relation(fields: [userEmitterId], references: [id])
   issue       Issue @relation(fields: [issueId], references: [id])
 }
 
