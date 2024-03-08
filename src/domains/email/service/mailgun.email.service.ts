@@ -1,7 +1,7 @@
 import { type IMailgunClient } from 'mailgun.js/Interfaces';
 import process from 'process';
 import { type EmailService } from '@domains/email/service/email.service';
-import type { AuthorizationEmailVariables, IntegrationConfirmationEmailVariables } from 'domains/email/dto';
+import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from 'domains/email/dto';
 import path from 'path';
 import { prepareHtmlTemplate } from '@utils/templating';
 
@@ -40,11 +40,20 @@ export class MailgunEmailService implements EmailService {
     });
   }
 
-  async sendDenialMail(emailAddress: string, variables: IntegrationConfirmationEmailVariables): Promise<void> {
+  async sendDenialMail(emailAddress: string, variables: IntegrationRequestEmailVariables): Promise<void> {
     await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Denial',
+      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
+    });
+  }
+
+  async sendAcceptanceMail(emailAddress: string, variables: IntegrationRequestEmailVariables): Promise<void> {
+    await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
+      from: 'Tricker <no-reply@tricker.com>',
+      to: emailAddress,
+      subject: 'Project Integration Access Granted',
       html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
     });
   }
