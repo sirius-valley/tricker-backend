@@ -40,6 +40,13 @@ export class MailgunEmailService implements EmailService {
     });
   }
 
+  /**
+   * Sends a denial email to the specified email address.
+   * The email informs the user that their project integration request has been denied.
+   * @param {string} emailAddress - The email address to which the denial email will be sent.
+   * @param {IntegrationRequestEmailVariables} variables - The variables to be used in the email template.
+   * @returns {Promise<void>} A Promise that resolves when the email is successfully sent.
+   */
   async sendDenialMail(emailAddress: string, variables: IntegrationRequestEmailVariables): Promise<void> {
     await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
       from: 'Tricker <no-reply@tricker.com>',
@@ -49,12 +56,19 @@ export class MailgunEmailService implements EmailService {
     });
   }
 
+  /**
+   * Sends an acceptance email to the specified email address.
+   * The email notifies the user that their project integration request has been accepted.
+   * @param {string} emailAddress - The email address to which the acceptance email will be sent.
+   * @param {IntegrationRequestEmailVariables} variables - The variables to be used in the email template.
+   * @returns {Promise<void>} A Promise that resolves when the email is successfully sent.
+   */
   async sendAcceptanceMail(emailAddress: string, variables: IntegrationRequestEmailVariables): Promise<void> {
     await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Access Granted',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
+      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_granted.html'), variables),
     });
   }
 }
