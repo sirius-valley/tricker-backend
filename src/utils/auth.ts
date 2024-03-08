@@ -5,6 +5,7 @@ import { UnauthorizedException } from '@utils/errors';
 import { verifyAwsAccessToken } from '@utils/aws';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import process from 'process';
+import type { MailPayload } from '@domains/integration/dto';
 
 export const generateAccessToken = (payload: Record<string, string | boolean | number>): string => {
   return jwt.sign(payload, Constants.TOKEN_SECRET, { expiresIn: '1h' });
@@ -53,4 +54,14 @@ export const decryptData = (encryptedData: string): string => {
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
+};
+
+export const verifyToken = (mailToken: string): string => {
+  if ((mailToken ?? '') === '') throw new UnauthorizedException('MISSING_TOKEN');
+  try {
+    const { adminId } = jwt.verify(mailToken, Constants.TOKEN_SECRET) as MailPayload;
+    return adminId;
+  } catch (e) {
+    throw new UnauthorizedException('INVALID_TOKEN');
+  }
 };
