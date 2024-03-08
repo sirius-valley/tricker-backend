@@ -58,7 +58,6 @@ export const decryptData = (encryptedData: string): string => {
 
 export const verifyToken = (mailToken: string): string => {
   if ((mailToken ?? '') === '') throw new UnauthorizedException('MISSING_TOKEN');
-  let content: MailPayload;
   try {
     const { adminId } = jwt.verify(mailToken, Constants.TOKEN_SECRET) as MailPayload;
     return adminId;
