@@ -87,7 +87,6 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues) {
       const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue.id);
-      console.log(issueData);
       let priority: Priority;
       switch (issue.priority) {
         case 1:
@@ -123,7 +122,6 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
         })
       );
     }
-    console.log(integratedIssuesData);
     return integratedIssuesData;
   }
 

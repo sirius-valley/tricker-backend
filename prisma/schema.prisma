@@ -168,7 +168,7 @@ model Label {
 
 model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  providerEventId   String    @unique
+  providerEventId   String
   userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   status            BlockType
@@ -195,7 +195,7 @@ model ManualTimeModification {
 
 model IssueChangeLog {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  providerEventId   String    @unique
+  providerEventId   String
   userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   field             String

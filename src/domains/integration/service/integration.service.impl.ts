@@ -100,9 +100,10 @@ export class IntegrationServiceImpl implements IntegrationService {
   async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
     const issueRepository = new IssueRepositoryImpl(input.db);
     const stageRepository = new StageRepositoryImpl(input.db);
+    const userRepository = new UserRepositoryImpl(input.db);
     for (const issueData of input.issues) {
-      const author = issueData.authorEmail !== null ? await this.userRepository.getByEmail(issueData.authorEmail) : null;
-      const assignee = issueData.assigneeEmail !== null ? await this.userRepository.getByEmail(issueData.assigneeEmail) : null;
+      const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
+      const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
       let stage: StageDTO | null = null;
       if (issueData.stage !== null) {
         stage = await stageRepository.getByName(issueData.stage);
@@ -126,8 +127,11 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
     const eventRepository = new EventRepositoryImpl(input.db);
+    const userRepository = new UserRepositoryImpl(input.db);
     for (const eventData of input.events) {
       eventData.issueId = input.issueId;
+      const userEmitter = eventData.userEmitterEmail !== undefined ? await userRepository.getByEmail(eventData.userEmitterEmail) : null;
+      eventData.userEmitterId = userEmitter != null ? userEmitter.id : null;
       if (eventData instanceof ChangeScalarEventInput) {
         await eventRepository.createIssueChangeLog(eventData);
       }
@@ -354,7 +358,6 @@ export class IntegrationServiceImpl implements IntegrationService {
     for (const admin of admins) {
       const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
       const variables = this.createEmailVariables(token, project, integrator);
-      console.log(variables);
       await this.emailService.sendAuthorizationMail(admin.email, variables);
     }
 

@@ -7,7 +7,6 @@ export class IssueRepositoryImpl implements IssueRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   async create(data: IssueInput): Promise<IssueDTO> {
-    console.log(data);
     const issue: Issue = await this.db.issue.create({
       data: {
         providerIssueId: data.providerIssueId,
