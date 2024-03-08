@@ -45,7 +45,7 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
   }
 
   async getProjectById(projectId: string): Promise<BasicProjectDataDTO> {
-    return { name: 'example project' };
+    return { name: 'example project', id: 'project id' };
   }
 
   async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
