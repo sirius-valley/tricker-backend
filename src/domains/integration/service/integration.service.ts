@@ -12,5 +12,6 @@ export interface IntegrationService {
   retrieveProjectsFromProvider: (input: ProjectsPreIntegratedInputDTO) => Promise<ProjectPreIntegratedDTO[]>;
   validateIntegratorIdentity: (apiKey: string, pmEmail: string | undefined) => Promise<void>;
   declineProject: (projectId: string, mailToken: string) => Promise<void>;
+  acceptProject: (projectId: string, mailToken: string) => Promise<void>;
   verifyAdminIdentity: (providerProjectId: string, mailToken: string) => Promise<PendingProjectAuthorizationDTO>;
 }

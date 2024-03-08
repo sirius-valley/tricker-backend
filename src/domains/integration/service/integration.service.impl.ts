@@ -2,21 +2,21 @@ import { type IntegrationService } from '@domains/integration/service/integratio
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
-import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import type { OrganizationDTO } from '@domains/organization/dto';
+import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
+import { type OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { RoleRepositoryImpl } from '@domains/role/repository';
-import type { RoleDTO } from '@domains/role/dto';
+import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import type { StageDTO } from '@domains/stage/dto';
+import { type StageDTO } from '@domains/stage/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
-import type { LabelDTO } from '@domains/label/dto';
+import { type LabelDTO } from '@domains/label/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
@@ -28,6 +28,7 @@ import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AdministratorRepository } from '@domains/administrator/repository';
 import { type IntegrationRepository } from '@domains/integration/repository';
+import process from 'process';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -52,7 +53,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
     await this.verifyProjectDuplication(projectId);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(mailToken, projectId);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
@@ -288,7 +289,6 @@ export class IntegrationServiceImpl implements IntegrationService {
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
-
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     for (const admin of admins) {
       const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
@@ -304,11 +304,23 @@ export class IntegrationServiceImpl implements IntegrationService {
    * */
   private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
     return {
-      token,
+      acceptanceToken: token,
+      denialToken: token,
       projectName: project.name,
-      projectId: project.id,
+      projectId1: project.id,
+      projectId2: project.id,
       integratorName: integrator.name,
-      url: process.env.BACKEND_URL!,
+      acceptanceUrl: process.env.BACKEND_URL!,
+      denialUrl: process.env.BACKEND_URL!,
     };
+  }
+
+  async acceptProject(projectId: string, mailToken: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
+    const apiKey: string = decryptData(pendingProject.token);
+    const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
+    const email: string = await this.adapter.getMyEmail(apiKey);
+
+    await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
   }
 }
