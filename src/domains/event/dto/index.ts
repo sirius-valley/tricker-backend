@@ -19,13 +19,14 @@ export enum LinearActionTypeConvention {
 
 export class EventInput {
   readonly providerEventId: string;
-  readonly issueId: string;
-  readonly userEmitterId: string;
+  issueId: string;
+  readonly userEmitterEmail?: string;
   readonly createdAt: Date;
+  userEmitterId?: string | null;
 
   constructor(input: EventInput) {
     this.providerEventId = input.providerEventId;
-    this.userEmitterId = input.userEmitterId;
+    this.userEmitterEmail = input.userEmitterEmail;
     this.issueId = input.issueId;
     this.createdAt = input.createdAt;
   }
@@ -60,7 +61,7 @@ export class BlockEventInput extends EventInput {
 export class IssueChangeLogDTO {
   id: string;
   providerEventId: string;
-  userEmitterId: string;
+  userEmitterId: string | null;
   issueId: string;
   field: string;
   from?: string;
@@ -84,7 +85,7 @@ export class IssueChangeLogDTO {
 export class BlockerStatusModificationDTO {
   id: string;
   providerEventId: string;
-  userEmitterId: string;
+  userEmitterId: string | null;
   issueId: string;
   status: string;
   eventRegisteredAt?: Date;

@@ -81,7 +81,7 @@ beforeEach(() => {
     deletedAt: null,
   });
   projectMember = new ProjectMemberDataDTO({ email: 'mockUser@mock.com', name: 'John Doe', providerId: 'pId' });
-  projectData = new ProjectDataDTO('idP', [projectMember], 'Tricker', [], [], null);
+  projectData = new ProjectDataDTO('idP', [projectMember], 'Tricker', [], [], null, []);
   pendingProject = new PendingProjectAuthorizationDTO({
     id: 'ppaId',
     providerProjectId: 'ppId',

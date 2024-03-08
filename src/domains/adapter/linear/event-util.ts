@@ -9,7 +9,7 @@ export const processIssueEvents = async (issue: Issue, history: IssueHistory[]):
       const filteredRelationChanges = filterRelationChanges(event.relationChanges);
       for (const change of filteredRelationChanges) {
         const blockEvent = createBlockEvent(change, event, issue);
-        events.push(blockEvent);
+        events.push(await blockEvent);
       }
     }
 
@@ -21,7 +21,8 @@ export const processIssueEvents = async (issue: Issue, history: IssueHistory[]):
         to: event.toStateId,
         issueId: issue.id,
         providerEventId: event.id,
-        userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        // userEmitterEmail: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        userEmitterEmail: (await event.actor)?.email,
       });
       events.push(changeEvent);
     }
@@ -34,7 +35,7 @@ export const processIssueEvents = async (issue: Issue, history: IssueHistory[]):
         to: event.toAssigneeId,
         issueId: issue.id,
         providerEventId: event.id,
-        userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        userEmitterEmail: (await event.actor)?.email, // always going to be one of those
       });
       events.push(changeEvent);
     }
@@ -57,7 +58,7 @@ export const getCommentForBlockEvent = (action: string, blockType: string, ident
   }
 };
 
-export const createBlockEvent = (change: IssueRelationHistoryPayload, event: IssueHistory, issue: Issue): BlockEventInput => {
+export const createBlockEvent = async (change: IssueRelationHistoryPayload, event: IssueHistory, issue: Issue): Promise<BlockEventInput> => {
   const { type, identifier } = change;
   const [action, blockType] = type;
 
@@ -72,6 +73,6 @@ export const createBlockEvent = (change: IssueRelationHistoryPayload, event: Iss
     issueId: issue.id,
     providerEventId: event.id,
     type: dbType, // do not know how to get rid of ! op
-    userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+    userEmitterEmail: (await event.actor)?.email, // always going to be one of those
   });
 };

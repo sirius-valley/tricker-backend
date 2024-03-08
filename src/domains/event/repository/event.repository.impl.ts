@@ -1,9 +1,10 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
 import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO } from '../dto';
 import type { PrismaClient } from '@prisma/client';
+import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class EventRepositoryImpl implements EventRepository {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   async createIssueChangeLog(input: ChangeScalarEventInput): Promise<IssueChangeLogDTO> {
     const event = await this.db.issueChangeLog.create({

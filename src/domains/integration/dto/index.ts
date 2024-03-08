@@ -1,9 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
-import { IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
+import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
 import { Type } from 'class-transformer';
 import 'reflect-metadata';
+import { type IssueDataDTO } from '@domains/issue/dto';
+import type { EventInput } from '@domains/event/dto';
 
 export class ProjectDataDTO {
   projectId: string;
@@ -12,14 +14,16 @@ export class ProjectDataDTO {
   image: string | null;
   stages: string[];
   labels: string[];
+  issues: IssueDataDTO[];
 
-  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: string[], labels: string[], image: string | null) {
+  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: string[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;
     this.image = image;
     this.stages = stages;
     this.labels = labels;
+    this.issues = issues;
   }
 }
 
@@ -95,6 +99,18 @@ export class ProjectMemberDataDTO {
   }
 }
 
+export interface IssueIntegrationInputDTO {
+  projectId: string;
+  issues: IssueDataDTO[];
+  db: Omit<PrismaClient, ITXClientDenyList>;
+}
+
+export interface EventIntegrationInputDTO {
+  issueId: string;
+  events: EventInput[];
+  db: Omit<PrismaClient, ITXClientDenyList>;
+}
+
 /**
  * Class only exists with validation purposes
  * Represents the URL Params of the HTTP request for retrieving project members
@@ -124,8 +140,6 @@ export class LinearMembersPreIntegrationBody {
   readonly apiToken!: string;
 }
 
-// TODO: document
-
 /**
  * Represents a request for an integration authorization of a project
  */
@@ -136,6 +150,7 @@ export class AuthorizationRequestDTO {
    * @example "token123"
    */
   @IsNotEmpty()
+  @IsValidApiKey({ message: 'Not valid API key for selected issue provider' })
   readonly apiToken!: string;
 
   /**

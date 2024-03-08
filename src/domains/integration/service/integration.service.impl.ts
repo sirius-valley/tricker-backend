@@ -2,32 +2,47 @@ import { type IntegrationService } from '@domains/integration/service/integratio
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
-import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import type { OrganizationDTO } from '@domains/organization/dto';
+import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
+import { type OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { RoleRepositoryImpl } from '@domains/role/repository';
-import type { RoleDTO } from '@domains/role/dto';
+import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import type { StageDTO } from '@domains/stage/dto';
+import { type StageDTO } from '@domains/stage/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
-import type { LabelDTO } from '@domains/label/dto';
+import { type LabelDTO } from '@domains/label/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type LabelIntegrationInputDTO, type MembersIntegrationInputDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, type StageIntegrationInputDTO, UserRole } from '@domains/integration/dto';
+import {
+  type AuthorizationRequestDTO,
+  type EventIntegrationInputDTO,
+  type IssueIntegrationInputDTO,
+  type LabelIntegrationInputDTO,
+  type MembersIntegrationInputDTO,
+  type ProjectDataDTO,
+  type ProjectMemberDataDTO,
+  type ProjectPreIntegratedDTO,
+  type ProjectsPreIntegratedInputDTO,
+  type StageIntegrationInputDTO,
+  UserRole,
+} from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
-import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AdministratorRepository } from '@domains/administrator/repository';
 import { type IntegrationRepository } from '@domains/integration/repository';
+import { IssueRepositoryImpl } from '@domains/issue/repository';
+import { EventRepositoryImpl } from '@domains/event/repository';
+import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
+import process from 'process';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -52,7 +67,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
     await this.verifyProjectDuplication(projectId);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(mailToken, projectId);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
@@ -73,6 +88,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       });
       await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
       await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
+      await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
 
       return newProject;
     });
@@ -80,6 +96,51 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
 
     return project;
+  }
+
+  async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
+    const issueRepository = new IssueRepositoryImpl(input.db);
+    const stageRepository = new StageRepositoryImpl(input.db);
+    const userRepository = new UserRepositoryImpl(input.db);
+    for (const issueData of input.issues) {
+      const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
+      const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
+      let stage: StageDTO | null = null;
+      if (issueData.stage !== null) {
+        stage = await stageRepository.getByName(issueData.stage);
+      }
+      const newIssue = await issueRepository.create({
+        providerIssueId: issueData.providerIssueId,
+        authorId: author != null ? author.id : null,
+        assigneeId: assignee != null ? assignee.id : null,
+        projectId: input.projectId,
+        stageId: stage !== null ? stage.id : null,
+        issueLabelId: null,
+        name: issueData.name,
+        title: issueData.title,
+        description: issueData.description,
+        priority: issueData.priority,
+        storyPoints: issueData.storyPoints,
+      });
+      await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
+    }
+  }
+
+  async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
+    const eventRepository = new EventRepositoryImpl(input.db);
+    const userRepository = new UserRepositoryImpl(input.db);
+    for (const eventData of input.events) {
+      eventData.issueId = input.issueId;
+      const userEmitter = eventData.userEmitterEmail !== undefined ? await userRepository.getByEmail(eventData.userEmitterEmail) : null;
+      eventData.userEmitterId = userEmitter != null ? userEmitter.id : null;
+      if (eventData instanceof ChangeScalarEventInput) {
+        await eventRepository.createIssueChangeLog(eventData);
+      }
+
+      if (eventData instanceof BlockEventInput) {
+        await eventRepository.createIssueBlockEvent(eventData);
+      }
+    }
   }
 
   /**
@@ -228,7 +289,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
     const adminId: string = verifyToken(mailToken);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
+    const admins = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
     if (admins.find((admin) => admin.id === adminId) === null) {
       throw new NotFoundException('Administrator');
     }
@@ -285,10 +346,14 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
    */
   async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
+    const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
+    if (existingPendingAuth != null) {
+      throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
+    }
+
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
-
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     for (const admin of admins) {
       const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
@@ -304,11 +369,23 @@ export class IntegrationServiceImpl implements IntegrationService {
    * */
   private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
     return {
-      token,
+      acceptanceToken: token,
+      denialToken: token,
       projectName: project.name,
-      projectId: project.id,
+      projectId1: project.id,
+      projectId2: project.id,
       integratorName: integrator.name,
-      url: process.env.BACKEND_URL!,
+      acceptanceUrl: process.env.BACKEND_URL!,
+      denialUrl: process.env.BACKEND_URL!,
     };
+  }
+
+  async acceptProject(projectId: string, mailToken: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
+    const apiKey: string = decryptData(pendingProject.token);
+    const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
+    const email: string = await this.adapter.getMyEmail(apiKey);
+
+    await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
   }
 }

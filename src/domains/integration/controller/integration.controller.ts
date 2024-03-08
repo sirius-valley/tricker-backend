@@ -57,6 +57,7 @@ integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdInte
   const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
   const { token } = req.query as unknown as MailToken;
 
+  await service.acceptProject(projectId, token);
   const project: ProjectDTO = await service.integrateProject(projectId, token);
 
   res.status(HttpStatus.CREATED).json(project);
