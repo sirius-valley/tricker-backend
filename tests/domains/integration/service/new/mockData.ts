@@ -2,6 +2,7 @@ import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuth
 import { type UserDataDTO } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 import { type AdministratorDTO } from '@domains/administrator/dto';
+import { type AuthorizationEmailVariables } from '@domains/email/dto';
 
 export const mockedAdminId = 'mockedAdminId';
 export const mockedAdminEmail = 'admin@example.com';
@@ -17,6 +18,8 @@ export const mockedOrganizationName = 'exampleOrganization';
 export const mockedProviderProjectId = 'project987';
 export const mockedToken = 'token123';
 export const mockedEncryptedToken = 'encryptedToken123';
+export const mockedIntegratorName = 'John Doe';
+export const mockedUrl = 'mockedurl.com';
 
 export const mockPendingProjectAuthorizationDTO: PendingProjectAuthorizationDTO = {
   id: mockedGeneratedId,
@@ -33,6 +36,7 @@ export const mockUserDataDTO: UserDataDTO = {
 
 export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
   name: mockedProjectName,
+  id: mockedProviderProjectId,
 };
 
 export const mocksAdministratorDTO: AdministratorDTO[] = [
@@ -45,3 +49,10 @@ export const mocksAdministratorDTO: AdministratorDTO[] = [
     email: '2' + mockedAdminEmail,
   },
 ];
+export const mocksAuthorizationEmailVariables: AuthorizationEmailVariables = {
+  token: mockedToken,
+  projectName: mockedProjectName,
+  projectId: mockedProviderProjectId,
+  integratorName: mockedIntegratorName,
+  url: mockedUrl,
+};

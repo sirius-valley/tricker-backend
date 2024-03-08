@@ -174,6 +174,6 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     this.dataRetriever.configureRetriever(apiKey);
     const team = await this.dataRetriever.getTeam(projectId);
 
-    return { name: team.name };
+    return { name: team.name, id: projectId };
   }
 }

@@ -92,7 +92,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       return newProject;
     });
 
-    await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name });
+    await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
 
     return project;
   }
@@ -282,7 +282,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
     await this.pendingAuthProjectRepository.delete(pendingProject.id);
-    await this.emailService.sendDenialMail(integrator.email, { projectName: project.name });
+    await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
   }
 
   async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
@@ -371,7 +371,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     return {
       token,
       projectName: project.name,
+      projectId: project.id,
       integratorName: integrator.name,
+      url: process.env.BACKEND_URL!,
     };
   }
 }

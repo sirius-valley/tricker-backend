@@ -31,4 +31,5 @@ export class UserRole {
 // todo: replace this with something more useful in the future
 export interface BasicProjectDataDTO {
   name: string;
+  id: string;
 }
