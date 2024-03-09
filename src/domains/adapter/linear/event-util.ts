@@ -41,7 +41,7 @@ export const processIssueEvents = async (issueId: string, history: IssueHistory[
       events.push(changeEvent);
     }
   }
-  Logger.complete(`Events from linear issue ${issueId} have been adapted`);
+  Logger.complete(`Events from linear issue ${issueId} have been adapted -- ${new Date().toString()}`);
   return events;
 };
 

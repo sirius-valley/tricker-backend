@@ -43,6 +43,7 @@ import { IssueRepositoryImpl } from '@domains/issue/repository';
 import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
+import { IssueLabelRepositoryImpl } from '@domains/issueLabel/repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -115,6 +116,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     const issueRepository = new IssueRepositoryImpl(input.db);
     const stageRepository = new StageRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
+    const labelRepository = new LabelRepositoryImpl(input.db);
+    const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
       const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
@@ -128,13 +131,16 @@ export class IntegrationServiceImpl implements IntegrationService {
         assigneeId: assignee != null ? assignee.id : null,
         projectId: input.projectId,
         stageId: stage !== null ? stage.id : null,
-        issueLabelId: null,
         name: issueData.name,
         title: issueData.title,
         description: issueData.description,
         priority: issueData.priority,
         storyPoints: issueData.storyPoints,
       });
+      for (const label of issueData.labels) {
+        const labelId: LabelDTO = (await labelRepository.getByName(label))!;
+        await issueLabelRepository.create(newIssue.id, labelId.id);
+      }
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
       Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
     }
