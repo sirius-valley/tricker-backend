@@ -48,7 +48,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
     try {
       const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(linearIssueId);
-      Logger.info('Issue event nodes retrieved: ', history.length);
+      Logger.info(`Event nodes retrieved from issue ${linearIssueId}: ${history.length} -- ${new Date().toString()}`);
       return await processIssueEvents(linearIssueId, history);
     } catch (err: any) {
       const linearError = err as LinearError;
@@ -84,7 +84,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   // Retriever not configured because it has been already configured in the flow
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
     const issues: Issue[] = await this.dataRetriever.getIssues(providerProjectId);
-    Logger.info(`Issues retrieved to be adapted ${issues.length}`);
+    Logger.info(`Issues retrieved to be adapted ${issues.length} -- ${new Date().toString()}`);
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues) {
       const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue);
@@ -123,7 +123,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
         })
       );
     }
-    Logger.complete(`Adapted all issues`);
+    Logger.complete(`Adapted all issues -- ${new Date().toString()}`);
     return integratedIssuesData;
   }
 

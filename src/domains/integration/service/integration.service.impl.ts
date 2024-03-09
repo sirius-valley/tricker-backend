@@ -71,9 +71,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
-    Logger.complete(`Verifications completed`);
+    Logger.complete(`Verifications completed -- ${new Date().toString()}`);
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integrator.email, token: pendingProject.token, memberMails: pendingMemberMails });
-    Logger.complete(`Members, Stages, Labels adapted -- ${Date.now()}`);
+    Logger.complete(`Members, Stages, Labels adapted -- ${new Date().toString()}`);
     await this.verifyPmExistence(projectData.members, integrator.email);
     const memberRoles: UserRole[] = await this.assignRoles(projectData.members, integrator.email);
 
@@ -88,13 +88,13 @@ export class IntegrationServiceImpl implements IntegrationService {
           acceptedUsers: pendingMemberMails,
           db,
         });
-        Logger.complete(`Members integrated -- ${Date.now()}`);
+        Logger.complete(`Members integrated -- ${new Date().toString()}`);
         await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
-        Logger.complete(`Stages integrated -- ${Date.now()}`);
+        Logger.complete(`Stages integrated -- ${new Date().toString()}`);
         await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
-        Logger.complete(`Labels integrated -- ${Date.now()}`);
+        Logger.complete(`Labels integrated -- ${new Date().toString()}`);
         await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
-        Logger.complete(`Issues integrated -- ${Date.now()}`);
+        Logger.complete(`Issues integrated -- ${new Date().toString()}`);
 
         return newProject;
       },
@@ -136,7 +136,7 @@ export class IntegrationServiceImpl implements IntegrationService {
         storyPoints: issueData.storyPoints,
       });
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
-      Logger.complete(`Issue ${newIssue.id} integrated`);
+      Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
     }
   }
 
