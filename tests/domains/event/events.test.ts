@@ -50,7 +50,7 @@ describe('createBlockEvent', () => {
     eventUtilMock.reverseEnumMap.mockReturnValueOnce('BLOCKED_BY');
     eventUtilMock.getCommentForBlockEvent.mockReturnValueOnce('Blocked by PRO-5');
 
-    const result = await createBlockEvent(change, event, issue);
+    const result = await createBlockEvent(change, event, issue.id);
 
     expect(result.reason).toBe('Block by other ticket');
     expect(result.providerEventId).toBe(event.id);

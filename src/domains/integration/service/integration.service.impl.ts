@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
+import { ConflictException, db, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
@@ -71,28 +71,41 @@ export class IntegrationServiceImpl implements IntegrationService {
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
-
+    Logger.complete(`Verifications completed`);
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integrator.email, token: pendingProject.token, memberMails: pendingMemberMails });
+    Logger.complete(`Members, Stages, Labels adapted -- ${Date.now()}`);
     await this.verifyPmExistence(projectData.members, integrator.email);
     const memberRoles: UserRole[] = await this.assignRoles(projectData.members, integrator.email);
 
-    const project: ProjectDTO = await db.$transaction(async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
-      const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
-      const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
-      await this.integrateMembers({
-        memberRoles,
-        projectId: newProject.id,
-        emitterId: integrator.id,
-        acceptedUsers: pendingMemberMails,
-        db,
-      });
-      await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
-      await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
-      await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
+    const project: ProjectDTO = await db.$transaction(
+      async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
+        const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
+        const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
+        await this.integrateMembers({
+          memberRoles,
+          projectId: newProject.id,
+          emitterId: integrator.id,
+          acceptedUsers: pendingMemberMails,
+          db,
+        });
+        Logger.complete(`Members integrated -- ${Date.now()}`);
+        await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
+        Logger.complete(`Stages integrated -- ${Date.now()}`);
+        await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
+        Logger.complete(`Labels integrated -- ${Date.now()}`);
+        await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
+        Logger.complete(`Issues integrated -- ${Date.now()}`);
 
-      return newProject;
-    });
+        return newProject;
+      },
+      {
+        maxWait: 1000, // default: 2000
+        timeout: 20000, // default: 5000
+      }
+    );
 
+    await this.pendingAuthProjectRepository.delete(pendingProject.id);
+    Logger.complete(`Integration finished`);
     await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
 
     return project;
@@ -123,6 +136,7 @@ export class IntegrationServiceImpl implements IntegrationService {
         storyPoints: issueData.storyPoints,
       });
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
+      Logger.complete(`Issue ${newIssue.id} integrated`);
     }
   }
 

@@ -117,6 +117,7 @@ describe('Integration service', () => {
       jest.spyOn(mockAdapterTool, 'adaptProjectData').mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'mail@mail.com' }] });
       jest.spyOn(db, '$transaction').mockResolvedValue(project);
       jest.spyOn(emailSender, 'sendConfirmationMail').mockResolvedValue();
+      jest.spyOn(pendingAuthProjectMockRepository, 'delete').mockImplementation();
 
       const expectedProject: ProjectDTO = project;
       const receivedProject: ProjectDTO = await service.integrateProject('id', 'tokenNotVerified');

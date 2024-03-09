@@ -2,7 +2,7 @@ import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import { type EventInput } from '@domains/event/dto';
 import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
-import { decryptData, LinearIntegrationException } from '@utils';
+import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
@@ -47,9 +47,9 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   // Retriever not configured because it has been already configured in the flow
   async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
     try {
-      const issue: Issue = await this.dataRetriever.getIssue(linearIssueId);
       const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(linearIssueId);
-      return await processIssueEvents(issue, history);
+      Logger.info('Issue event nodes retrieved: ', history.length);
+      return await processIssueEvents(linearIssueId, history);
     } catch (err: any) {
       const linearError = err as LinearError;
       throw new LinearIntegrationException(linearError.message, linearError.errors);
@@ -68,8 +68,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
     const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(input.providerProjectId, key);
-    const stages: string[] = await this.getAndAdaptStages(input.providerProjectId);
-    const labels: string[] = await this.getAndAdaptLabels(input.providerProjectId);
+    const stages: string[] = await this.getAndAdaptStages(team);
+    const labels: string[] = await this.getAndAdaptLabels(team);
     const org: Organization = await this.dataRetriever.getOrganization();
     const issues = await this.adaptAllProjectIssuesData(input.providerProjectId);
 
@@ -84,9 +84,10 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   // Retriever not configured because it has been already configured in the flow
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
     const issues: Issue[] = await this.dataRetriever.getIssues(providerProjectId);
+    Logger.info(`Issues retrieved to be adapted ${issues.length}`);
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues) {
-      const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue.id);
+      const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue);
       let priority: Priority;
       switch (issue.priority) {
         case 1:
@@ -122,6 +123,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
         })
       );
     }
+    Logger.complete(`Adapted all issues`);
     return integratedIssuesData;
   }
 
@@ -137,20 +139,20 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
 
   /**
    * Retrieves and adapts project stages by ID.
-   * @param {string} providerProjectId - Project's provider ID.
    * @returns {Promise<string[]>} A promise resolving with project stage names.
+   * @param project
    */
-  private async getAndAdaptStages(providerProjectId: string): Promise<string[]> {
-    return (await this.dataRetriever.getStages(providerProjectId)).map((stage) => stage.name);
+  private async getAndAdaptStages(project: Team): Promise<string[]> {
+    return (await this.dataRetriever.getStages(project)).map((stage) => stage.name);
   }
 
   /**
    * Retrieves and adapts project labels by ID.
-   * @param {string} providerProjectId - Project's provider ID.
    * @returns {Promise<string[]>} A promise resolving with project label names.
+   * @param project
    */
-  private async getAndAdaptLabels(providerProjectId: string): Promise<string[]> {
-    return (await this.dataRetriever.getLabels(providerProjectId)).map((label) => label.name);
+  private async getAndAdaptLabels(project: Team): Promise<string[]> {
+    return (await this.dataRetriever.getLabels(project)).map((label) => label.name);
   }
 
   /**
