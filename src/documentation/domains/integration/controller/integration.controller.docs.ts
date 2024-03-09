@@ -60,6 +60,8 @@
  *               message:
  *                 type: "string"
  *                 description: "The error message"
+ *               code:
+ *                 type: "number"
  *               errors:
  *                 type: "array"
  *                 description: "Validation errors"
@@ -67,7 +69,12 @@
  *                   type: "object"
  *           example:
  *             message: "Validation Error"
- *             errors: []
+ *             code: 400
+ *             errors:
+ *               - property: token
+ *                 children: []
+ *                 constraints:
+ *                   isNotEmpty: "token should not be empty"
  *     NotFoundException:
  *       description: "Not found exception"
  *       content:
@@ -79,7 +86,8 @@
  *                 type: "string"
  *                 description: "The error message"
  *           example:
- *             message: "Not found."
+ *             message: "Not found. Couldn't find PendingAuthProject"
+ *             code: 404
  *     InternalServerErrorException:
  *       description: "Internal Server Error"
  *       content:
@@ -414,7 +422,6 @@
  *         - members
  *         - organizationName
  *         - issueProviderName
- *
  *     LinearMembersPreIntegrationParams:
  *       type: object
  *       properties:
@@ -454,8 +461,7 @@
  *     post:
  *       summary: Retrieves projects from Linear provider.
  *       tags:
- *         - Integration
- *         - Linear
+ *         - Integration Linear
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -485,8 +491,7 @@
  *     get:
  *       summary: Integrate a project into Linear
  *       tags:
- *         - "Integration"
- *         - Linear
+ *         - "Integration Linear"
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -501,44 +506,19 @@
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ProjectDTO'
- *         '404':
- *           description: "Not found exception"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/NotFoundException"
- *         '409':
- *           description: "Conflict exception"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/ConflictException"
- *         '401':
- *           description: "Unauthorized. You must login to access this content."
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/UnauthorizedException"
  *         '400':
- *           description: "Validation Error"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/ValidationException"
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  *         '500':
- *           description: "Internal Server Error"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/InternalServerErrorException"
+ *           $ref: '#/components/responses/InternalServerErrorException'
  *   /api/integration/linear/{projectId}/decline:
  *     get:
  *       summary: Decline integration of a project with Linear provider.
  *       tags:
- *         - Integration
- *         - Linear
- *       security:
- *         - bearerAuth: []
+ *         - Integration Linear
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -554,7 +534,7 @@
  *           description: The token associated with the project to decline integration.
  *       responses:
  *         '204':
- *           description: Project integration declined successfully.
+ *           description: No Content.
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':
@@ -567,8 +547,9 @@
  *     post:
  *       summary: Get members of a project
  *       tags:
- *         - Integration
- *         - Linear
+ *         - Integration Linear
+ *       security:
+ *         - bearerAuth: []
  *       parameters:
  *         - in: path
  *           name: id
@@ -595,8 +576,7 @@
  *     post:
  *       summary: Create a pending authorization for project integration.
  *       tags:
- *         - Integration
- *         - Linear
+ *         - Integration Linear
  *       security:
  *         - bearerAuth: []
  *       requestBody:
