@@ -35,14 +35,21 @@ describe('filterRelationChanges', () => {
     expect(filteredChanges.length).toBe(0);
   });
 });
-
 const eventUtilMock = {
   reverseEnumMap: jest.fn(),
   getCommentForBlockEvent: jest.fn(),
 };
-jest.mock('@domains/adapter/linear/event-util', () => eventUtilMock);
 
 describe('createBlockEvent', () => {
+  jest.mock('@domains/adapter/linear/event-util', () => {
+    return {
+      ...jest.requireActual('@domains/adapter/linear/event-util'),
+      ...eventUtilMock,
+    };
+  });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('should create a BlockEventInput for adding a block', async () => {
     const issue = issueData as unknown as Issue;
     const event = issueHistoryData[4] as unknown as IssueHistory;
