@@ -15,4 +15,14 @@ export class OrganizationRepositoryImpl implements OrganizationRepository {
 
     return organization === null ? null : new OrganizationDTO(organization);
   }
+
+  async getByName(name: string): Promise<OrganizationDTO | null> {
+    const organization: Organization | null = await this.db.organization.findUnique({
+      where: {
+        name,
+      },
+    });
+
+    return organization === null ? null : new OrganizationDTO(organization);
+  }
 }

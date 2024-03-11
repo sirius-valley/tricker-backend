@@ -1,11 +1,12 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type CreateIssueDTO, IssueDTO } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
+import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class IssueRepositoryImpl implements IssueRepository {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
-  async create(data: CreateIssueDTO): Promise<IssueDTO> {
+  async create(data: IssueInput): Promise<IssueDTO> {
     const issue: Issue = await this.db.issue.create({
       data: {
         providerIssueId: data.providerIssueId,

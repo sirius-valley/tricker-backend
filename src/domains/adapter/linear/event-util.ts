@@ -1,16 +1,16 @@
-import type { Issue, IssueHistory, IssueRelationHistoryPayload } from '@linear/sdk';
+import type { IssueHistory, IssueRelationHistoryPayload } from '@linear/sdk';
 import { BlockEventInput, ChangeScalarEventInput, type EventInput, LinearActionTypeConvention, LinearBlockTypeConvention } from '@domains/event/dto';
 import { reverseEnumMap } from '@utils/enums';
+import { Logger } from '@utils';
 
-export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> => {
-  const history = (await issue.history()).nodes;
+export const processIssueEvents = async (issueId: string, history: IssueHistory[]): Promise<EventInput[]> => {
   const events: EventInput[] = [];
   for (const event of history) {
     if (event.relationChanges !== undefined) {
       const filteredRelationChanges = filterRelationChanges(event.relationChanges);
       for (const change of filteredRelationChanges) {
-        const blockEvent = createBlockEvent(change, event, issue);
-        events.push(blockEvent);
+        const blockEvent = createBlockEvent(change, event, issueId);
+        events.push(await blockEvent);
       }
     }
 
@@ -20,9 +20,10 @@ export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> =>
         field: 'state',
         from: event.fromStateId,
         to: event.toStateId,
-        issueId: issue.id,
+        issueId,
         providerEventId: event.id,
-        userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        // userEmitterEmail: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        userEmitterEmail: (await event.actor)?.email,
       });
       events.push(changeEvent);
     }
@@ -33,13 +34,14 @@ export const processIssueEvents = async (issue: Issue): Promise<EventInput[]> =>
         field: 'assignee',
         from: event.fromAssigneeId,
         to: event.toAssigneeId,
-        issueId: issue.id,
+        issueId,
         providerEventId: event.id,
-        userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+        userEmitterEmail: (await event.actor)?.email, // always going to be one of those
       });
       events.push(changeEvent);
     }
   }
+  Logger.complete(`Events from linear issue ${issueId} have been adapted -- ${new Date().toString()}`);
   return events;
 };
 
@@ -58,7 +60,7 @@ export const getCommentForBlockEvent = (action: string, blockType: string, ident
   }
 };
 
-export const createBlockEvent = (change: IssueRelationHistoryPayload, event: IssueHistory, issue: Issue): BlockEventInput => {
+export const createBlockEvent = async (change: IssueRelationHistoryPayload, event: IssueHistory, issueId: string): Promise<BlockEventInput> => {
   const { type, identifier } = change;
   const [action, blockType] = type;
 
@@ -70,9 +72,9 @@ export const createBlockEvent = (change: IssueRelationHistoryPayload, event: Iss
     reason,
     comment: getCommentForBlockEvent(action, blockType, identifier),
     createdAt: event.createdAt,
-    issueId: issue.id,
+    issueId,
     providerEventId: event.id,
     type: dbType, // do not know how to get rid of ! op
-    userEmitterId: event.actorId! ?? event.botActor?.id, // always going to be one of those
+    userEmitterEmail: (await event.actor)?.email, // always going to be one of those
   });
 };

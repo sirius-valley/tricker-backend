@@ -1,3 +1,5 @@
+import { type EventInput } from '@domains/event/dto';
+
 export class IssueDTO {
   id: string;
   providerIssueId: string;
@@ -41,6 +43,8 @@ export class IssueDataDTO {
   priority: Priority;
   storyPoints: number | null;
   stage: string | null;
+  labels: string[];
+  events: EventInput[];
 
   constructor(data: IssueDataDTO) {
     this.providerIssueId = data.providerIssueId;
@@ -53,29 +57,29 @@ export class IssueDataDTO {
     this.priority = data.priority;
     this.storyPoints = data.storyPoints;
     this.stage = data.stage;
+    this.labels = data.labels;
+    this.events = data.events;
   }
 }
 
-export class CreateIssueDTO {
+export class IssueInput {
   providerIssueId: string;
   authorId: string | null;
   assigneeId: string | null;
   projectId: string;
   stageId: string | null;
-  issueLabelId: string | null;
   name: string;
   title: string;
   description: string | null;
   priority: Priority;
   storyPoints: number | null;
 
-  constructor(data: CreateIssueDTO) {
+  constructor(data: IssueInput) {
     this.providerIssueId = data.providerIssueId;
     this.authorId = data.authorId;
     this.assigneeId = data.assigneeId;
     this.stageId = data.stageId;
     this.projectId = data.projectId;
-    this.issueLabelId = data.issueLabelId;
     this.name = data.name;
     this.title = data.title;
     this.description = data.description;

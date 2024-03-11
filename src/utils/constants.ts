@@ -31,5 +31,5 @@ export const Constants: ConstantsTypes = {
   // CORS urls to allow
   CORS_WHITELIST: process.env.CORS_WHITELIST ?? '*',
   // Authentication secret
-  TOKEN_SECRET: process.env.TOKEN_SECRET ?? 'secret',
+  TOKEN_SECRET: process.env.AUTHORIZATION_SECRET ?? 'secret',
 };
