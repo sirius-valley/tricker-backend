@@ -105,3 +105,29 @@ export class BlockerStatusModificationDTO {
     this.comment = input.comment;
   }
 }
+
+export class TimeTrackingDTO {
+  id: string;
+  issueId: string;
+  startTime: Date;
+  endTime: Date | null;
+
+  constructor(input: TimeTrackingDTO) {
+    this.id = input.id;
+    this.issueId = input.issueId;
+    this.startTime = input.startTime;
+    this.endTime = input.endTime;
+  }
+}
+
+export class UpdateTimeTracking {
+  id: string;
+  startTime?: Date;
+  endTime?: Date;
+
+  constructor(input: UpdateTimeTracking) {
+    this.id = input.id;
+    this.startTime = input.startTime;
+    this.endTime = input.endTime;
+  }
+}

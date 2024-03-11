@@ -1,10 +1,37 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO } from '../dto';
+import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
 import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class EventRepositoryImpl implements EventRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+
+  // todo: document
+  async updateTimeTrackingEvent(input: UpdateTimeTracking): Promise<TimeTrackingDTO> {
+    const event = await this.db.timeTracking.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        endTime: input.endTime,
+      },
+    });
+
+    return new TimeTrackingDTO(event);
+  }
+
+  // todo: document
+  async getLastTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO | null> {
+    const event = await this.db.timeTracking.findFirst({
+      take: 1,
+      where: {
+        issueId,
+      },
+      orderBy: [{ startTime: 'desc' }],
+    });
+
+    return event != null ? new TimeTrackingDTO(event) : null;
+  }
 
   async createIssueChangeLog(input: ChangeScalarEventInput): Promise<IssueChangeLogDTO> {
     const event = await this.db.issueChangeLog.create({

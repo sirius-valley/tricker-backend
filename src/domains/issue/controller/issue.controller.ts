@@ -1,26 +1,22 @@
 import { type Request, type Response, Router } from 'express';
-import { IsDefined, IsString } from 'class-validator';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { db } from '@utils';
+import { db, validateRequest } from '@utils';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import HttpStatus from 'http-status';
+import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
+import { IssuePauseParams } from '@domains/issue/dto';
 
 export const issueRouter = Router();
 
-// todo: document
-class IssuePauseParams {
-  @IsString()
-  @IsDefined()
-  readonly id!: string;
-}
-
 const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo);
+const eventRepo: EventRepository = new EventRepositoryImpl(db);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
 
-issueRouter.get('/:id/pause', async (_req: Request<IssuePauseParams>, res: Response) => {
+// todo: document swagger
+issueRouter.get('/:id/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
   const { id: issueId } = _req.params;
 
-  const paused = await issueService.pauseTimer(issueId);
+  const event = await issueService.pauseTimer(issueId);
 
-  return res.status(HttpStatus.OK).json({ paused });
+  return res.status(HttpStatus.OK).json({ event });
 });

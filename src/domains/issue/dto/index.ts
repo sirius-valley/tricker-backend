@@ -1,4 +1,5 @@
 import { type EventInput } from '@domains/event/dto';
+import { IsDefined, IsString } from 'class-validator';
 
 export class IssueDTO {
   id: string;
@@ -105,3 +106,10 @@ const PriorityType: {
 };
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
+
+// todo: document
+export class IssuePauseParams {
+  @IsString()
+  @IsDefined()
+  readonly id!: string;
+}
