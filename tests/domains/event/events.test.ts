@@ -36,16 +36,17 @@ describe('filterRelationChanges', () => {
   });
 });
 
+const eventUtilMock = {
+  reverseEnumMap: jest.fn(),
+  getCommentForBlockEvent: jest.fn(),
+};
+jest.mock('@domains/adapter/linear/event-util', () => eventUtilMock);
+
 describe('createBlockEvent', () => {
   it('should create a BlockEventInput for adding a block', async () => {
     const issue = issueData as unknown as Issue;
     const event = issueHistoryData[4] as unknown as IssueHistory;
     const change = event.relationChanges![0] as unknown as IssueRelationHistoryPayload;
-    const eventUtilMock = {
-      reverseEnumMap: jest.fn(),
-      getCommentForBlockEvent: jest.fn(),
-    };
-    jest.mock('@domains/adapter/linear/event-util', () => eventUtilMock);
 
     eventUtilMock.reverseEnumMap.mockReturnValueOnce('BLOCKED_BY');
     eventUtilMock.getCommentForBlockEvent.mockReturnValueOnce('Blocked by PRO-5');
