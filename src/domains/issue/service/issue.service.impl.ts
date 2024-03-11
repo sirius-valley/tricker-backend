@@ -38,7 +38,6 @@ export class IssueServiceImpl implements IssueService {
           assigneeId: assignee != null ? assignee.id : null,
           projectId,
           stageId: issueData.stage,
-          issueLabelId: null,
           name: issueData.name,
           title: issueData.title,
           description: issueData.description,
