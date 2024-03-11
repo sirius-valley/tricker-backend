@@ -50,9 +50,12 @@ export const mocksAdministratorDTO: AdministratorDTO[] = [
   },
 ];
 export const mocksAuthorizationEmailVariables: AuthorizationEmailVariables = {
-  token: mockedToken,
+  acceptanceToken: mockedToken,
+  denialToken: mockedToken,
   projectName: mockedProjectName,
-  projectId: mockedProviderProjectId,
+  projectId1: mockedProviderProjectId,
+  projectId2: mockedProviderProjectId,
   integratorName: mockedIntegratorName,
-  url: mockedUrl,
+  denialUrl: mockedUrl,
+  acceptanceUrl: mockedUrl,
 };

@@ -68,7 +68,6 @@ export class IssueInput {
   assigneeId: string | null;
   projectId: string;
   stageId: string | null;
-  issueLabelId: string | null;
   name: string;
   title: string;
   description: string | null;
@@ -81,7 +80,6 @@ export class IssueInput {
     this.assigneeId = data.assigneeId;
     this.stageId = data.stageId;
     this.projectId = data.projectId;
-    this.issueLabelId = data.issueLabelId;
     this.name = data.name;
     this.title = data.title;
     this.description = data.description;
