@@ -41,14 +41,13 @@ const eventUtilMock = {
 };
 
 describe('createBlockEvent', () => {
-  jest.mock('@domains/adapter/linear/event-util', () => {
-    return {
-      ...jest.requireActual('@domains/adapter/linear/event-util'),
-      ...eventUtilMock,
-    };
-  });
-  beforeEach(() => {
-    jest.clearAllMocks();
+  beforeAll(() => {
+    jest.mock('@domains/adapter/linear/event-util', () => {
+      return {
+        ...jest.requireActual('@domains/adapter/linear/event-util'),
+        ...eventUtilMock,
+      };
+    });
   });
   it('should create a BlockEventInput for adding a block', async () => {
     const issue = issueData as unknown as Issue;
