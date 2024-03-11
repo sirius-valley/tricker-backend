@@ -13,6 +13,8 @@ dist-ssr
 .env
 coverage
 
+env.json
+.serverless
 
 # Editor directories and files
 .vscode/*
@@ -28,4 +30,3 @@ coverage
 
 # Random folders
 /linear/
-/coverage/

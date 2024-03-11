@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
+import serverless from 'serverless-http';
 
 import { Constants, NodeEnv, specs } from '@utils';
 import { ErrorHandling } from '@utils/errors';
@@ -36,3 +37,5 @@ app.use(ErrorHandling);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs as swaggerUi.JsonObject, { explorer: true }));
 
 export default app;
+
+export const handler = serverless(app);
