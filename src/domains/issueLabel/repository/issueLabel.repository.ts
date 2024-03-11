@@ -1,5 +1,5 @@
-import { type IssueLabelDTO } from '@domains/issueLabel/dto';
+import { type IssueLabelDTO, type IssueLabelInput } from '@domains/issueLabel/dto';
 
 export interface IssueLabelRepository {
-  create: (issueId: string, labelId: string) => Promise<IssueLabelDTO>;
+  create: (input: IssueLabelInput) => Promise<IssueLabelDTO>;
 }

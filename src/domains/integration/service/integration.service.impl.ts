@@ -67,14 +67,16 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
   async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
+    Logger.time('Verifications');
     await this.verifyProjectDuplication(projectId);
     const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
-    Logger.complete(`Verifications completed -- ${new Date().toString()}`);
+    Logger.timeEnd(`Verifications`);
+    Logger.time('Members, Stages, Labels adaptation');
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integrator.email, token: pendingProject.token, memberMails: pendingMemberMails });
-    Logger.complete(`Members, Stages, Labels adapted -- ${new Date().toString()}`);
+    Logger.timeEnd(`Members, Stages, Labels adaptation`);
     await this.verifyPmExistence(projectData.members, integrator.email);
     const memberRoles: UserRole[] = await this.assignRoles(projectData.members, integrator.email);
 
@@ -82,6 +84,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
         const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
         const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
+        Logger.time('Members integration');
         await this.integrateMembers({
           memberRoles,
           projectId: newProject.id,
@@ -89,13 +92,16 @@ export class IntegrationServiceImpl implements IntegrationService {
           acceptedUsers: pendingMemberMails,
           db,
         });
-        Logger.complete(`Members integrated -- ${new Date().toString()}`);
+        Logger.timeEnd(`Members integration`);
+        Logger.time('Stages Integration');
         await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
-        Logger.complete(`Stages integrated -- ${new Date().toString()}`);
+        Logger.timeEnd(`Stages Integration`);
+        Logger.time('Labels integration');
         await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
-        Logger.complete(`Labels integrated -- ${new Date().toString()}`);
+        Logger.timeEnd(`Labels integration`);
+        Logger.time('Issues integration');
         await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
-        Logger.complete(`Issues integrated -- ${new Date().toString()}`);
+        Logger.timeEnd(`Issues integration`);
 
         return newProject;
       },
@@ -139,7 +145,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       });
       for (const label of issueData.labels) {
         const labelId: LabelDTO = (await labelRepository.getByName(label))!;
-        await issueLabelRepository.create(newIssue.id, labelId.id);
+        await issueLabelRepository.create({ issueId: newIssue.id, labelId: labelId.id });
       }
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
       Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);

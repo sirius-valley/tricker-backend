@@ -9,3 +9,8 @@ export class IssueLabelDTO {
     this.issueId = issueLabel.issueId;
   }
 }
+
+export interface IssueLabelInput {
+  issueId: string;
+  labelId: string;
+}

@@ -85,6 +85,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
     const issues: Issue[] = await this.dataRetriever.getIssues(providerProjectId);
     Logger.info(`Issues retrieved to be adapted ${issues.length} -- ${new Date().toString()}`);
+    Logger.time('Issues integration');
     const integratedIssuesData: IssueDataDTO[] = [];
     for (const issue of issues) {
       const issueData: LinearIssueData = await this.dataRetriever.getIssueData(issue);
@@ -123,7 +124,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
         })
       );
     }
-    Logger.complete(`Adapted all issues -- ${new Date().toString()}`);
+    Logger.timeEnd(`Issues integration`);
     return integratedIssuesData;
   }
 
