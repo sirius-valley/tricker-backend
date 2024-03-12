@@ -105,3 +105,21 @@ export class BlockerStatusModificationDTO {
     this.comment = input.comment;
   }
 }
+
+export class ManualTimeModificationDTO {
+  id: string;
+  userEmitterId: string;
+  issueId: string;
+  timeAmount: number;
+  modificationDate: Date;
+  reason: string;
+
+  constructor(timeModification: ManualTimeModificationDTO) {
+    this.id = timeModification.id;
+    this.userEmitterId = timeModification.userEmitterId;
+    this.issueId = timeModification.issueId;
+    this.timeAmount = timeModification.timeAmount;
+    this.modificationDate = timeModification.modificationDate;
+    this.reason = timeModification.reason;
+  }
+}

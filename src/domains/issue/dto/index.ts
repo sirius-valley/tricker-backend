@@ -1,4 +1,5 @@
 import { type EventInput } from '@domains/event/dto';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class IssueDTO {
   id: string;
@@ -86,6 +87,13 @@ export class IssueInput {
     this.priority = data.priority;
     this.storyPoints = data.storyPoints;
   }
+}
+
+export class IssueWorkedTimeParamsDTO {
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  issueId!: string;
 }
 
 const PriorityType: {
