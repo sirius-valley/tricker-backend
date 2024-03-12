@@ -34,4 +34,14 @@ export class IssueRepositoryImpl implements IssueRepository {
 
     return issue === null ? null : new IssueDTO(issue);
   }
+
+  async getById(id: string): Promise<IssueDTO | null> {
+    const issue: Issue | null = await this.db.issue.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return issue === null ? null : new IssueDTO(issue);
+  }
 }
