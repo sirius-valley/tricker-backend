@@ -12,7 +12,6 @@ const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
 const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
 
-// todo: document swagger
 issueRouter.get('/:id/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
   const { id: issueId } = _req.params;
 

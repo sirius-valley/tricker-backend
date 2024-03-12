@@ -107,8 +107,14 @@ const PriorityType: {
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
 
-// todo: document
+/**
+ * HTTP URL parameters for the endpoint that pauses the timer of an issue.
+ */
 export class IssuePauseParams {
+  /**
+   * The ID of the issue to pause the timer for.
+   * @type {string}
+   */
   @IsString()
   @IsDefined()
   readonly id!: string;

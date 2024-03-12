@@ -6,7 +6,11 @@ import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 export class EventRepositoryImpl implements EventRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
-  // todo: document
+  /**
+   * Updates a time tracking event with the provided data.
+   * @param {UpdateTimeTracking} input - The data to update the time tracking event.
+   * @returns {Promise<TimeTrackingDTO>} - A promise that resolves with the updated time tracking data.
+   */
   async updateTimeTrackingEvent(input: UpdateTimeTracking): Promise<TimeTrackingDTO> {
     const event = await this.db.timeTracking.update({
       where: {
@@ -20,7 +24,11 @@ export class EventRepositoryImpl implements EventRepository {
     return new TimeTrackingDTO(event);
   }
 
-  // todo: document
+  /**
+   * Retrieves the last time tracking event for the specified issue.
+   * @param {string} issueId - The ID of the issue to retrieve the last time tracking event for.
+   * @returns {Promise<TimeTrackingDTO | null>} - A promise that resolves with the last time tracking event if found, or null otherwise.
+   */
   async getLastTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO | null> {
     const event = await this.db.timeTracking.findFirst({
       take: 1,

@@ -10,7 +10,13 @@ export class IssueServiceImpl implements IssueService {
     private readonly eventRepository: EventRepository
   ) {}
 
-  // todo: document
+  /**
+   * Pauses the timer for a specific issue.
+   * @param {string} issueId - The ID of the issue to pause the timer for.
+   * @returns {Promise<TimeTrackingDTO>} - A promise that resolves with the updated time tracking data.
+   * @throws {NotFoundException} - If the issue with the given ID is not found.
+   * @throws {ConflictException} - If the issue has never been played nor paused, or if the issue is already paused.
+   */
   async pauseTimer(issueId: string): Promise<TimeTrackingDTO> {
     const issue = await this.issueRepository.getById(issueId);
     if (issue == null) throw new NotFoundException('issue');
