@@ -28,13 +28,11 @@ export class LinearDataRetriever {
     return (await team.members()).nodes;
   }
 
-  async getStages(projectId: string): Promise<WorkflowState[]> {
-    const team = await this.getTeam(projectId);
+  async getStages(team: Team): Promise<WorkflowState[]> {
     return (await team.states()).nodes;
   }
 
-  async getLabels(projectId: string): Promise<IssueLabel[]> {
-    const team = await this.getTeam(projectId);
+  async getLabels(team: Team): Promise<IssueLabel[]> {
     return (await team.labels()).nodes;
   }
 
@@ -63,8 +61,7 @@ export class LinearDataRetriever {
     return (await issue.history()).nodes;
   }
 
-  async getIssueData(issueId: string): Promise<LinearIssueData> {
-    const issue = await this.getIssue(issueId);
+  async getIssueData(issue: Issue): Promise<LinearIssueData> {
     const state = await issue.state;
     const creator = await issue.creator;
     const assignee = await issue.assignee;

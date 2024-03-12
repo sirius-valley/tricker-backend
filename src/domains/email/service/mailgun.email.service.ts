@@ -1,7 +1,7 @@
 import { type IMailgunClient } from 'mailgun.js/Interfaces';
 import process from 'process';
 import { type EmailService } from '@domains/email/service/email.service';
-import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from 'domains/email/dto';
+import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from '@domains/email/dto';
 import path from 'path';
 import { prepareHtmlTemplate } from '@utils/templating';
 

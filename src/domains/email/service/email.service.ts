@@ -1,4 +1,4 @@
-import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from 'domains/email/dto';
+import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from '@domains/email/dto';
 
 export interface EmailService {
   sendAuthorizationMail: (emailAddress: string, variables: AuthorizationEmailVariables) => Promise<void>;

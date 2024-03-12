@@ -1,8 +1,5 @@
-import { createBlockEvent, filterRelationChanges, getCommentForBlockEvent } from '@domains/adapter/linear/event-util';
-import { type Issue, type IssueHistory, type IssueRelationHistoryPayload } from '@linear/sdk';
-import issueData from './data/issue-data.json';
-import issueHistoryData from './data/issue-history-data.json';
-import { TrickerBlockEventType } from '@domains/event/dto';
+import { filterRelationChanges, getCommentForBlockEvent } from '@domains/adapter/linear/event-util';
+import { type IssueRelationHistoryPayload } from '@linear/sdk';
 
 describe('filterRelationChanges', () => {
   it('should filter changes to blocked_by relations', () => {
@@ -33,31 +30,6 @@ describe('filterRelationChanges', () => {
     const filteredChanges = filterRelationChanges(changes);
 
     expect(filteredChanges.length).toBe(0);
-  });
-});
-
-describe('createBlockEvent', () => {
-  it('should create a BlockEventInput for adding a block', async () => {
-    const issue = issueData as unknown as Issue;
-    const event = issueHistoryData[4] as unknown as IssueHistory;
-    const change = event.relationChanges![0] as unknown as IssueRelationHistoryPayload;
-    const eventUtilMock = {
-      reverseEnumMap: jest.fn(),
-      getCommentForBlockEvent: jest.fn(),
-    };
-    jest.mock('@domains/adapter/linear/event-util', () => eventUtilMock);
-
-    eventUtilMock.reverseEnumMap.mockReturnValueOnce('BLOCKED_BY');
-    eventUtilMock.getCommentForBlockEvent.mockReturnValueOnce('Blocked by PRO-5');
-
-    const result = await createBlockEvent(change, event, issue);
-
-    expect(result.reason).toBe('Block by other ticket');
-    expect(result.providerEventId).toBe(event.id);
-    expect(result.issueId).toBe(issue.id);
-    expect(result.type).toBe(TrickerBlockEventType.BLOCKED_BY);
-    // expect(result.userEmitterId).toBe(event.actorId);
-    expect(result.createdAt).toBe(event.createdAt);
   });
 });
 

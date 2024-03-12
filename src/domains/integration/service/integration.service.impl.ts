@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
 import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, decryptData, LinearIntegrationException, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
+import { ConflictException, db, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
 import type { PrismaClient } from '@prisma/client';
@@ -19,7 +19,7 @@ import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
 import { type LabelDTO } from '@domains/label/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
-import type { PendingMemberMailsRepository } from 'domains/pendingMemberMail/repository';
+import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
 import {
   type AuthorizationRequestDTO,
@@ -43,6 +43,7 @@ import { IssueRepositoryImpl } from '@domains/issue/repository';
 import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
+import { IssueLabelRepositoryImpl } from '@domains/issueLabel/repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -66,33 +67,52 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
   async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
+    Logger.time('Verifications');
     await this.verifyProjectDuplication(projectId);
     const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
     const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
-
+    Logger.timeEnd(`Verifications`);
+    Logger.time('Members, Stages, Labels adaptation');
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integrator.email, token: pendingProject.token, memberMails: pendingMemberMails });
+    Logger.timeEnd(`Members, Stages, Labels adaptation`);
     await this.verifyPmExistence(projectData.members, integrator.email);
     const memberRoles: UserRole[] = await this.assignRoles(projectData.members, integrator.email);
 
-    const project: ProjectDTO = await db.$transaction(async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
-      const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
-      const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
-      await this.integrateMembers({
-        memberRoles,
-        projectId: newProject.id,
-        emitterId: integrator.id,
-        acceptedUsers: pendingMemberMails,
-        db,
-      });
-      await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
-      await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
-      await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
+    const project: ProjectDTO = await db.$transaction(
+      async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
+        const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
+        const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
+        Logger.time('Members integration');
+        await this.integrateMembers({
+          memberRoles,
+          projectId: newProject.id,
+          emitterId: integrator.id,
+          acceptedUsers: pendingMemberMails,
+          db,
+        });
+        Logger.timeEnd(`Members integration`);
+        Logger.time('Stages Integration');
+        await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
+        Logger.timeEnd(`Stages Integration`);
+        Logger.time('Labels integration');
+        await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
+        Logger.timeEnd(`Labels integration`);
+        Logger.time('Issues integration');
+        await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
+        Logger.timeEnd(`Issues integration`);
 
-      return newProject;
-    });
+        return newProject;
+      },
+      {
+        maxWait: 1000, // default: 2000
+        timeout: 20000, // default: 5000
+      }
+    );
 
+    await this.pendingAuthProjectRepository.delete(pendingProject.id);
+    Logger.complete(`Integration finished`);
     await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
 
     return project;
@@ -102,6 +122,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     const issueRepository = new IssueRepositoryImpl(input.db);
     const stageRepository = new StageRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
+    const labelRepository = new LabelRepositoryImpl(input.db);
+    const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
       const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
@@ -115,14 +137,18 @@ export class IntegrationServiceImpl implements IntegrationService {
         assigneeId: assignee != null ? assignee.id : null,
         projectId: input.projectId,
         stageId: stage !== null ? stage.id : null,
-        issueLabelId: null,
         name: issueData.name,
         title: issueData.title,
         description: issueData.description,
         priority: issueData.priority,
         storyPoints: issueData.storyPoints,
       });
+      for (const label of issueData.labels) {
+        const labelId: LabelDTO = (await labelRepository.getByName(label))!;
+        await issueLabelRepository.create({ issueId: newIssue.id, labelId: labelId.id });
+      }
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
+      Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
     }
   }
 
