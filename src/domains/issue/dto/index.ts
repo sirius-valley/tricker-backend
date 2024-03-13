@@ -145,3 +145,31 @@ export class WorkedTimeDTO {
     this.workedTime = workedTime.workedTime;
   }
 }
+
+/**
+ * Data Transfer Object (DTO) for parameters used to do the filter while retrieving issues.
+ */
+export class UserProjectParamsDTO {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  userId!: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  projectId!: string;
+}
+/*
+export class AlternativeIssueFiltersDTO {
+  stageIds: string[];
+  priorities: string[];
+  assigneeIds: string[];
+
+} */
