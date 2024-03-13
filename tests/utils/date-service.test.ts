@@ -9,10 +9,9 @@ describe('date-service tests', () => {
     it('should return a positive value if no end time provided', async (): Promise<void> => {
       // given
       const startTime: Date = new Date('2024-03-12T09:00:00Z');
-      const endTime = null;
       const zeroSeconds: number = 0;
       // when
-      const receivedSeconds: number = getTimeTrackedInSeconds(startTime, endTime);
+      const receivedSeconds: number = getTimeTrackedInSeconds(startTime, null);
       // then
       expect.assertions(1);
       expect(receivedSeconds).toBeGreaterThan(zeroSeconds);
