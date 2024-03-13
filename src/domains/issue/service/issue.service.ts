@@ -1,3 +1,3 @@
 export interface IssueService {
-  getIssueWorkedTime: (issueId: string) => Promise<number>;
+  getIssueWorkedSeconds: (issueId: string) => Promise<number>;
 }

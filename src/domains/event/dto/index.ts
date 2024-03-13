@@ -106,6 +106,54 @@ export class BlockerStatusModificationDTO {
   }
 }
 
+/**
+ * Data transfer object representing a time tracking event.
+ */
+export class TimeTrackingDTO {
+  /**
+   * The ID of the time tracking event.
+   * @type {string}
+   */
+  id: string;
+
+  /**
+   * The ID of the issue associated with the event.
+   * @type {string}
+   */
+  issueId: string;
+
+  /**
+   * The start time of the event.
+   * @type {Date}
+   */
+  startTime: Date;
+
+  /**
+   * The end time of the event, or null if not ended yet.
+   * @type {Date | null}
+   */
+  endTime: Date | null;
+
+  /**
+   * Creates an instance of TimeTrackingDTO.
+   * @param {Object} input - The data to initialize the TimeTrackingDTO instance.
+   * @param {string} input.id - The ID of the time tracking event.
+   * @param {string} input.issueId - The ID of the issue associated with the event.
+   * @param {Date} input.startTime - The start time of the event.
+   * @param {Date | null} input.endTime - The end time of the event, or null if not ended yet.
+   */
+  constructor(input: TimeTrackingDTO) {
+    this.id = input.id;
+    this.issueId = input.issueId;
+    this.startTime = input.startTime;
+    this.endTime = input.endTime;
+  }
+}
+
+/**
+ * Class representing a Data Transfer Object (DTO) for manual time modifications.
+ * This class contains the necessary information to represent a manual time modification for an issue.
+ */
 export class ManualTimeModificationDTO {
   id: string;
   userEmitterId: string;

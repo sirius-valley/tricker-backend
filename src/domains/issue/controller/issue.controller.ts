@@ -16,7 +16,7 @@ const service: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
 issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<void> => {
   const { issueId } = req.params;
 
-  await service.getIssueWorkedTime(issueId);
+  const workedTime: number = await service.getIssueWorkedSeconds(issueId);
 
-  res.sendStatus(HttpStatus.NO_CONTENT);
+  res.status(HttpStatus.OK).json(workedTime);
 });
