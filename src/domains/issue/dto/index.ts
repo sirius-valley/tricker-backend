@@ -115,5 +115,5 @@ export class IssuePauseParams {
    */
   @IsString()
   @IsDefined()
-  readonly id!: string;
+  readonly issueId!: string;
 }

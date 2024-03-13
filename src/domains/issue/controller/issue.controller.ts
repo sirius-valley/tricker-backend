@@ -12,10 +12,10 @@ const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
 const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
 
-issueRouter.get('/:id/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
-  const { id: issueId } = _req.params;
+issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
+  const { issueId } = _req.params;
 
   const event = await issueService.pauseTimer(issueId);
 
-  return res.status(HttpStatus.OK).json({ event });
+  return res.status(HttpStatus.OK).json(event);
 });

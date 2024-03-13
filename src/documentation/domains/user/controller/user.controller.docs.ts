@@ -1,51 +1,6 @@
 /**
  * @swagger
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: "http"
- *       scheme: "bearer"
- *       bearerFormat: "JWT"
- *   responses:
- *     NotFoundException:
- *       description: "Not found entity"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               code:
- *                 type: "number"
- *                 description: "The HTTP error code"
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               error:
- *                 type: "object"
- *                 description: "An object where you can set the error code by providing it when it is thrown"
- *       example:
- *         message: "Not found. Couldn't find User"
- *         code: 404
- *     ValidationException:
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               code:
- *                 type: "number"
- *                 description: "The HTTP error code"
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               errors:
- *                 type: "object"
- *                 description: "An object where you can set the error code by providing it when it is thrown"
- *       example:
- *         message: "Unauthorized. You must login to access this content."
- *         code: 401
- *         errors:
- *           error_code: "MISSING_TOKEN"
  *   schemas:
  *     UserDTO:
  *       type: "object"

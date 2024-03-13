@@ -1,125 +1,6 @@
 /**
  * @swagger
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: "http"
- *       scheme: "bearer"
- *       bearerFormat: "JWT"
- *   responses:
- *     ConflictException:
- *       description: "Conflict with data"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               code:
- *                 type: "number"
- *                 description: "The HTTP error code"
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               error:
- *                 type: "object"
- *                 description: "An object where you can set the error code by providing it when it is thrown"
- *       example:
- *         message: "Conflict. User already exists"
- *         code: 409
- *     UnauthorizedException:
- *       description: "Unauthorized. You must login to access this content."
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               code:
- *                 type: "number"
- *                 description: "Error code"
- *               errors:
- *                 type: "object"
- *                 properties:
- *                   error_code:
- *                   type: "string"
- *                   description: "Error code"
- *           example:
- *             message: "Unauthorized. You must login to access this content."
- *             code: 401
- *             errors:
- *               error_code: "UNAUTHORIZED_ERROR"
- *     ValidationException:
- *       description: "Validation Error"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               code:
- *                 type: "number"
- *               errors:
- *                 type: "array"
- *                 description: "Validation errors"
- *                 items:
- *                   type: "object"
- *           example:
- *             message: "Validation Error"
- *             code: 400
- *             errors:
- *               - property: token
- *                 children: []
- *                 constraints:
- *                   isNotEmpty: "token should not be empty"
- *     NotFoundException:
- *       description: "Not found exception"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *           example:
- *             message: "Not found. Couldn't find PendingAuthProject"
- *             code: 404
- *     InternalServerErrorException:
- *       description: "Internal Server Error"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               errors:
- *                 type: "object"
- *                 description: "Additional details or errors associated with the exception"
- *           example:
- *             message: "Internal Server Error"
- *             errors: {}
- *     LinearIntegrationException:
- *       description: "Linear Integration Error"
- *       content:
- *         application/json:
- *           schema:
- *             type: "object"
- *             properties:
- *               message:
- *                 type: "string"
- *                 description: "The error message"
- *               errors:
- *                 type: "object"
- *                 description: "Additional details or errors associated with the exception"
- *           example:
- *             message: "Linear Integration Error"
- *             errors: {}
  *   schemas:
  *     RoleDTO:
  *       type: object
@@ -239,7 +120,7 @@
  *         members:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/UserRole'
+ *             $ref: '#/components/schemas/RoleDTO'
  *         projectName:
  *           type: string
  *         image:
@@ -571,7 +452,7 @@
  *               schema:
  *                 type: array
  *                 items:
- *                   $ref: '#/components/schemas/ProjectMemberDTO'
+ *                   $ref: '#/components/schemas/ProjectMemberDataDTO'
  *   /api/integration/linear/authorization:
  *     post:
  *       summary: Create a pending authorization for project integration.
