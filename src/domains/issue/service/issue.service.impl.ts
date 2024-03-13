@@ -1,55 +1,37 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
-import { type ProjectRepository } from '@domains/project/repository';
-import { type IssueDataDTO, type IssueDTO } from '@domains/issue/dto';
-import { db, NotFoundException } from '@utils';
-import { type ProjectDTO } from '@domains/project/dto';
-import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
-import { type UserDTO, type UserRepository } from '@domains/user';
+import { ConflictException, NotFoundException } from '@utils';
+import { type EventRepository } from '@domains/event/repository';
+import { type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
-    private readonly adapter: ProjectManagementToolAdapter,
     private readonly issueRepository: IssueRepository,
-    private readonly projectRepository: ProjectRepository,
-    private readonly userRepository: UserRepository
+    private readonly eventRepository: EventRepository
   ) {}
 
-  async integrateProjectIssues(projectId: string): Promise<IssueDTO[]> {
-    const project: ProjectDTO | null = await this.projectRepository.getById(projectId);
-    if (project === null) {
-      throw new NotFoundException('Project');
+  /**
+   * Pauses the timer for a specific issue.
+   * @param {string} issueId - The ID of the issue to pause the timer for.
+   * @returns {Promise<TimeTrackingDTO>} - A promise that resolves with the updated time tracking data.
+   * @throws {NotFoundException} - If the issue with the given ID is not found.
+   * @throws {ConflictException} - If the issue has never been played nor paused, or if the issue is already paused.
+   */
+  async pauseTimer(issueId: string): Promise<TimeTrackingDTO> {
+    const issue = await this.issueRepository.getById(issueId);
+    if (issue == null) throw new NotFoundException('issue');
+
+    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+
+    if (lastTimeTrackingEvent == null) {
+      throw new ConflictException('This issue has never been played nor paused');
     }
 
-    const allIssuesData: IssueDataDTO[] = await this.adapter.adaptAllProjectIssuesData(project.providerId);
-    const filteredIssuesData: IssueDataDTO[] = await Promise.all(
-      allIssuesData.filter(async (issueData) => {
-        return (await this.issueRepository.getByProviderId(issueData.providerIssueId)) === null;
-      })
-    );
-    const integratedIssues: IssueDTO[] = await db.$transaction(async () => {
-      const finalIssues: IssueDTO[] = [];
-      for (const issueData of filteredIssuesData) {
-        const author: UserDTO | null = issueData.authorEmail !== null ? await this.userRepository.getByEmail(issueData.authorEmail) : null;
-        const assignee: UserDTO | null = issueData.assigneeEmail !== null ? await this.userRepository.getByEmail(issueData.assigneeEmail) : null;
-        const newIssue: IssueDTO = await this.issueRepository.create({
-          providerIssueId: issueData.providerIssueId,
-          authorId: author != null ? author.id : null,
-          assigneeId: assignee != null ? assignee.id : null,
-          projectId,
-          stageId: issueData.stage,
-          name: issueData.name,
-          title: issueData.title,
-          description: issueData.description,
-          priority: issueData.priority,
-          storyPoints: issueData.storyPoints,
-        });
-        finalIssues.push(newIssue);
-      }
+    if (lastTimeTrackingEvent.endTime != null) {
+      throw new ConflictException('This issue is already paused');
+    }
 
-      return finalIssues;
-    });
-
-    return integratedIssues;
+    const updated = new UpdateTimeTracking({ id: lastTimeTrackingEvent.id, endTime: new Date() });
+    return await this.eventRepository.updateTimeTrackingEvent(updated);
   }
 }

@@ -1,5 +1,5 @@
-import { type IssueDTO } from '@domains/issue/dto';
+import { type TimeTrackingDTO } from '@domains/event/dto';
 
 export interface IssueService {
-  integrateProjectIssues: (projectId: string, apiKey: string) => Promise<IssueDTO[]>;
+  pauseTimer: (issueId: string) => Promise<TimeTrackingDTO>;
 }
