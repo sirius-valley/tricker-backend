@@ -12,6 +12,11 @@ provider:
     DATABASE_URL: ${env:DATABASE_URL}
     MAILGUN_API_KEY: ${env:MAILGUN_API_KEY}
     MAILGUN_DOMAIN: ${env:MAILGUN_DOMAIN}
+    LINEAR_SECRET: ${env:LINEAR_SECRET}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_USERPOOL_ID: ${env:COGNITO_USERPOOL_ID}
+    ENCRYPT_SECRET: ${env:ENCRYPT_SECRET}
+    
 functions:
   app:
     handler: dist/src/app.handler
