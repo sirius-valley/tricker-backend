@@ -10,6 +10,8 @@ provider:
   runtime: nodejs18.x
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
+    MAILGUN_API_KEY: ${env:MAILGUN_API_KEY}
+    MAILGUN_DOMAIN: ${env:MAILGUN_DOMAIN}
 functions:
   app:
     handler: dist/src/app.handler

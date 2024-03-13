@@ -42,3 +42,5 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DB_USER: ${{ secrets.DB_USER}}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MAILGUN_DOMAIN: ${{secrets.MAILGUN_DOMAIN}}
+          MAILGUN_API_KEY: ${{secrets.MAILGUN_API_KEY}}
