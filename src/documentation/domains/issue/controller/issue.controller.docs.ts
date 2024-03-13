@@ -69,16 +69,18 @@
  *             application/json:
  *               schema:
  *                 $ref: "#/components/responses/ConflictException"
- *   /api/{issueId}/worked-time:
+ *   /api/issue/{issueId}/worked-time:
  *     get:
  *       summary: Retrieve worked seconds for a specific issue.
  *       tags:
  *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
  *       parameters:
  *         - in: path
  *           name: issueId
  *           schema:
- *             $ref: '#/components/schemas/IssueWorkedTimeParamsDTO'
+ *             $ref: '#/components/parameters/IssueWorkedTimeParamsDTO'
  *           required: true
  *           description: The ID of the issue to retrieve worked seconds for
  *       responses:
@@ -90,6 +92,8 @@
  *                 type: number
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':

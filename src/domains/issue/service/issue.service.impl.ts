@@ -12,6 +12,16 @@ export class IssueServiceImpl implements IssueService {
     private readonly eventRepository: EventRepository
   ) {}
 
+  /**
+   * Retrieves the total worked time in seconds for a given issue.
+   * This method calculates the total time tracked automatically and manually
+   * for the specified issue.
+   *
+   * @param {string} issueId - The ID of the issue to retrieve worked time for.
+   * @returns {Promise<number>} A promise that resolves to the total worked time in seconds.
+   * @throws {NotFoundException} If the specified issue cannot be found.
+   * @throws {ConflictException} If the calculated worked time is negative.
+   */
   async getIssueWorkedSeconds(issueId: string): Promise<number> {
     const issue: IssueDTO | null = await this.issueRepository.getById(issueId);
     if (issue === null) {
