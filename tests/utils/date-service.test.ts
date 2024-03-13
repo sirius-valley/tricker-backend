@@ -1,4 +1,5 @@
 import { getTimeTrackedInSeconds } from '@utils/date-service';
+import { ConflictException } from '@utils';
 
 describe('date-service tests', () => {
   beforeEach(() => {
@@ -8,37 +9,39 @@ describe('date-service tests', () => {
   describe('getIssueWorkedSeconds method', () => {
     it('should return a positive value if no end time provided', async (): Promise<void> => {
       // given
-      const startTime: Date = new Date('2024-03-12T09:00:00Z');
-      const zeroSeconds: number = 0;
+      const startDate: Date = new Date('2024-03-12T09:00:00Z');
       // when
-      const receivedSeconds: number = getTimeTrackedInSeconds(startTime, null);
+      const receivedSeconds: number = getTimeTrackedInSeconds({ startDate, endDate: null });
       // then
       expect.assertions(1);
-      expect(receivedSeconds).toBeGreaterThan(zeroSeconds);
+      expect(receivedSeconds).toBeGreaterThan(0);
     });
 
     it('should return a positive value under normal conditions', async (): Promise<void> => {
       // given
-      const startTime: Date = new Date('2024-03-12T09:00:00Z');
-      const endTime: Date = new Date('2024-03-12T10:00:00Z');
+      const startDate: Date = new Date('2024-03-12T09:00:00Z');
+      const endDate: Date = new Date('2024-03-12T10:00:00Z');
       const expectedSeconds: number = 3600;
       // when
-      const receivedSeconds: number = getTimeTrackedInSeconds(startTime, endTime);
+      const receivedSeconds: number = getTimeTrackedInSeconds({ startDate, endDate });
       // then
       expect.assertions(1);
       expect(receivedSeconds).toEqual(expectedSeconds);
     });
 
-    it('should return a negative value if tracking time record is not valid', async (): Promise<void> => {
+    it('should throw ConflictException when worked time is not a positive value', async (): Promise<void> => {
       // given
-      const endTime: Date = new Date('2024-03-12T09:00:00Z');
-      const startTime: Date = new Date('2024-03-12T10:00:00Z');
-      const expectedSeconds: number = -3600;
+      const endDate: Date = new Date('2024-03-12T09:00:00Z');
+      const startDate: Date = new Date('2024-03-12T10:00:00Z');
+      let result;
       // when
-      const receivedSeconds: number = getTimeTrackedInSeconds(startTime, endTime);
+      try {
+        result = getTimeTrackedInSeconds({ startDate, endDate });
+      } catch (error) {
+        result = error;
+      }
       // then
-      expect.assertions(1);
-      expect(receivedSeconds).toEqual(expectedSeconds);
+      expect(result).toBeInstanceOf(ConflictException);
     });
   });
 });

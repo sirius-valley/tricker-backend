@@ -89,7 +89,16 @@ export class IssueInput {
   }
 }
 
+/**
+ * Data Transfer Object (DTO) for parameters send by frontend related to worked time on an issue.
+ * This class defines validation rules for issueId property.
+ */
 export class IssueWorkedTimeParamsDTO {
+  /**
+   * The ID of the issue.
+   * Must be a non-empty string formatted as a UUID.
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
   @IsString()
   @IsNotEmpty()
   @IsUUID()
@@ -123,4 +132,16 @@ export class IssuePauseParams {
   @IsString()
   @IsDefined()
   readonly issueId!: string;
+}
+
+/**
+ * Data Transfer Object (DTO) for representing worked time.
+ * This object is send to frontend when worked time of an issue is requested.
+ */
+export class WorkedTimeDTO {
+  workedTime: number;
+
+  constructor(workedTime: WorkedTimeDTO) {
+    this.workedTime = workedTime.workedTime;
+  }
 }

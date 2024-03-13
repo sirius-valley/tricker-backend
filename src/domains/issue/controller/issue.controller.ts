@@ -4,7 +4,7 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams } from '@domains/issue/dto';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO } from '@domains/issue/dto';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -21,10 +21,10 @@ issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), 
   return res.status(HttpStatus.OK).json(event);
 });
 
-issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<void> => {
+issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<Response<number>> => {
   const { issueId } = req.params;
 
-  const workedTime: number = await issueService.getIssueWorkedSeconds(issueId);
+  const workedTime: WorkedTimeDTO = await issueService.getIssueWorkedSeconds(issueId);
 
-  res.status(HttpStatus.OK).json(workedTime);
+  return res.status(HttpStatus.OK).json(workedTime);
 });
