@@ -2,7 +2,7 @@ import { userRouter } from '@domains/user/controller';
 import { withAwsAuth } from '@utils/auth';
 import { Router } from 'express';
 import { integrationRouter } from '@domains/integration/controller';
-import { issueRouter } from '@domains/issue/controller';
+import { issueRouter } from '@domains/issue/controller/issue.controller';
 
 export const router = Router();
 

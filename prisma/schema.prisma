@@ -134,10 +134,10 @@ model WebhookSource {
 }
 
 model TimeTracking {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  issueId   String   @db.Uuid
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueId   String    @db.Uuid
   startTime DateTime
-  endTime   DateTime
+  endTime   DateTime?
 
   issue Issue @relation(fields: [issueId], references: [id])
 }

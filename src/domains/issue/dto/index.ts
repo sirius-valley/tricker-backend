@@ -1,5 +1,5 @@
 import { type EventInput } from '@domains/event/dto';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class IssueDTO {
   id: string;
@@ -111,3 +111,16 @@ const PriorityType: {
 };
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
+
+/**
+ * HTTP URL parameters for the endpoint that pauses the timer of an issue.
+ */
+export class IssuePauseParams {
+  /**
+   * The ID of the issue to pause the timer for.
+   * @type {string}
+   */
+  @IsString()
+  @IsDefined()
+  readonly issueId!: string;
+}

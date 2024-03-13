@@ -151,9 +151,41 @@ export class TimeTrackingDTO {
 }
 
 /**
- * Class representing a Data Transfer Object (DTO) for manual time modifications.
- * This class contains the necessary information to represent a manual time modification for an issue.
+ * Data transfer object representing an update to a time tracking event.
  */
+export class UpdateTimeTracking {
+  /**
+   * The ID of the time tracking event to be updated.
+   * @type {string}
+   */
+  id: string;
+
+  /**
+   * The updated start time of the event, if provided.
+   * @type {Date | undefined}
+   */
+  startTime?: Date;
+
+  /**
+   * The updated end time of the event, if provided.
+   * @type {Date | undefined}
+   */
+  endTime?: Date;
+
+  /**
+   * Creates an instance of UpdateTimeTracking.
+   * @param {Object} input - The data to initialize the UpdateTimeTracking instance.
+   * @param {string} input.id - The ID of the time tracking event to be updated.
+   * @param {Date} [input.startTime] - The updated start time of the event, if provided.
+   * @param {Date} [input.endTime] - The updated end time of the event, if provided.
+   */
+  constructor(input: UpdateTimeTracking) {
+    this.id = input.id;
+    this.startTime = input.startTime;
+    this.endTime = input.endTime;
+  }
+}
+
 export class ManualTimeModificationDTO {
   id: string;
   userEmitterId: string;
