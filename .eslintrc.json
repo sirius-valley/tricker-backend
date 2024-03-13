@@ -19,7 +19,8 @@
       {
         "allowStaticOnly": true
       }
-    ]
+    ],
+    "@typescript-eslint/return-await": "off"
   },
   "overrides": [
     {

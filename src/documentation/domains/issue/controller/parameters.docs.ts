@@ -4,7 +4,7 @@
  *   parameters:
  *     IssuePauseParams:
  *       in: path
- *       name: id
+ *       name: issueId
  *       required: true
  *       schema:
  *         type: string

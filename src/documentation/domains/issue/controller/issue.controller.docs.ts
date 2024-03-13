@@ -1,7 +1,7 @@
 /**
  * @swagger
  * paths:
- *   /api/issue/{id}/pause:
+ *   /api/issue/{issueId}/pause:
  *     get:
  *       summary: Pause Timer for an Issue
  *       tags:
