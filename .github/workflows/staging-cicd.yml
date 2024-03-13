@@ -45,6 +45,6 @@ jobs:
           MAILGUN_DOMAIN: ${{secrets.MAILGUN_DOMAIN}}
           MAILGUN_API_KEY: ${{secrets.MAILGUN_API_KEY}}
           LINEAR_SECRET: ${{secrets.LINEAR_SECRET}}
-          COGNITO_CLIENT_ID: ${{secrets.COGNITO_CLIENT_ID}
-          COGNITO_USERPOOL_ID: ${{secrets.COGNITO_USERPOOL_ID}
-          ENCRYPT_SECRET: ${{secrets.ENCRYPT_SECRET}
+          COGNITO_CLIENT_ID: ${{secrets.COGNITO_CLIENT_ID}}
+          COGNITO_USERPOOL_ID: ${{secrets.COGNITO_USERPOOL_ID}}
+          ENCRYPT_SECRET: ${{secrets.ENCRYPT_SECRET}}
