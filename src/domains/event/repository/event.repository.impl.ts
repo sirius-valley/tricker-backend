@@ -1,6 +1,6 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
-import type { PrismaClient } from '@prisma/client';
+import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
+import type { ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
 
@@ -82,5 +82,25 @@ export class EventRepositoryImpl implements EventRepository {
       ...event,
       eventRegisteredAt: event.eventRegisteredAt ?? undefined,
     });
+  }
+
+  async getIssueManualTimeModification(issueId: string): Promise<ManualTimeModificationDTO[]> {
+    const modifications: ManualTimeModification[] = await this.db.manualTimeModification.findMany({
+      where: {
+        issueId,
+      },
+    });
+
+    return modifications.map((modification: ManualTimeModification) => new ManualTimeModificationDTO(modification));
+  }
+
+  async getIssueTimeTrackingEvents(issueId: string): Promise<TimeTrackingDTO[]> {
+    const timeTrackingEvents: TimeTracking[] = await this.db.timeTracking.findMany({
+      where: {
+        issueId,
+      },
+    });
+
+    return timeTrackingEvents.map((trackingEvent: TimeTracking) => new TimeTrackingDTO(trackingEvent));
   }
 }

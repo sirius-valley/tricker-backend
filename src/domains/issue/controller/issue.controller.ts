@@ -1,10 +1,11 @@
 import { type Request, type Response, Router } from 'express';
-import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { db, validateRequest } from '@utils';
-import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import HttpStatus from 'http-status';
+import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
+import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssuePauseParams } from '@domains/issue/dto';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO } from '@domains/issue/dto';
+require('express-async-errors');
 
 export const issueRouter = Router();
 
@@ -18,4 +19,12 @@ issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), 
   const event = await issueService.pauseTimer(issueId);
 
   return res.status(HttpStatus.OK).json(event);
+});
+
+issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<Response<number>> => {
+  const { issueId } = req.params;
+
+  const workedTime: WorkedTimeDTO = await issueService.getIssueWorkedSeconds(issueId);
+
+  return res.status(HttpStatus.OK).json(workedTime);
 });

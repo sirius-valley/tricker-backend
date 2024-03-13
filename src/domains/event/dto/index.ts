@@ -185,3 +185,61 @@ export class UpdateTimeTracking {
     this.endTime = input.endTime;
   }
 }
+
+/**
+ * Data Transfer Object (DTO) for representing manual time modifications.
+ */
+export class ManualTimeModificationDTO {
+  /**
+   * The unique identifier for the manual time modification.
+   */
+  id: string;
+  /**
+   * The ID of the user who initiated the time modification.
+   */
+  userEmitterId: string;
+  /**
+   * The ID of the issue associated with the time modification.
+   */
+  issueId: string;
+  /**
+   * The amount of time modified, represented in seconds.
+   */
+  timeAmount: number;
+  /**
+   * The date and time when the modification was made.
+   */
+  modificationDate: Date;
+  /**
+   * The reason provided for the manual time modification.
+   */
+  reason: string;
+
+  /**
+   * Constructs a new instance of ManualTimeModificationDTO.
+   * @param {ManualTimeModificationDTO} timeModification The data transfer object containing manual time modification information.
+   */
+  constructor(timeModification: ManualTimeModificationDTO) {
+    this.id = timeModification.id;
+    this.userEmitterId = timeModification.userEmitterId;
+    this.issueId = timeModification.issueId;
+    this.timeAmount = timeModification.timeAmount;
+    this.modificationDate = timeModification.modificationDate;
+    this.reason = timeModification.reason;
+  }
+}
+
+/**
+ * Interface representing time tracking dates.
+ * This interface defines start and end dates for time tracking.
+ */
+export interface TimeTrackingDates {
+  /**
+   * The start date for time tracking.
+   */
+  startDate: Date;
+  /**
+   * The end date for time tracking, can be null if tracking is ongoing.
+   */
+  endDate: Date | null;
+}
