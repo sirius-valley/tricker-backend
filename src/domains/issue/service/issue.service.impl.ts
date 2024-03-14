@@ -3,7 +3,7 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, NotFoundException } from '@utils';
-import { type IssueDTO, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type IssueDTO, type IssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 
 export class IssueServiceImpl implements IssueService {
@@ -63,5 +63,9 @@ export class IssueServiceImpl implements IssueService {
     workedTime = manualTimeModifications.reduce((result: number, time: ManualTimeModificationDTO) => result + time.timeAmount, workedTime);
 
     return { workedTime };
+  }
+
+  async getIssuesFilteredAndPaginated(filters: IssueFilterParameters): Promise<IssueDTO[]> {
+    return [];
   }
 }

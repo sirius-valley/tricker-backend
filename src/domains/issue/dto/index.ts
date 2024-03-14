@@ -1,5 +1,5 @@
 import { type EventInput } from '@domains/event/dto';
-import { IsDefined, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class IssueDTO {
   id: string;
@@ -166,10 +166,72 @@ export class UserProjectParamsDTO {
   @IsUUID()
   projectId!: string;
 }
-/*
-export class AlternativeIssueFiltersDTO {
-  stageIds: string[];
-  priorities: string[];
-  assigneeIds: string[];
 
-} */
+/**
+ * Data Transfer Object (DTO) for optional issue filters.
+ * This class defines optional filters for issues request.
+ */
+export class OptionalIssueFiltersDTO {
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  @IsOptional()
+  @IsArray()
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  @IsOptional()
+  @IsArray()
+  priorities?: Priority[];
+
+  /**
+   * An optional array of assignee IDs to filter issues by assignee.
+   */
+  @IsOptional()
+  @IsArray()
+  assigneeIds?: string[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  @IsOptional()
+  @IsBoolean()
+  isOutOfEstimation?: boolean;
+}
+
+/**
+ * Interface used by issue service to retrieve and filter issues.
+ */
+export interface IssueFilterParameters {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  userId: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  projectId?: string;
+
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  priorities?: Priority[];
+
+  /**
+   * An optional array of assignee IDs to filter issues by assignee.
+   */
+  assigneeIds?: string[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  isOutOfEstimation?: boolean;
+}
