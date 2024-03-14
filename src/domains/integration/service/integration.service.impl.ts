@@ -31,7 +31,7 @@ import {
   type ProjectMemberDataDTO,
   type ProjectPreIntegratedDTO,
   type ProjectsPreIntegratedInputDTO,
-  type StageIntegrationInputDTO,
+  type StageIntegrationInput,
   UserRole,
 } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
@@ -229,19 +229,19 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Integrates project stages using the provided input data,
    * creates or retrieves stages, and associates them with the project.
-   * @param {StageIntegrationInputDTO} input - Input data including project stages and project ID.
+   * @param {StageIntegrationInput} input - Input data including project stages and project ID.
    * @returns {Promise<void>} A promise that resolves once the integration is complete.
    * @throws {NotFoundException} If a stage cannot be found.
    */
-  async integrateStages(input: StageIntegrationInputDTO): Promise<void> {
+  async integrateStages(input: StageIntegrationInput): Promise<void> {
     const stageRepository: StageRepositoryImpl = new StageRepositoryImpl(input.db);
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(input.db);
-    for (const name of input.stages) {
-      let stage: StageDTO | null = await stageRepository.getByName(name);
+    for (const stageData of input.stages) {
+      let stage: StageDTO | null = await stageRepository.getByName(stageData.name);
       if (stage === null) {
-        stage = await stageRepository.create(name);
+        stage = await stageRepository.create(stageData.name);
       }
-      await projectStageRepository.create(input.projectId, stage.id);
+      await projectStageRepository.create({ stageId: stage.id, type: stageData.type, projectId: input.projectId });
     }
   }
 

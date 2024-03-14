@@ -213,6 +213,7 @@ model ProjectStage {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String    @db.Uuid
   stageId   String    @db.Uuid
+  type      StageType
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
@@ -290,4 +291,13 @@ model MemberEmail {
   pendingProjectAuthorization PendingProjectAuthorization @relation(fields: [pendingProjectAuthorizationId], references: [id], onDelete: Cascade)
 
   @@unique([pendingProjectAuthorizationId, email])
+}
+
+enum StageType {
+  BACKLOG
+  UNSTARTED
+  STARTED
+  COMPLETED
+  CANCELED
+  OTHER
 }

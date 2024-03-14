@@ -6,17 +6,18 @@ import { Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
 import type { EventInput } from '@domains/event/dto';
+import { type StageType } from '@domains/stage/dto';
 
 export class ProjectDataDTO {
   projectId: string;
   members: ProjectMemberDataDTO[];
   projectName: string;
   image: string | null;
-  stages: string[];
+  stages: StageData[];
   labels: string[];
   issues: IssueDataDTO[];
 
-  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: string[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
+  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: StageData[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;
@@ -45,9 +46,12 @@ export interface MembersIntegrationInputDTO {
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
-export interface StageIntegrationInputDTO {
+/**
+ * Interface representing input data for stage integration.
+ */
+export interface StageIntegrationInput {
   projectId: string;
-  stages: string[];
+  stages: StageData[];
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
@@ -243,4 +247,12 @@ export class MailToken {
  * */
 export interface MailPayload {
   adminId: string;
+}
+
+/**
+ * Represents the stage adapted data from the provider
+ * */
+export interface StageData {
+  name: string;
+  type: StageType;
 }
