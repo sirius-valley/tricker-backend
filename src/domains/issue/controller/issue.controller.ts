@@ -5,13 +5,17 @@ import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
 import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, OptionalIssueFiltersDTO } from '@domains/issue/dto';
+import { type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 require('express-async-errors');
 
 export const issueRouter = Router();
 
 const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
+const userRepo: UserRepository = new UserRepositoryImpl(db);
+const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
 
 issueRouter.get('/user/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(OptionalIssueFiltersDTO, 'query'), async (req: Request<UserProjectParamsDTO, any, any, OptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;

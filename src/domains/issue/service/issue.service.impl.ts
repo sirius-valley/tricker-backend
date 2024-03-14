@@ -5,11 +5,16 @@ import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTrackin
 import { ConflictException, NotFoundException } from '@utils';
 import { type IssueDTO, type IssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
+import { type UserDTO, type UserRepository } from '@domains/user';
+import { type ProjectRepository } from '@domains/project/repository';
+import { type ProjectDTO } from '@domains/project/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
     private readonly issueRepository: IssueRepository,
-    private readonly eventRepository: EventRepository
+    private readonly eventRepository: EventRepository,
+    private readonly userRepository: UserRepository,
+    private readonly projectRepository: ProjectRepository
   ) {}
 
   /**
@@ -66,6 +71,17 @@ export class IssueServiceImpl implements IssueService {
   }
 
   async getIssuesFilteredAndPaginated(filters: IssueFilterParameters): Promise<IssueDTO[]> {
+    const user: UserDTO | null = await this.userRepository.getById(filters.userId);
+    if (user === null) {
+      throw new NotFoundException('User');
+    }
+    if (filters.projectId !== undefined) {
+      const project: ProjectDTO | null = await this.projectRepository.getById(filters.projectId);
+      if (project === null) {
+        throw new NotFoundException('Project');
+      }
+    }
+
     return [];
   }
 }

@@ -177,6 +177,7 @@ export class OptionalIssueFiltersDTO {
    */
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   stageIds?: string[];
 
   /**
@@ -191,6 +192,7 @@ export class OptionalIssueFiltersDTO {
    */
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   assigneeIds?: string[];
 
   /**
@@ -234,4 +236,34 @@ export interface IssueFilterParameters {
    * An optional boolean which defines if issue have been defined or not.
    */
   isOutOfEstimation?: boolean;
+
+  /**
+   * An optional array of label IDs to filter issues by labels.
+   */
+  labelIds?: string[];
+}
+
+export class IssueViewDTO {
+  id: string;
+  assigneeId: string | null;
+  assigneeProfileUrl: string | null;
+  stageId: string | null;
+  name: string;
+  title: string;
+  priority: Priority;
+  storyPoints: number | null;
+  labelIds: string[];
+
+  constructor(issueView: IssueViewDTO) {
+    this.id = issueView.id;
+    this.assigneeId = issueView.assigneeId;
+    this.assigneeId = issueView.assigneeId;
+    this.assigneeProfileUrl = issueView.assigneeProfileUrl;
+    this.stageId = issueView.stageId;
+    this.name = issueView.name;
+    this.title = issueView.title;
+    this.priority = issueView.priority;
+    this.storyPoints = issueView.storyPoints;
+    this.labelIds = issueView.labelIds;
+  }
 }
