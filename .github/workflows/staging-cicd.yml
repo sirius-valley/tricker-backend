@@ -49,3 +49,5 @@ jobs:
           COGNITO_USERPOOL_ID: ${{secrets.COGNITO_USERPOOL_ID}}
           ENCRYPT_SECRET: ${{secrets.ENCRYPT_SECRET}}
           AUTHORIZATION_SECRET: ${{secrets.AUTHORIZATION_SECRET}}
+          BACKEND_URL: ${env:BACKEND_URL}
+          FRONTEND_URL: ${env:FRONTEND_URL}
