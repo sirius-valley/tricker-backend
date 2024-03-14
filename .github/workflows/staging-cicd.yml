@@ -27,7 +27,7 @@ jobs:
 
       - name: Build server
         run: npm run build
-        
+
         # TODO USE OIDC PROVIDER
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -48,3 +48,4 @@ jobs:
           COGNITO_CLIENT_ID: ${{secrets.COGNITO_CLIENT_ID}}
           COGNITO_USERPOOL_ID: ${{secrets.COGNITO_USERPOOL_ID}}
           ENCRYPT_SECRET: ${{secrets.ENCRYPT_SECRET}}
+          AUTHORIZATION_SECRET: ${{secrets.AUTHORIZATION_SECRET}}
