@@ -16,7 +16,8 @@ provider:
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
     COGNITO_USERPOOL_ID: ${env:COGNITO_USERPOOL_ID}
     ENCRYPT_SECRET: ${env:ENCRYPT_SECRET}
-    
+    AUTHORIZATION_SECRET: ${env:AUTHORIZATION_SECRET}
+
 functions:
   app:
     handler: dist/src/app.handler
