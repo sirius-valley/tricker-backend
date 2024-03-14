@@ -163,38 +163,6 @@
  *         - projectId
  *         - emitterId
  *         - db
- *     StageIntegrationInputDTO:
- *       type: object
- *       properties:
- *         projectId:
- *           type: string
- *         stages:
- *           type: array
- *           items:
- *             type: string
- *         db:
- *           type: object
- *           description: Prisma Client
- *       required:
- *         - projectId
- *         - stages
- *         - db
- *     LabelIntegrationInputDTO:
- *       type: object
- *       properties:
- *         projectId:
- *           type: string
- *         labels:
- *           type: array
- *           items:
- *             type: string
- *         db:
- *           type: object
- *           description: Prisma Client
- *       required:
- *         - projectId
- *         - labels
- *         - db
  *     ProjectIdIntegrationInputDTO:
  *       type: object
  *       properties:

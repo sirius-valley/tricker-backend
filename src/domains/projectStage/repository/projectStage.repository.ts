@@ -1,5 +1,5 @@
-import { type ProjectStageDTO } from '@domains/projectStage/dto';
+import { type ProjectStageCreationInput, type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export interface ProjectStageRepository {
-  create: (projectId: string, stageId: string) => Promise<ProjectStageDTO>;
+  create: (input: ProjectStageCreationInput) => Promise<ProjectStageDTO>;
 }
