@@ -7,3 +7,5 @@ export class StageDTO {
     this.name = stage.name;
   }
 }
+
+export type StageType = 'BACKLOG' | 'UNSTARTED' | 'STARTED' | 'COMPLETED' | 'CANCELED' | 'OTHER';

@@ -5,10 +5,11 @@ import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
-import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type UserDataDTO } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
+import { type StageType } from '@domains/stage/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
@@ -68,7 +69,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
     const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(input.providerProjectId, key);
-    const stages: string[] = await this.getAndAdaptStages(team);
+    const stages: StageData[] = await this.getAndAdaptStages(team);
     const labels: string[] = await this.getAndAdaptLabels(team);
     const org: Organization = await this.dataRetriever.getOrganization();
     const issues = await this.adaptAllProjectIssuesData(input.providerProjectId);
@@ -143,8 +144,31 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * @returns {Promise<string[]>} A promise resolving with project stage names.
    * @param project
    */
-  private async getAndAdaptStages(project: Team): Promise<string[]> {
-    return (await this.dataRetriever.getStages(project)).map((stage) => stage.name);
+  private async getAndAdaptStages(project: Team): Promise<StageData[]> {
+    return (await this.dataRetriever.getStages(project)).map((stage) => {
+      let type: StageType;
+      switch (stage.type) {
+        case 'backlog':
+          type = 'BACKLOG';
+          break;
+        case 'unstarted':
+          type = 'UNSTARTED';
+          break;
+        case 'started':
+          type = 'STARTED';
+          break;
+        case 'completed':
+          type = 'COMPLETED';
+          break;
+        case 'canceled':
+          type = 'CANCELED';
+          break;
+        default:
+          type = 'OTHER';
+      }
+
+      return { type, name: stage.name };
+    });
   }
 
   /**
