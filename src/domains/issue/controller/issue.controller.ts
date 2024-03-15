@@ -19,9 +19,9 @@ const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, us
 
 issueRouter.get('/user/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(OptionalIssueFiltersDTO, 'query'), async (req: Request<UserProjectParamsDTO, any, any, OptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, assigneeIds, isOutOfEstimation } = req.query;
+  const { stageIds, priorities, assigneeIds, isOutOfEstimation, cursor } = req.query;
 
-  const issues = await issueService.getIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, assigneeIds, isOutOfEstimation });
+  const issues = await issueService.getIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, assigneeIds, isOutOfEstimation, cursor });
 
   return res.status(HttpStatus.OK).json(issues);
 });

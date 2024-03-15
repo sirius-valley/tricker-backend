@@ -1,5 +1,5 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type IssueInput, IssueDTO, type IssueFilterParameters, type IssueViewDTO } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO, type IssueFilterParameters, IssueViewDTO } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
@@ -46,39 +46,46 @@ export class IssueRepositoryImpl implements IssueRepository {
   }
 
   async getWithFilters(filters: IssueFilterParameters): Promise<IssueViewDTO[]> {
-    /* const issues = await this.db.issue.findMany({
+    const issues = await this.db.issue.findMany({
+      cursor: filters.cursor !== undefined ? { id: filters.cursor } : undefined,
+      take: 20,
       where: {
         projectId: filters.projectId,
         assigneeId: { in: filters.assigneeIds },
         stageId: { in: filters.stageIds },
         storyPoints: { not: null },
-        priority: { in: filters.priorities }
+        priority: { in: filters.priorities },
       },
       include: {
-        assignee: {
-          where: {
-            id: { in: filters.assigneeIds }
-          }
+        assignee: true,
+        labels: true,
+        stage: {
+          include: {
+            projectStages: {
+              where: {
+                projectId: filters.projectId,
+              },
+            },
+          },
         },
-        labels: {
-          where: {
-            id: { in: filters.labelIds}
-          }
-        }
-      }
-    }) */
+      },
+    });
 
-    return []; /* issues.map(issue => {
+    return issues.map((issue) => {
       return new IssueViewDTO({
         id: issue.id,
-        assigneeId: issue.assigneeId,
-        assigneeProfileUrl: issue.assignee !== null ? issue.assignee.profileImage: null,
+        assigneeName: issue.assignee != null ? issue.assignee.name : null,
+        assigneeProfileUrl: issue.assignee !== null ? issue.assignee.profileImage : null,
         stageId: issue.stageId,
         name: issue.name,
         title: issue.title,
         priority: issue.priority,
-        storyPoints: issue.storyPoints
-      })
-    }) */
+        storyPoints: issue.storyPoints,
+        labelIds: issue.labels.map((label) => label.id),
+        // type: issue.stage !== null?
+        //    issue.stage.projectStages.find(projectStage => projectStage.projectId === filters.projectId)?.type
+        //    : null,
+      });
+    });
   }
 }

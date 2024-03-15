@@ -201,6 +201,13 @@ export class OptionalIssueFiltersDTO {
   @IsOptional()
   @IsBoolean()
   isOutOfEstimation?: boolean;
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  @IsOptional()
+  @IsUUID()
+  cursor?: string;
 }
 
 /**
@@ -241,11 +248,16 @@ export interface IssueFilterParameters {
    * An optional array of label IDs to filter issues by labels.
    */
   labelIds?: string[];
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  cursor?: string;
 }
 
 export class IssueViewDTO {
   id: string;
-  assigneeId: string | null;
+  assigneeName: string | null;
   assigneeProfileUrl: string | null;
   stageId: string | null;
   name: string;
@@ -256,8 +268,7 @@ export class IssueViewDTO {
 
   constructor(issueView: IssueViewDTO) {
     this.id = issueView.id;
-    this.assigneeId = issueView.assigneeId;
-    this.assigneeId = issueView.assigneeId;
+    this.assigneeName = issueView.assigneeName;
     this.assigneeProfileUrl = issueView.assigneeProfileUrl;
     this.stageId = issueView.stageId;
     this.name = issueView.name;

@@ -65,5 +65,73 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
- *           components:
+ * /api/issues/user/{userId}/project/{projectId}:
+ *   get:
+ *     summary: Retrieve filtered and paginated issues for a user in a project. Used for general view of the issues.
+ *     tags:
+ *       - "Issues"
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: true
+ *         description: The ID of the user associated with the issues to retrieve.
+ *       - in: path
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: true
+ *         description: The ID of the project associated with the issues to retrieve.
+ *       - in: query
+ *         name: stageIds
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         description: An optional array of stage IDs to filter issues by stage.
+ *       - in: query
+ *         name: priorities
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Priority'
+ *         description: An optional array of priorities to filter issues by priority level.
+ *       - in: query
+ *         name: assigneeIds
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         description: An optional array of assignee IDs to filter issues by assignee.
+ *       - in: query
+ *         name: isOutOfEstimation
+ *         schema:
+ *           type: boolean
+ *         description: An optional boolean which defines if issue have been defined or not.
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: An optional cursor to perform pagination.
+ *     responses:
+ *       '200':
+ *         description: OK. Retrieved filtered and paginated issues successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/IssueViewDTO'
+ *       '400':
+ *         $ref: '#/components/responses/ValidationException'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedException'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundException'
+ *       '500':
+ *         $ref: '#/components/responses/InternalServerErrorException'
  */
