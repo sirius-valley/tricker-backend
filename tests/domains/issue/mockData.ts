@@ -1,5 +1,8 @@
-import { type IssueDTO } from '@domains/issue/dto';
+import { type IssueDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
 import { type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type UserDTO } from '@domains/user';
+import { type ProjectDTO } from '@domains/project/dto';
+import { StageType } from '@prisma/client';
 
 export const mockIssueDTO: IssueDTO = {
   assigneeId: 'user123',
@@ -54,4 +57,56 @@ export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
   timeAmount: -7300,
   modificationDate: new Date(),
   reason: 'modification for tests only',
+};
+
+export const mockUserDTO: UserDTO = {
+  id: 'user123',
+  cognitoId: 'cognito145',
+  email: 'johnDoe@mail.com',
+  name: 'John Doe',
+  profileImage: null,
+  projectsRoleAssigned: [],
+  createdAt: new Date('2024-03-12T10:00:00Z'),
+  deletedAt: null,
+  emittedUserProjectRole: [],
+};
+
+export const mockProjectDTO: ProjectDTO = {
+  id: 'Project777',
+  name: 'Tricker',
+  providerId: 'IdLinear1',
+  organizationId: 'IdSirius1',
+  image: null,
+  createdAt: new Date('2024-03-12T09:00:00Z'),
+  deletedAt: null,
+};
+
+export const mockIssueViewDTO: IssueViewDTO = {
+  id: 'issue789',
+  assignee: {
+    id: 'user123',
+    name: 'John Doe',
+    profileUrl: null,
+  },
+  stage: {
+    id: 'stage456',
+    name: 'TODO',
+    type: StageType.UNSTARTED,
+  },
+  name: 'TRI-001',
+  title: 'Fake issue',
+  priority: 'MEDIUM_PRIORITY',
+  storyPoints: 1,
+  labels: [],
+};
+
+export const mockIssueFilterParameters = {
+  userId: 'user123',
+  projectId: 'Project777',
+  stageIds: ['stage456'],
+  priorities: ['MEDIUM_PRIORITY' as Priority],
+  assigneeIds: ['user123'],
+  isOutOfEstimation: false,
+  labelIds: undefined,
+  cursor: undefined,
 };

@@ -1,5 +1,8 @@
 import { type EventInput } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { type LabelDTO } from '@domains/label/dto';
+import { type StageExtendedDTO } from '@domains/stage/dto';
+import { type UserIssueDTO } from '@domains/user';
 
 export class IssueDTO {
   id: string;
@@ -257,24 +260,22 @@ export interface IssueFilterParameters {
 
 export class IssueViewDTO {
   id: string;
-  assigneeName: string | null;
-  assigneeProfileUrl: string | null;
-  stageId: string | null;
+  assignee: UserIssueDTO | null;
+  stage: StageExtendedDTO | null;
   name: string;
   title: string;
   priority: Priority;
   storyPoints: number | null;
-  labelIds: string[];
+  labels: LabelDTO[];
 
   constructor(issueView: IssueViewDTO) {
     this.id = issueView.id;
-    this.assigneeName = issueView.assigneeName;
-    this.assigneeProfileUrl = issueView.assigneeProfileUrl;
-    this.stageId = issueView.stageId;
+    this.assignee = issueView.assignee;
+    this.stage = issueView.stage;
     this.name = issueView.name;
     this.title = issueView.title;
     this.priority = issueView.priority;
     this.storyPoints = issueView.storyPoints;
-    this.labelIds = issueView.labelIds;
+    this.labels = issueView.labels;
   }
 }

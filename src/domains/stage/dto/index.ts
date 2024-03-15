@@ -8,6 +8,18 @@ export class StageDTO {
   }
 }
 
+export class StageExtendedDTO {
+  id: string;
+  name: string;
+  type: StageType;
+
+  constructor(stage: StageExtendedDTO) {
+    this.id = stage.id;
+    this.name = stage.name;
+    this.type = stage.type;
+  }
+}
+
 const StageTypeEnum: {
   BACKLOG: 'BACKLOG';
   UNSTARTED: 'UNSTARTED';

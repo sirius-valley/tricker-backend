@@ -3,7 +3,7 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, NotFoundException } from '@utils';
-import { type IssueDTO, type IssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type IssueDTO, type IssueFilterParameters, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -70,7 +70,13 @@ export class IssueServiceImpl implements IssueService {
     return { workedTime };
   }
 
-  async getIssuesFilteredAndPaginated(filters: IssueFilterParameters): Promise<IssueDTO[]> {
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   * @throws {NotFoundException} If the user or project is not found.
+   */
+  async getIssuesFilteredAndPaginated(filters: IssueFilterParameters): Promise<IssueViewDTO[]> {
     const user: UserDTO | null = await this.userRepository.getById(filters.userId);
     if (user === null) {
       throw new NotFoundException('User');
@@ -82,6 +88,6 @@ export class IssueServiceImpl implements IssueService {
       }
     }
 
-    return [];
+    return this.issueRepository.getWithFilters(filters);
   }
 }

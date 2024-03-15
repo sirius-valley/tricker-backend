@@ -4,7 +4,7 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, OptionalIssueFiltersDTO } from '@domains/issue/dto';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, OptionalIssueFiltersDTO, type IssueViewDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 require('express-async-errors');
@@ -21,7 +21,7 @@ issueRouter.get('/user/:userId/project/:projectId', validateRequest(UserProjectP
   const { userId, projectId } = req.params;
   const { stageIds, priorities, assigneeIds, isOutOfEstimation, cursor } = req.query;
 
-  const issues = await issueService.getIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, assigneeIds, isOutOfEstimation, cursor });
+  const issues: IssueViewDTO[] = await issueService.getIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, assigneeIds, isOutOfEstimation, cursor });
 
   return res.status(HttpStatus.OK).json(issues);
 });
