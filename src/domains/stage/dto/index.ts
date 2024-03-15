@@ -8,6 +8,8 @@ export class StageDTO {
   }
 }
 
+export type StageType = 'BACKLOG' | 'UNSTARTED' | 'STARTED' | 'COMPLETED' | 'CANCELED' | 'OTHER';
+
 export class StageExtendedDTO {
   id: string;
   name: string;
@@ -19,21 +21,3 @@ export class StageExtendedDTO {
     this.type = stage.type;
   }
 }
-
-const StageTypeEnum: {
-  BACKLOG: 'BACKLOG';
-  UNSTARTED: 'UNSTARTED';
-  STARTED: 'STARTED';
-  COMPLETED: 'COMPLETED';
-  CANCELED: 'CANCELED';
-  OTHER: 'OTHER';
-} = {
-  BACKLOG: 'BACKLOG',
-  UNSTARTED: 'UNSTARTED',
-  STARTED: 'STARTED',
-  COMPLETED: 'COMPLETED',
-  CANCELED: 'CANCELED',
-  OTHER: 'OTHER',
-};
-
-export type StageType = (typeof StageTypeEnum)[keyof typeof StageTypeEnum];
