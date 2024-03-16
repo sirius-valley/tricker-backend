@@ -326,6 +326,11 @@ export interface DevIssueFilterParameters {
   cursor?: string;
 }
 
+/**
+ * Represents a data transfer object (DTO) for an issue view.
+ * This DTO contains information about an issue, including its ID, assignee, stage, name, title, priority, story points, and labels.
+ * This is sent to the developer or the Project Manager to have a general view of all issues.
+ */
 export class IssueViewDTO {
   id: string;
   assignee: UserIssueDTO | null;

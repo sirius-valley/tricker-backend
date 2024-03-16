@@ -70,6 +70,12 @@ export class IssueServiceImpl implements IssueService {
     return { workedTime };
   }
 
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   * @throws {NotFoundException} If the user or project is not found.
+   */
   async getDevIssuesFilteredAndPaginated(filters: DevIssueFilterParameters): Promise<IssueViewDTO[]> {
     const user: UserDTO | null = await this.userRepository.getById(filters.userId);
     if (user === null) {
@@ -91,9 +97,9 @@ export class IssueServiceImpl implements IssueService {
 
   /**
    * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * It can be used by Developers or Project Managers due to its flexibility
    * @param filters - Parameters used for filtering issues.
    * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
-   * @throws {NotFoundException} If the user or project is not found.
    */
   async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     return this.issueRepository.getWithFilters(filters);
