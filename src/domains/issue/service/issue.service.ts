@@ -5,5 +5,6 @@ export interface IssueService {
   pauseTimer: (issueId: string) => Promise<TimeTrackingDTO>;
   getIssueWorkedSeconds: (issueId: string) => Promise<WorkedTimeDTO>;
   getDevIssuesFilteredAndPaginated: (filters: DevIssueFilterParameters) => Promise<IssueViewDTO[]>;
+  getPMIssuesFilteredAndPaginated: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
   getIssuesFilteredAndPaginated: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
 }

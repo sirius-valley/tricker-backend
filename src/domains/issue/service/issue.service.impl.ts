@@ -8,13 +8,18 @@ import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectDTO } from '@domains/project/dto';
+import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type RoleRepository } from '@domains/role/repository';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
     private readonly issueRepository: IssueRepository,
     private readonly eventRepository: EventRepository,
     private readonly userRepository: UserRepository,
-    private readonly projectRepository: ProjectRepository
+    private readonly projectRepository: ProjectRepository,
+    private readonly userProjectRoleRepository: UserProjectRoleRepository,
+    private readonly roleRepository: RoleRepository
   ) {}
 
   /**
@@ -77,19 +82,25 @@ export class IssueServiceImpl implements IssueService {
    * @throws {NotFoundException} If the user or project is not found.
    */
   async getDevIssuesFilteredAndPaginated(filters: DevIssueFilterParameters): Promise<IssueViewDTO[]> {
-    const user: UserDTO | null = await this.userRepository.getById(filters.userId);
-    if (user === null) {
-      throw new NotFoundException('User');
-    }
-    if (user.cognitoId === null) {
-      throw new NotFoundException('User');
-    }
+    await this.validateUserExistence(filters.userId);
+    await this.validateProjectExistence(filters.projectId);
 
-    if (filters.projectId !== undefined) {
-      const project: ProjectDTO | null = await this.projectRepository.getById(filters.projectId);
-      if (project === null) {
-        throw new NotFoundException('Project');
-      }
+    return this.getIssuesFilteredAndPaginated(filters);
+  }
+
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   * @throws {NotFoundException} If the user or project is not found.
+   */
+  async getPMIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    const user: UserDTO = await this.validateUserExistence(filters.userId);
+    const project: ProjectDTO = await this.validateProjectExistence(filters.projectId);
+
+    const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId(project.id, user.id);
+    if (userProjectRole === null) {
+      throw new NotFoundException('UserProjectRole');
     }
 
     return this.getIssuesFilteredAndPaginated(filters);
@@ -103,5 +114,26 @@ export class IssueServiceImpl implements IssueService {
    */
   async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     return this.issueRepository.getWithFilters(filters);
+  }
+
+  private async validateUserExistence(userId: string): Promise<UserDTO> {
+    const user: UserDTO | null = await this.userRepository.getById(userId);
+    if (user === null) {
+      throw new NotFoundException('User');
+    }
+    if (user.cognitoId === null) {
+      throw new NotFoundException('User');
+    }
+
+    return user;
+  }
+
+  private async validateProjectExistence(projectId: string): Promise<ProjectDTO> {
+    const project: ProjectDTO | null = await this.projectRepository.getById(projectId);
+    if (project === null) {
+      throw new NotFoundException('Project');
+    }
+
+    return project;
   }
 }

@@ -1,6 +1,6 @@
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 import { UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
-import { type PrismaClient } from '@prisma/client';
+import { type PrismaClient, type UserProjectRole } from '@prisma/client';
 import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository {
@@ -17,5 +17,16 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     });
 
     return new UserProjectRoleDTO(userProjectRole);
+  }
+
+  async getByProjectIdAndUserId(projectId: string, userId: string): Promise<UserProjectRoleDTO | null> {
+    const userProjectRole: UserProjectRole | null = await this.db.userProjectRole.findFirst({
+      where: {
+        projectId,
+        userId,
+      },
+    });
+
+    return userProjectRole === null ? null : new UserProjectRoleDTO(userProjectRole);
   }
 }
