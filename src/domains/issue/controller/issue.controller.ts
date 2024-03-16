@@ -4,7 +4,7 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, OptionalIssueFiltersDTO, type IssueViewDTO } from '@domains/issue/dto';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 require('express-async-errors');
@@ -17,11 +17,11 @@ const userRepo: UserRepository = new UserRepositoryImpl(db);
 const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
 const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
 
-issueRouter.get('/user/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(OptionalIssueFiltersDTO, 'query'), async (req: Request<UserProjectParamsDTO, any, any, OptionalIssueFiltersDTO>, res: Response) => {
+issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, assigneeIds, isOutOfEstimation, cursor } = req.query;
+  const { stageIds, priorities, isOutOfEstimation, cursor } = req.body;
 
-  const issues: IssueViewDTO[] = await issueService.getIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, assigneeIds, isOutOfEstimation, cursor });
+  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor });
 
   return res.status(HttpStatus.OK).json(issues);
 });

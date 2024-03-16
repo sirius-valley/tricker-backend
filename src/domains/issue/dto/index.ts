@@ -171,10 +171,10 @@ export class UserProjectParamsDTO {
 }
 
 /**
- * Data Transfer Object (DTO) for optional issue filters.
+ * Data Transfer Object (DTO) for optional issue filters retrieved for a Project Manager.
  * This class defines optional filters for issues request.
  */
-export class OptionalIssueFiltersDTO {
+export class PMOptionalIssueFiltersDTO {
   /**
    * An optional array of stage IDs to filter issues by stage.
    */
@@ -216,7 +216,7 @@ export class OptionalIssueFiltersDTO {
 /**
  * Interface used by issue service to retrieve and filter issues.
  */
-export interface IssueFilterParameters {
+export interface PMIssueFilterParameters {
   /**
    * The user ID associated with the issue retrieved.
    */
@@ -225,7 +225,7 @@ export interface IssueFilterParameters {
   /**
    * The project ID associated with the issue retrieved.
    */
-  projectId?: string;
+  projectId: string;
 
   /**
    * An optional array of stage IDs to filter issues by stage.
@@ -241,6 +241,74 @@ export interface IssueFilterParameters {
    * An optional array of assignee IDs to filter issues by assignee.
    */
   assigneeIds?: string[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional array of label IDs to filter issues by labels.
+   */
+  labelIds?: string[];
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  cursor?: string;
+}
+
+export class DevOptionalIssueFiltersDTO {
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  @IsOptional()
+  @IsArray()
+  priorities?: Priority[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  @IsOptional()
+  @IsBoolean()
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  @IsOptional()
+  @IsUUID()
+  cursor?: string;
+}
+
+export interface DevIssueFilterParameters {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  userId: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  projectId: string;
+
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  priorities?: Priority[];
 
   /**
    * An optional boolean which defines if issue have been defined or not.

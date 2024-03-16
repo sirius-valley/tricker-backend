@@ -1,7 +1,7 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock } from './mock';
 import { ConflictException, NotFoundException } from '@utils';
-import { mockIssueDTO, stoppedMockTimeTrackingDTO, validMockManualTimeModification, invalidMockTimeTrackingDTO, mockUserDTO, mockProjectDTO, mockIssueViewDTO, mockIssueFilterParameters } from './mockData';
+import { mockIssueDTO, stoppedMockTimeTrackingDTO, validMockManualTimeModification, invalidMockTimeTrackingDTO, mockUserDTO, mockProjectDTO, mockIssueViewDTO, mockIssueFilterParameters, mockNotRegisteredUserDTO } from './mockData';
 import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 
 describe('issue service tests', () => {
@@ -114,15 +114,15 @@ describe('issue service tests', () => {
     });
   });
 
-  describe('getIssuesFilteredAndPaginated method', () => {
+  describe('getDevIssuesFilteredAndPaginated method', () => {
     it('should successfully get an Array of previously filtered IssueViewDTO', async (): Promise<void> => {
       // given
       userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
       projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
-      issueRepositoryMock.getWithFilters.mockResolvedValue([mockIssueViewDTO]);
+      jest.spyOn(issueService, 'getIssuesFilteredAndPaginated').mockResolvedValue([mockIssueViewDTO]);
       const expectedArray: IssueViewDTO[] = [mockIssueViewDTO];
       // when
-      const receivedArray: IssueViewDTO[] = await issueService.getIssuesFilteredAndPaginated(mockIssueFilterParameters);
+      const receivedArray: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated(mockIssueFilterParameters);
       // then
       expect.assertions(2);
       expect(receivedArray.length).toEqual(expectedArray.length);
@@ -135,8 +135,18 @@ describe('issue service tests', () => {
       userRepositoryMock.getById.mockResolvedValue(null);
       // then
       expect.assertions(2);
-      await expect(issueService.getIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow(NotFoundException);
-      await expect(issueService.getIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow("Not found. Couldn't find User");
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow(NotFoundException);
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow("Not found. Couldn't find User");
+    });
+
+    it('should throw NotFoundException when user is not a tricker user', async (): Promise<void> => {
+      // given - when
+      const wrongUserId = 'wrongId';
+      userRepositoryMock.getById.mockResolvedValue(mockNotRegisteredUserDTO);
+      // then
+      expect.assertions(2);
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow(NotFoundException);
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, userId: wrongUserId })).rejects.toThrow("Not found. Couldn't find User");
     });
 
     it('should throw NotFoundException when project id is not correct', async (): Promise<void> => {
@@ -147,8 +157,8 @@ describe('issue service tests', () => {
       projectRepositoryMock.getById.mockResolvedValue(null);
       // then
       expect.assertions(2);
-      await expect(issueService.getIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, projectId: wrongProjectId })).rejects.toThrow(NotFoundException);
-      await expect(issueService.getIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, projectId: wrongProjectId })).rejects.toThrow("Not found. Couldn't find Project");
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, projectId: wrongProjectId })).rejects.toThrow(NotFoundException);
+      await expect(issueService.getDevIssuesFilteredAndPaginated({ ...mockIssueFilterParameters, projectId: wrongProjectId })).rejects.toThrow("Not found. Couldn't find Project");
     });
   });
 });

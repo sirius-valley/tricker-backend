@@ -71,6 +71,18 @@ export const mockUserDTO: UserDTO = {
   emittedUserProjectRole: [],
 };
 
+export const mockNotRegisteredUserDTO: UserDTO = {
+  id: 'wrongId',
+  cognitoId: null,
+  email: 'johnDoe@mail.com',
+  name: 'John Doe',
+  profileImage: null,
+  projectsRoleAssigned: [],
+  createdAt: new Date('2024-03-12T10:00:00Z'),
+  deletedAt: null,
+  emittedUserProjectRole: [],
+};
+
 export const mockProjectDTO: ProjectDTO = {
   id: 'Project777',
   name: 'Tricker',

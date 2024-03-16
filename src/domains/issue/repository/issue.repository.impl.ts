@@ -1,5 +1,5 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type IssueInput, IssueDTO, type IssueFilterParameters, IssueViewDTO } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters } from '@domains/issue/dto';
 import { type Issue, type PrismaClient, StageType } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { LabelDTO } from '@domains/label/dto';
@@ -51,13 +51,13 @@ export class IssueRepositoryImpl implements IssueRepository {
    * @param filters - Parameters used for filtering issues.
    * @returns An array of IssueViewDTO objects representing the filtered issues.
    */
-  async getWithFilters(filters: IssueFilterParameters): Promise<IssueViewDTO[]> {
+  async getWithFilters(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     const issues = await this.db.issue.findMany({
       cursor: filters.cursor !== undefined ? { id: filters.cursor } : undefined,
       take: 20,
       where: {
         projectId: filters.projectId,
-        assigneeId: { in: filters.assigneeIds },
+        OR: [{ assigneeId: filters.userId }, { assigneeId: { in: filters.assigneeIds } }],
         stageId: { in: filters.stageIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
         priority: { in: filters.priorities },
@@ -71,6 +71,7 @@ export class IssueRepositoryImpl implements IssueRepository {
                 },
               }
             : {},
+        assignee: { cognitoId: { not: null } },
       },
       include: {
         assignee: true,
