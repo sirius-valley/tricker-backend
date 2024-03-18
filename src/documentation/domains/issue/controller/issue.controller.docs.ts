@@ -65,5 +65,85 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
- *           components:
+ *   /api/issue/dev/{userId}/project/{projectId}:
+ *     post:
+ *       summary: Retrieve and paginate filtered issues for the developer general view of the issues
+ *       tags:
+ *         - "Issue"
+ *       parameters:
+ *         - in: path
+ *           name: userId
+ *           required: true
+ *           description: The developer ID associated with the issue retrieved
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: The project ID associated with the issue retrieved
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174001"
+ *       security:
+ *         - bearerAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DevOptionalIssueFiltersDTO'
+ *             example:
+ *               stageIds:
+ *                 - "123e4567-e89b-12d3-a456-426614174002"
+ *                 - "123e4567-e89b-12d3-a456-426614174003"
+ *               priorities:
+ *                 - "HIGH"
+ *                 - "MEDIUM"
+ *               isOutOfEstimation: true
+ *               cursor: "123e4567-e89b-12d3-a456-426614174004"
+ *       responses:
+ *         '200':
+ *           description: An array of IssueViewDTO representing the filtered and paginated issues
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/IssueViewDTO'
+ *               example:
+ *                 - id: "123e4567-e89b-12d3-a456-426614174005"
+ *                   assignee:
+ *                     name: "John Doe"
+ *                     id: "123e4567-e89b-12d3-a456-426614174006"
+ *                     profileUrl: "https://example.com/profiles/johndoe"
+ *                   stage:
+ *                     id: "123e4567-e89b-12d3-a456-426614174007"
+ *                     name: "In Progress"
+ *                     type: "IN_PROGRESS"
+ *                   name: "Task 1"
+ *                   title: "Complete task 1"
+ *                   priority: "HIGH"
+ *                   storyPoints: 5
+ *                   labels:
+ *                     - id: "123e4567-e89b-12d3-a456-426614174008"
+ *                       name: "Backend"
+ *                 - id: "123e4567-e89b-12d3-a456-426614174009"
+ *                   assignee: null
+ *                   stage: null
+ *                   name: "Task 2"
+ *                   title: "Complete task 2"
+ *                   priority: "MEDIUM"
+ *                   storyPoints: null
+ *                   labels: []
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '500':
+ *           $ref: '#/components/responses/InternalServerErrorException'
  */

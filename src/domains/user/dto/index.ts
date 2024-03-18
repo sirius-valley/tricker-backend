@@ -63,3 +63,15 @@ export interface UserUpdateInputDTO {
 export interface UserDataDTO {
   name: string;
 }
+
+export class UserIssueDTO {
+  id: string;
+  name: string | null;
+  profileUrl: string | null;
+
+  constructor(user: UserIssueDTO) {
+    this.id = user.id;
+    this.name = user.name;
+    this.profileUrl = user.profileUrl;
+  }
+}
