@@ -352,3 +352,8 @@ export class IssueViewDTO {
     this.labels = issueView.labels;
   }
 }
+
+export interface UserProject {
+  userId: string;
+  projectId: string;
+}

@@ -7,6 +7,8 @@ import { type EventRepository, EventRepositoryImpl } from '@domains/event/reposi
 import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
+import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
+import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -15,7 +17,9 @@ const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
 const userRepo: UserRepository = new UserRepositoryImpl(db);
 const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
+const userProjectRoleRepo: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
+const roleRepo: RoleRepository = new RoleRepositoryImpl(db);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo, userProjectRoleRepo, roleRepo);
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
