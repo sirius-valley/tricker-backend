@@ -339,6 +339,7 @@ export class IssueViewDTO {
   title: string;
   priority: Priority;
   storyPoints: number | null;
+  isBlocked: boolean;
   labels: LabelDTO[];
 
   constructor(issueView: IssueViewDTO) {
@@ -349,6 +350,7 @@ export class IssueViewDTO {
     this.title = issueView.title;
     this.priority = issueView.priority;
     this.storyPoints = issueView.storyPoints;
+    this.isBlocked = issueView.isBlocked;
     this.labels = issueView.labels;
   }
 }

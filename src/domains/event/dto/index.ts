@@ -84,7 +84,7 @@ export class IssueChangeLogDTO {
 
 export class BlockerStatusModificationDTO {
   id: string;
-  providerEventId: string;
+  providerEventId: string | null;
   userEmitterId: string | null;
   issueId: string;
   status: string;

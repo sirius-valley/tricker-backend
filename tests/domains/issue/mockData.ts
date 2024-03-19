@@ -123,6 +123,7 @@ export const mockIssueViewDTO: IssueViewDTO = {
   title: 'Fake issue',
   priority: 'MEDIUM_PRIORITY',
   storyPoints: 1,
+  isBlocked: false,
   labels: [],
 };
 
