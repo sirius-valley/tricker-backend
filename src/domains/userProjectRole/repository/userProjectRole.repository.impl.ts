@@ -20,6 +20,11 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     return new UserProjectRoleDTO(userProjectRole);
   }
 
+  /**
+   * Retrieves a user-project role relationship by project ID and user ID.
+   * @param input Object containing project ID and user ID.
+   * @returns A Promise resolving to a UserProjectRoleDTO object or null if not found.
+   */
   async getByProjectIdAndUserId(input: UserProject): Promise<UserProjectRoleDTO | null> {
     const userProjectRole: UserProjectRole | null = await this.db.userProjectRole.findFirst({
       where: {

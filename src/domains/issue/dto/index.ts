@@ -355,7 +355,12 @@ export class IssueViewDTO {
   }
 }
 
+/**
+ * Interface representing a user-project relationship.
+ */
 export interface UserProject {
+  /** Identifier of the user. */
   userId: string;
+  /** Identifier of the project. */
   projectId: string;
 }

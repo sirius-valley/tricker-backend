@@ -2,25 +2,19 @@ import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
-import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type UserProject, type WorkedTimeDTO } from '@domains/issue/dto';
+import { ConflictException, NotFoundException } from '@utils';
+import { type DevIssueFilterParameters, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectDTO } from '@domains/project/dto';
-import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
-import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
-import { type RoleRepository } from '@domains/role/repository';
-import { type RoleDTO } from '@domains/role/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
     private readonly issueRepository: IssueRepository,
     private readonly eventRepository: EventRepository,
     private readonly userRepository: UserRepository,
-    private readonly projectRepository: ProjectRepository,
-    private readonly userProjectRoleRepository: UserProjectRoleRepository,
-    private readonly roleRepository: RoleRepository
+    private readonly projectRepository: ProjectRepository
   ) {}
 
   /**
@@ -94,15 +88,10 @@ export class IssueServiceImpl implements IssueService {
    * @param filters - Parameters used for filtering issues.
    * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
    * @throws {NotFoundException} If the user or project is not found.
-   * @throws {ForbiddenException} If the user is not the Project Manager.
    */
   async getPMIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
-    const user: UserDTO = await this.validateUserExistence(filters.userId);
-    const project: ProjectDTO = await this.validateProjectExistence(filters.projectId);
-    const role: RoleDTO = await this.getUserRole({ projectId: project.id, userId: user.id });
-    if (role.name !== 'Project Manager') {
-      throw new ForbiddenException();
-    }
+    await this.validateUserExistence(filters.userId);
+    await this.validateProjectExistence(filters.projectId);
 
     return this.getIssuesFilteredAndPaginated(filters);
   }
@@ -150,25 +139,5 @@ export class IssueServiceImpl implements IssueService {
     }
 
     return project;
-  }
-
-  /**
-   * Retrieves the role of a user in a project.
-   * Throws a NotFoundException if the user's role in the project is not found.
-   * @param input - The UserProject object containing the project ID and user ID.
-   * @returns A Promise resolving to a RoleDTO object representing the user's role in the project.
-   * @throws NotFoundException if the user's role in the project is not found.
-   */
-  private async getUserRole(input: UserProject): Promise<RoleDTO> {
-    const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId(input);
-    if (userProjectRole === null) {
-      throw new NotFoundException('UserProjectRole');
-    }
-    const role: RoleDTO | null = await this.roleRepository.getById(userProjectRole.roleId);
-    if (role === null) {
-      throw new NotFoundException('Role');
-    }
-
-    return role;
   }
 }
