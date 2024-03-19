@@ -79,3 +79,33 @@ export function IsValidApiKey(validationOptions?: ValidationOptions) {
     });
   };
 }
+
+/**
+ * Validator constraint class for checking if a date (in form of string) is after or equal to the provided date.
+ */
+@ValidatorConstraint()
+export class IsAfterOrEqualDateConstraint implements ValidatorConstraintInterface {
+  validate(dateInput: any, args: ValidationArguments): boolean | Promise<boolean> {
+    const [date] = args.constraints;
+    const userInput = new Date(dateInput as string);
+    return typeof dateInput !== 'string' && userInput.toString() !== 'Invalid Date' && date instanceof Date && userInput.getTime() >= date.getTime();
+  }
+}
+
+/**
+ * Validates whether a date is after or equal to the provided date.
+ * @param {Date} date - The date to compare against.
+ * @param {ValidationOptions} validationOptions - Additional validation options.
+ */
+export function IsAfterOrEqualDate(date: Date, validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isAfterOrEqualDate',
+      target: object.constructor,
+      propertyName,
+      constraints: [date],
+      options: validationOptions,
+      validator: IsAfterOrEqualDateConstraint,
+    });
+  };
+}

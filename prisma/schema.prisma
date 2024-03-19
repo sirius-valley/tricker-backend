@@ -27,7 +27,6 @@ model User {
   authoredIssues                   Issue[]                     @relation("created")
   asignedIssues                    Issue[]                     @relation("assigned")
   emittedIssueChangeLogs           IssueChangeLog[]
-  emittedManualTimeModification    ManualTimeModification[]
   OrganizationAdministrator        OrganizationAdministrator[]
 }
 
@@ -184,14 +183,12 @@ model BlockerStatusModification {
 
 model ManualTimeModification {
   id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userEmitterId    String   @db.Uuid
   issueId          String   @db.Uuid
   timeAmount       Int
   modificationDate DateTime
   reason           String
 
-  issue       Issue @relation(fields: [issueId], references: [id])
-  userEmitter User  @relation(fields: [userEmitterId], references: [id])
+  issue Issue @relation(fields: [issueId], references: [id])
 }
 
 model IssueChangeLog {

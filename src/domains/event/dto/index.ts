@@ -108,6 +108,7 @@ export class BlockerStatusModificationDTO {
 
 /**
  * Data transfer object representing a time tracking event.
+ * This one is used when the user plays or pauses the timer.
  */
 export class TimeTrackingDTO {
   /**
@@ -195,10 +196,6 @@ export class ManualTimeModificationDTO {
    */
   id: string;
   /**
-   * The ID of the user who initiated the time modification.
-   */
-  userEmitterId: string;
-  /**
    * The ID of the issue associated with the time modification.
    */
   issueId: string;
@@ -221,7 +218,6 @@ export class ManualTimeModificationDTO {
    */
   constructor(timeModification: ManualTimeModificationDTO) {
     this.id = timeModification.id;
-    this.userEmitterId = timeModification.userEmitterId;
     this.issueId = timeModification.issueId;
     this.timeAmount = timeModification.timeAmount;
     this.modificationDate = timeModification.modificationDate;
