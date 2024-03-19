@@ -1,5 +1,5 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateRequest } from '@utils';
+import { db, validateRequest, validateUserIsProjectManager } from '@utils';
 import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
@@ -7,8 +7,6 @@ import { type EventRepository, EventRepositoryImpl } from '@domains/event/reposi
 import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, type IssueExtendedDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
-import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
-import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
 import { IssueAddBlockerParamsDTO } from '@domains/event/dto';
 require('express-async-errors');
 
@@ -18,9 +16,7 @@ const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
 const userRepo: UserRepository = new UserRepositoryImpl(db);
 const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
-const userProjectRoleRepo: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
-const roleRepo: RoleRepository = new RoleRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo, userProjectRoleRepo, roleRepo);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
@@ -31,7 +27,7 @@ issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectP
   return res.status(HttpStatus.OK).json(issues);
 });
 
-issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(PMOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, PMOptionalIssueFiltersDTO>, res: Response) => {
+issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(PMOptionalIssueFiltersDTO, 'body'), validateUserIsProjectManager(), async (req: Request<UserProjectParamsDTO, any, PMOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
   const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor } = req.body;
 

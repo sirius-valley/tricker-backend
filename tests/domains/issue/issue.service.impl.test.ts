@@ -1,6 +1,6 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, roleRepositoryMock } from './mock';
-import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
+import { ConflictException, NotFoundException } from '@utils';
 import {
   mockIssueDTO,
   stoppedMockTimeTrackingDTO,
@@ -15,7 +15,6 @@ import {
   mockUserProjectRoleDTO,
   mockPMIssueFilterParameters,
   mockLogicallyDeletedUserDTO,
-  mockDevRoleDTO,
 } from './mockData';
 import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 
@@ -24,7 +23,7 @@ describe('issue service tests', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    issueService = new IssueServiceImpl(issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, roleRepositoryMock);
+    issueService = new IssueServiceImpl(issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock);
   });
 
   describe('pause method', () => {
@@ -202,18 +201,6 @@ describe('issue service tests', () => {
       expect.assertions(2);
       expect(receivedArray.length).toEqual(expectedArray.length);
       expect(receivedArray[0].id).toEqual(expectedArray[0].id);
-    });
-
-    it('should throw ForbiddenException when user is not a Project Manager', async (): Promise<void> => {
-      // given
-      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
-      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
-      userProjectRoleRepositoryMock.getByProjectIdAndUserId.mockResolvedValue(mockUserProjectRoleDTO);
-      // when
-      roleRepositoryMock.getById.mockResolvedValue(mockDevRoleDTO);
-      // then
-      expect.assertions(1);
-      await expect(issueService.getPMIssuesFilteredAndPaginated(mockPMIssueFilterParameters)).rejects.toThrow(ForbiddenException);
     });
   });
 });
