@@ -1,6 +1,9 @@
 import { type EventInput } from '@domains/event/dto';
-import { IsDateString, IsDefined, IsNotEmpty, IsNumber, IsPositive, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { IsAfterOrEqualDate } from '@utils';
+import { type LabelDTO } from '@domains/label/dto';
+import { type StageExtendedDTO } from '@domains/stage/dto';
+import { type UserIssueDTO } from '@domains/user';
 
 export class IssueDTO {
   id: string;
@@ -144,6 +147,210 @@ export class WorkedTimeDTO {
 
   constructor(workedTime: WorkedTimeDTO) {
     this.workedTime = workedTime.workedTime;
+  }
+}
+
+/**
+ * Data Transfer Object (DTO) for parameters used to do the filter while retrieving issues.
+ */
+export class UserProjectParamsDTO {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  userId!: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  projectId!: string;
+}
+
+/**
+ * Data Transfer Object (DTO) for optional issue filters retrieved for a Project Manager.
+ * This class defines optional filters for issues request.
+ */
+export class PMOptionalIssueFiltersDTO {
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  @IsOptional()
+  @IsArray()
+  priorities?: Priority[];
+
+  /**
+   * An optional array of assignee IDs to filter issues by assignee.
+   */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  assigneeIds?: string[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  @IsOptional()
+  @IsBoolean()
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  @IsOptional()
+  @IsUUID()
+  cursor?: string;
+}
+
+/**
+ * Interface used by issue service to retrieve and filter issues.
+ */
+export interface PMIssueFilterParameters {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  userId: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  projectId: string;
+
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  priorities?: Priority[];
+
+  /**
+   * An optional array of assignee IDs to filter issues by assignee.
+   */
+  assigneeIds?: string[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional array of label IDs to filter issues by labels.
+   */
+  labelIds?: string[];
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  cursor?: string;
+}
+
+export class DevOptionalIssueFiltersDTO {
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  @IsOptional()
+  @IsArray()
+  priorities?: Priority[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  @IsOptional()
+  @IsBoolean()
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  @IsOptional()
+  @IsUUID()
+  cursor?: string;
+}
+
+export interface DevIssueFilterParameters {
+  /**
+   * The user ID associated with the issue retrieved.
+   */
+  userId: string;
+
+  /**
+   * The project ID associated with the issue retrieved.
+   */
+  projectId: string;
+
+  /**
+   * An optional array of stage IDs to filter issues by stage.
+   */
+  stageIds?: string[];
+
+  /**
+   * An optional array of priorities to filter issues by priority level.
+   */
+  priorities?: Priority[];
+
+  /**
+   * An optional boolean which defines if issue have been defined or not.
+   */
+  isOutOfEstimation?: boolean;
+
+  /**
+   * An optional array of label IDs to filter issues by labels.
+   */
+  labelIds?: string[];
+
+  /**
+   * An optional issue id which defines the cursor in the pagination.
+   */
+  cursor?: string;
+}
+
+/**
+ * Represents a data transfer object (DTO) for an issue view.
+ * This DTO contains information about an issue, including its ID, assignee, stage, name, title, priority, story points, and labels.
+ * This is sent to the developer or the Project Manager to have a general view of all issues.
+ */
+export class IssueViewDTO {
+  id: string;
+  assignee: UserIssueDTO | null;
+  stage: StageExtendedDTO | null;
+  name: string;
+  title: string;
+  priority: Priority;
+  storyPoints: number | null;
+  labels: LabelDTO[];
+
+  constructor(issueView: IssueViewDTO) {
+    this.id = issueView.id;
+    this.assignee = issueView.assignee;
+    this.stage = issueView.stage;
+    this.name = issueView.name;
+    this.title = issueView.title;
+    this.priority = issueView.priority;
+    this.storyPoints = issueView.storyPoints;
+    this.labels = issueView.labels;
   }
 }
 

@@ -4,14 +4,27 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
+import { type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, ManualTimeModificationRequestDTO, type IssueViewDTO, UserProjectParamsDTO, DevOptionalIssueFiltersDTO } from '@domains/issue/dto';
 require('express-async-errors');
 
 export const issueRouter = Router();
 
 const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo);
+const userRepo: UserRepository = new UserRepositoryImpl(db);
+const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
+
+issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
+  const { userId, projectId } = req.params;
+  const { stageIds, priorities, isOutOfEstimation, cursor } = req.body;
+
+  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor });
+
+  return res.status(HttpStatus.OK).json(issues);
+});
 
 issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
   const { issueId } = _req.params;

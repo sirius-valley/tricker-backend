@@ -3,13 +3,18 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, NotFoundException } from '@utils';
-import { type IssueDTO, type WorkedTimeDTO, type ManualTimeModificationEventInput } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO, type ManualTimeModificationEventInput } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
+import { type UserDTO, type UserRepository } from '@domains/user';
+import { type ProjectRepository } from '@domains/project/repository';
+import { type ProjectDTO } from '@domains/project/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
     private readonly issueRepository: IssueRepository,
-    private readonly eventRepository: EventRepository
+    private readonly eventRepository: EventRepository,
+    private readonly userRepository: UserRepository,
+    private readonly projectRepository: ProjectRepository
   ) {}
 
   /**
@@ -82,5 +87,40 @@ export class IssueServiceImpl implements IssueService {
     workedTime = manualTimeModifications.reduce((result: number, time: ManualTimeModificationDTO) => result + time.timeAmount, workedTime);
 
     return { workedTime };
+  }
+
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   * @throws {NotFoundException} If the user or project is not found.
+   */
+  async getDevIssuesFilteredAndPaginated(filters: DevIssueFilterParameters): Promise<IssueViewDTO[]> {
+    const user: UserDTO | null = await this.userRepository.getById(filters.userId);
+    if (user === null) {
+      throw new NotFoundException('User');
+    }
+    if (user.cognitoId === null) {
+      throw new NotFoundException('User');
+    }
+
+    if (filters.projectId !== undefined) {
+      const project: ProjectDTO | null = await this.projectRepository.getById(filters.projectId);
+      if (project === null) {
+        throw new NotFoundException('Project');
+      }
+    }
+
+    return this.getIssuesFilteredAndPaginated(filters);
+  }
+
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * It can be used by Developers or Project Managers due to its flexibility
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   */
+  async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    return this.issueRepository.getWithFilters(filters);
   }
 }
