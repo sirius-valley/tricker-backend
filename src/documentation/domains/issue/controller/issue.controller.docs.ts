@@ -13,7 +13,7 @@
  *         - $ref: '#/components/parameters/IssuePauseParams'
  *       responses:
  *         '200':
- *           description: "Successful operation"
+ *           description: "Timer paused succesfully"
  *           content:
  *             application/json:
  *               schema:
@@ -25,7 +25,7 @@
  *               schema:
  *                 $ref: '#/components/responses/ValidationException'
  *         '404':
- *           description: "Inconsistent data"
+ *           description: "Entity not found"
  *           content:
  *             application/json:
  *               schema:
@@ -146,7 +146,7 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
- *   /issues/{issueId}/add-time:
+ *   /api/issue/{issueId}/add-time:
  *     post:
  *       summary: Create manual time modification for an issue.
  *       tags:
@@ -178,7 +178,7 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
- *   /issues/{issueId}/remove-time:
+ *   /api/issue/{issueId}/remove-time:
  *     post:
  *       summary: Creates manual time modification for an issue.
  *       tags:
@@ -201,13 +201,25 @@
  *             $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
  *       responses:
  *          '200':
- *           description: Manual time modification created successfully.
- *         '400':
- *           $ref: '#/components/responses/ValidationException'
- *         '401':
- *           $ref: '#/components/responses/UnauthorizedException'
- *         '404':
- *           $ref: '#/components/responses/NotFoundException'
- *         '500':
- *           $ref: '#/components/responses/InternalServerErrorException'
+ *            description: Manual time modification created successfully.
+ *          '400':
+ *            description: "Data validation error"
+ *            content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/responses/ValidationException'
+ *          '401':
+ *            $ref: '#/components/responses/UnauthorizedException'
+ *          '404':
+ *            description: "Entity not found"
+ *            content:
+ *              application/json:
+ *                schema:
+ *                  $ref: '#/components/responses/NotFoundException'
+ *          '409':
+ *            description: "Inconsistent data"
+ *            content:
+ *              application/json:
+ *                schema:
+ *                  $ref: "#/components/responses/ConflictException"
  */

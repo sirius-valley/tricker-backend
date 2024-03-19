@@ -29,7 +29,7 @@ export class IssueServiceImpl implements IssueService {
     if (issue == null) throw new NotFoundException('issue');
 
     const { workedTime } = await this.getIssueWorkedSeconds(input.issueId);
-    if (input.timeAmount < 0 && workedTime < input.timeAmount) {
+    if (input.timeAmount < 0 && workedTime < -input.timeAmount) {
       throw new ConflictException('The time amount you are trying to substract exceeds the total worked time of the issue');
     }
 
