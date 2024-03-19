@@ -46,7 +46,7 @@ export class EventRepositoryImpl implements EventRepository {
     Logger.info(`change log creation issue id: ${input.issueId} -- ${new Date().toString()}`);
     const event = await this.db.issueChangeLog.create({
       data: {
-        providerEventId: input.providerEventId,
+        providerEventId: input.providerEventId!,
         userEmitterId: input.userEmitterId,
         issueId: input.issueId,
         eventRegisteredAt: input.createdAt,

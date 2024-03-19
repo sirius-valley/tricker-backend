@@ -1,5 +1,5 @@
-import { type TimeTrackingDTO } from '@domains/event/dto';
-import { type DevIssueFilterParameters, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type IssueAddBlockerInput, type TimeTrackingDTO } from '@domains/event/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 
 export interface IssueService {
   pauseTimer: (issueId: string) => Promise<TimeTrackingDTO>;
@@ -7,4 +7,6 @@ export interface IssueService {
   getDevIssuesFilteredAndPaginated: (filters: DevIssueFilterParameters) => Promise<IssueViewDTO[]>;
   getPMIssuesFilteredAndPaginated: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
   getIssuesFilteredAndPaginated: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
+  blockIssueWithTrickerUI: (input: IssueAddBlockerInput) => Promise<IssueExtendedDTO>;
+  unblockIssueWithTrickerUI: (input: IssueAndAssignee) => Promise<IssueExtendedDTO>;
 }

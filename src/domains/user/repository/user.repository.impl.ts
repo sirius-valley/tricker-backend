@@ -116,4 +116,26 @@ export class UserRepositoryImpl implements UserRepository {
     });
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
   }
+
+  async getByCognitoId(cognitoId: string): Promise<UserDTO | null> {
+    const user: User | null = await this.db.user.findUnique({
+      where: {
+        cognitoId,
+      },
+      include: {
+        projectsRoleAssigned: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        emittedUserProjectRole: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    return user === null ? null : new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+  }
 }

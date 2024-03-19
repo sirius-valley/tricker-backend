@@ -1,5 +1,5 @@
-import { type EventInput } from '@domains/event/dto';
-import { IsArray, IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { type LabelDTO } from '@domains/label/dto';
 import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
@@ -96,7 +96,7 @@ export class IssueInput {
  * Data Transfer Object (DTO) for parameters send by frontend related to worked time on an issue.
  * This class defines validation rules for issueId property.
  */
-export class IssueWorkedTimeParamsDTO {
+export class IssueIdParamDTO {
   /**
    * The ID of the issue.
    * Must be a non-empty string formatted as a UUID.
@@ -123,19 +123,6 @@ const PriorityType: {
 };
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
-
-/**
- * HTTP URL parameters for the endpoint that pauses the timer of an issue.
- */
-export class IssuePauseParams {
-  /**
-   * The ID of the issue to pause the timer for.
-   * @type {string}
-   */
-  @IsString()
-  @IsDefined()
-  readonly issueId!: string;
-}
 
 /**
  * Data Transfer Object (DTO) for representing worked time.
@@ -355,7 +342,50 @@ export class IssueViewDTO {
   }
 }
 
+export class IssueDetailsDTO {
+  id: string;
+  assignee: UserIssueDTO | null;
+  name: string;
+  title: string;
+  description: string | null;
+  priority: Priority;
+  storyPoints: number | null;
+  isBlocked: boolean;
+  labels: LabelDTO[];
+
+  constructor(issue: IssueDetailsDTO) {
+    this.id = issue.id;
+    this.assignee = issue.assignee;
+    this.name = issue.name;
+    this.title = issue.title;
+    this.description = issue.description;
+    this.priority = issue.priority;
+    this.storyPoints = issue.storyPoints;
+    this.isBlocked = issue.isBlocked;
+    this.labels = issue.labels;
+  }
+}
+
+export class IssueExtendedDTO extends IssueDetailsDTO {
+  chronology: EventHistoryLogDTO[];
+
+  constructor(issue: IssueExtendedDTO) {
+    super(issue);
+    this.chronology = issue.chronology;
+  }
+}
+
 export interface UserProject {
   userId: string;
   projectId: string;
+}
+
+export interface IssueAndAssignee {
+  userCognitoId: string;
+  issueId: string;
+}
+
+export interface IssueAndIsBlocked {
+  issueId: string;
+  isBlocked: boolean;
 }

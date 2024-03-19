@@ -4,11 +4,12 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
+import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, type IssueExtendedDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
+import { IssueAddBlockerParamsDTO } from '@domains/event/dto';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -39,7 +40,7 @@ issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectPa
   return res.status(HttpStatus.OK).json(issues);
 });
 
-issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.get('/:issueId/pause', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.pauseTimer(issueId);
@@ -47,10 +48,29 @@ issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), 
   return res.status(HttpStatus.OK).json(event);
 });
 
-issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<Response<number>> => {
+issueRouter.get('/:issueId/worked-time', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response): Promise<Response<number>> => {
   const { issueId } = req.params;
 
   const workedTime: WorkedTimeDTO = await issueService.getIssueWorkedSeconds(issueId);
 
   return res.status(HttpStatus.OK).json(workedTime);
+});
+
+issueRouter.post('/:issueId/flag/add', validateRequest(IssueIdParamDTO, 'params'), validateRequest(IssueAddBlockerParamsDTO, 'body'), async (req: Request<IssueIdParamDTO, any, IssueAddBlockerParamsDTO>, res: Response) => {
+  const { issueId } = req.params;
+  const { userId } = res.locals;
+  const { reason, comment } = req.body;
+
+  const issue: IssueExtendedDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: userId, reason, comment, providerEventId: null });
+
+  return res.status(HttpStatus.OK).json(issue);
+});
+
+issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
+  const { issueId } = req.params;
+  const { userId } = res.locals;
+
+  const issue: IssueExtendedDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: userId });
+
+  return res.status(HttpStatus.OK).json(issue);
 });

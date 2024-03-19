@@ -1,3 +1,5 @@
+import { IsNotEmpty, IsString } from 'class-validator';
+
 export type BlockEventType = 'NO_STATUS' | 'BLOCKED_BY' | 'BLOCKING_TO';
 export type EventInputArray<T extends EventInput> = T[];
 
@@ -18,7 +20,7 @@ export enum LinearActionTypeConvention {
 }
 
 export class EventInput {
-  readonly providerEventId: string;
+  readonly providerEventId: string | null;
   issueId: string;
   readonly userEmitterEmail?: string;
   readonly createdAt: Date;
@@ -242,4 +244,40 @@ export interface TimeTrackingDates {
    * The end date for time tracking, can be null if tracking is ongoing.
    */
   endDate: Date | null;
+}
+
+export class IssueAddBlockerParamsDTO {
+  @IsString()
+  @IsNotEmpty()
+  reason!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  comment!: string;
+}
+
+export interface IssueAddBlockerInput {
+  issueId: string;
+  userCognitoId: string;
+  providerEventId: string | null;
+  reason: string;
+  comment: string;
+}
+
+export class EventHistoryLogDTO {
+  eventId: string;
+  message: string;
+  comment: string;
+  isBlocker: boolean;
+  time: string;
+  date: string;
+
+  constructor(history: EventHistoryLogDTO) {
+    this.eventId = history.eventId;
+    this.message = history.message;
+    this.comment = history.comment;
+    this.isBlocker = history.isBlocker;
+    this.time = history.time;
+    this.date = history.date;
+  }
 }
