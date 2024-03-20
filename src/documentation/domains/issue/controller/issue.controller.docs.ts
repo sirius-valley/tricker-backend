@@ -1,9 +1,35 @@
 /**
  * @swagger
  * paths:
+ *   /api/issue/{issueId}/resume:
+ *     get:
+ *       summary: Resume timer for an issue
+ *       tags:
+ *         - Issue
+ *       description: Resume the timer for a specific issue.
+ *       parameters:
+ *         - name: issueId
+ *           in: path
+ *           required: true
+ *           description: The ID of the issue to resume the timer for.
+ *           schema:
+ *             type: string
+ *       responses:
+ *         '200':
+ *           description: Successful operation
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/TimeTrackingDTO'
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  *   /api/issue/{issueId}/pause:
  *     get:
- *       summary: Pause Timer for an Issue
+ *       summary: Pause timer for an issue
  *       tags:
  *         - Issue
  *       description: Pause the timer for a specific issue.
@@ -17,25 +43,13 @@
  *           content:
  *             application/json:
  *               schema:
- *                 $ref: '#/components/schemas/TimeTrackingEventDTO'
+ *                 $ref: '#/components/schemas/TimeTrackingDTO'
  *         '400':
- *           description: "Data validation error"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: '#/components/responses/ValidationException'
+ *           $ref: '#/components/responses/ValidationException'
  *         '404':
- *           description: "Inconsistent data"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: '#/components/responses/NotFoundException'
+ *           $ref: '#/components/responses/NotFoundException'
  *         '409':
- *           description: "Inconsistent data"
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: "#/components/responses/ConflictException"
+ *           $ref: '#/components/responses/ConflictException'
  *   /api/issue/{issueId}/worked-time:
  *     get:
  *       summary: Retrieve worked seconds for a specific issue.
