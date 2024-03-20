@@ -2,23 +2,29 @@
  * @swagger
  * components:
  *   schemas:
- *     TimeTrackingEventDTO:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           description: The ID of the event.
- *         startTime:
- *           type: string
- *           format: date-time
- *           description: The start time of the event.
- *         endTime:
- *           type: string
- *           format: date-time
- *           description: The end time of the event.
- *         issueId:
- *           type: string
- *           description: The ID of the issue associated with the event.
+ *     TimeTrackingDTO:
+ *        type: object
+ *        properties:
+ *          id:
+ *            type: string
+ *            description: The ID of the time tracking event.
+ *          issueId:
+ *            type: string
+ *            description: The ID of the issue associated with the event.
+ *          startTime:
+ *            type: string
+ *            format: date-time
+ *            description: The start time of the event.
+ *          endTime:
+ *            type: string
+ *            format: date-time
+ *            nullable: true
+ *            description: The end time of the event, or null if not ended yet.
+ *        example:
+ *          id: "5ebe2152-2f9b-492f-874c-c77ccb1efe20"
+ *          issueId: "648b2997-b731-468d-bce7-d213d3f7da93"
+ *          startTime: "2024-03-19T12:00:00Z"
+ *          endTime: null
  *
  *     DevOptionalIssueFiltersDTO:
  *       type: object

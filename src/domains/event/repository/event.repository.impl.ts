@@ -103,4 +103,15 @@ export class EventRepositoryImpl implements EventRepository {
 
     return timeTrackingEvents.map((trackingEvent: TimeTracking) => new TimeTrackingDTO(trackingEvent));
   }
+
+  async createTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO> {
+    const event = await this.db.timeTracking.create({
+      data: {
+        issueId,
+        startTime: new Date(),
+      },
+    });
+
+    return new TimeTrackingDTO(event);
+  }
 }

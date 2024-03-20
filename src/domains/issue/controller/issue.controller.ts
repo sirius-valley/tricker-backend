@@ -7,6 +7,7 @@ import { type EventRepository, EventRepositoryImpl } from '@domains/event/reposi
 import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
+import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
 import { type BlockerStatusModificationDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
 import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
@@ -17,7 +18,8 @@ const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
 const eventRepo: EventRepository = new EventRepositoryImpl(db);
 const userRepo: UserRepository = new UserRepositoryImpl(db);
 const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo);
+const projectStageRepo: ProjectStageRepository = new ProjectStageRepositoryImpl(db);
+const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo, projectStageRepo);
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
@@ -42,7 +44,15 @@ issueRouter.get('/:issueId/pause', validateRequest(IssueIdParamDTO, 'params'), a
 
   const event = await issueService.pauseTimer(issueId);
 
-  return res.status(HttpStatus.OK).json(event);
+  return res.status(HttpStatus.CREATED).json(event);
+});
+
+issueRouter.post('/:issueId/resume', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
+  const { issueId } = _req.params;
+
+  const event = await issueService.resumeTimer(issueId);
+
+  return res.status(HttpStatus.CREATED).json(event);
 });
 
 issueRouter.get('/:issueId/worked-time', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response): Promise<Response<number>> => {
