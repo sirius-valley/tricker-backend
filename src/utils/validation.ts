@@ -1,7 +1,16 @@
 import { validate } from 'class-validator';
 import { type NextFunction, type Request, type Response } from 'express';
-import { ValidationException } from './errors';
+import { ForbiddenException, NotFoundException, ValidationException } from './errors';
 import { plainToInstance } from 'class-transformer';
+import { type RoleDTO } from '@domains/role/dto';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
+import { db } from '@utils/database';
+import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
+import { type UserProjectParamsDTO } from '@domains/issue/dto';
+
+export const userProjectRoleRepository: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
+export const roleRepository: RoleRepository = new RoleRepositoryImpl(db);
 
 export type ClassType<T> = new (...args: any[]) => T;
 
@@ -26,6 +35,33 @@ export function validateRequest<T>(target: ClassType<T>, reqKey: RequestPart) {
     }
 
     req[reqKey] = instance;
+    next();
+  };
+}
+
+/**
+ * Retrieves the role of a user in a project.
+ * Throws a NotFoundException if the user's role in the project is not found.
+ * @returns A Promise resolving to a RoleDTO object representing the user's role in the project.
+ * @throws NotFoundException if the user's role in the project is not found.
+ * @throws ForbiddenException if the user's role is not Project Manager.
+ */
+export function validateUserIsProjectManager() {
+  return async (req: Request<UserProjectParamsDTO, any, any, any, any>, res: Response, next: NextFunction) => {
+    const { userId, projectId } = req.params;
+    const userProjectRole: UserProjectRoleDTO | null = await userProjectRoleRepository.getByProjectIdAndUserId({ userId, projectId });
+    if (userProjectRole === null) {
+      throw new NotFoundException('UserProjectRole');
+    }
+    const role: RoleDTO | null = await roleRepository.getById(userProjectRole.roleId);
+    if (role === null) {
+      throw new NotFoundException('Role');
+    }
+
+    if (role.name.toLowerCase() !== 'project manager') {
+      throw new ForbiddenException();
+    }
+
     next();
   };
 }

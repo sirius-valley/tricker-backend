@@ -77,20 +77,21 @@ export class IssueServiceImpl implements IssueService {
    * @throws {NotFoundException} If the user or project is not found.
    */
   async getDevIssuesFilteredAndPaginated(filters: DevIssueFilterParameters): Promise<IssueViewDTO[]> {
-    const user: UserDTO | null = await this.userRepository.getById(filters.userId);
-    if (user === null) {
-      throw new NotFoundException('User');
-    }
-    if (user.cognitoId === null) {
-      throw new NotFoundException('User');
-    }
+    await this.validateUserExistence(filters.userId);
+    await this.validateProjectExistence(filters.projectId);
 
-    if (filters.projectId !== undefined) {
-      const project: ProjectDTO | null = await this.projectRepository.getById(filters.projectId);
-      if (project === null) {
-        throw new NotFoundException('Project');
-      }
-    }
+    return this.getIssuesFilteredAndPaginated(filters);
+  }
+
+  /**
+   * Retrieves a list of filtered and paginated issues based on the provided filters.
+   * @param filters - Parameters used for filtering issues.
+   * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
+   * @throws {NotFoundException} If the user or project is not found.
+   */
+  async getPMIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    await this.validateUserExistence(filters.userId);
+    await this.validateProjectExistence(filters.projectId);
 
     return this.getIssuesFilteredAndPaginated(filters);
   }
@@ -103,5 +104,40 @@ export class IssueServiceImpl implements IssueService {
    */
   async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     return this.issueRepository.getWithFilters(filters);
+  }
+
+  /**
+   * Validates the existence of a user.
+   * Throws a NotFoundException if the user does not exist or is inactive.
+   * @param userId - The ID of the user to validate.
+   * @returns A Promise resolving to a UserDTO object representing the validated user.
+   * @throws NotFoundException if the user does not exist or is inactive.
+   */
+  private async validateUserExistence(userId: string): Promise<UserDTO> {
+    const user: UserDTO | null = await this.userRepository.getById(userId);
+    if (user === null) {
+      throw new NotFoundException('User');
+    }
+    if (user.cognitoId === null || user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+
+    return user;
+  }
+
+  /**
+   * Validates the existence of a project.
+   * Throws a NotFoundException if the project does not exist.
+   * @param projectId - The ID of the project to validate.
+   * @returns A Promise resolving to a ProjectDTO object representing the validated project.
+   * @throws NotFoundException if the project does not exist.
+   */
+  private async validateProjectExistence(projectId: string): Promise<ProjectDTO> {
+    const project: ProjectDTO | null = await this.projectRepository.getById(projectId);
+    if (project === null) {
+      throw new NotFoundException('Project');
+    }
+
+    return project;
   }
 }
