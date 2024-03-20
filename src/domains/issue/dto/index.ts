@@ -1,9 +1,9 @@
 import { type EventInput } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDateString, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
-import { IsAfterOrEqualDate } from '@utils';
 import { type LabelDTO } from '@domains/label/dto';
 import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
+import { IsAfterOrEqualDate } from '@utils';
 
 export class IssueDTO {
   id: string;
@@ -340,6 +340,7 @@ export class IssueViewDTO {
   title: string;
   priority: Priority;
   storyPoints: number | null;
+  isBlocked: boolean;
   labels: LabelDTO[];
 
   constructor(issueView: IssueViewDTO) {
@@ -350,8 +351,19 @@ export class IssueViewDTO {
     this.title = issueView.title;
     this.priority = issueView.priority;
     this.storyPoints = issueView.storyPoints;
+    this.isBlocked = issueView.isBlocked;
     this.labels = issueView.labels;
   }
+}
+
+/**
+ * Interface representing a user-project relationship.
+ */
+export interface UserProject {
+  /** Identifier of the user. */
+  userId: string;
+  /** Identifier of the project. */
+  projectId: string;
 }
 
 /**

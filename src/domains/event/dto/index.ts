@@ -82,17 +82,33 @@ export class IssueChangeLogDTO {
   }
 }
 
+/**
+ * Data transfer object for modifying blocker status.
+ */
 export class BlockerStatusModificationDTO {
+  /** Unique identifier of the modification. */
   id: string;
-  providerEventId: string;
+  /** Identifier of the provider event associated with the modification. */
+  providerEventId: string | null;
+  /** Identifier of the user who emitted the modification. */
   userEmitterId: string | null;
+  /** Identifier of the issue that is being modified. */
   issueId: string;
+  /** New status of the blocker. */
   status: string;
+  /** Date and time when the event was registered. */
   eventRegisteredAt?: Date;
+  /** Date and time when the modification was created. */
   createdAt: Date;
+  /** Reason for the modification. */
   reason: string;
+  /** Additional comment related to the modification. */
   comment: string;
 
+  /**
+   * Constructs a new instance of BlockerStatusModificationDTO.
+   * @param input An object containing properties to initialize the DTO.
+   */
   constructor(input: BlockerStatusModificationDTO) {
     this.id = input.id;
     this.providerEventId = input.providerEventId;

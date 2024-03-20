@@ -106,6 +106,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         title: issue.title,
         priority: issue.priority,
         storyPoints: issue.storyPoints,
+        isBlocked: issue.isBlocked,
         labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
       });
     });

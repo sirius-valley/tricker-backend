@@ -115,4 +115,20 @@
  *           example:
  *             message: "Linear Integration Error"
  *             errors: {}
+ *     ForbiddenException:
+ *       description: "Forbidden exception"
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: "object"
+ *             properties:
+ *               message:
+ *                 type: "string"
+ *                 description: "The error message"
+ *               code:
+ *                 type: number
+ *                 description: Error code
+ *           example:
+ *             message: "Forbidden. You are not allowed to perform this action"
+ *             code: 403
  * */

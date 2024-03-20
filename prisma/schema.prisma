@@ -49,6 +49,7 @@ model Issue {
   description     String?
   priority        Priority
   storyPoints     Int?
+  isBlocked       Boolean   @default(false)
   createdAt       DateTime  @default(now())
   deletedAt       DateTime?
 
@@ -168,7 +169,7 @@ model Label {
 
 model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  providerEventId   String
+  providerEventId   String?
   userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   status            BlockType
