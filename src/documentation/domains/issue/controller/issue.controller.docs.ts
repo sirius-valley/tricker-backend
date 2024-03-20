@@ -162,4 +162,72 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
+ *   /api/issue/pm/{userId}/project/{projectId}:
+ *     post:
+ *       summary: Retrieve filtered and paginated issues for the project manager general view of the issues.
+ *       tags: [Issue]
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: userId
+ *           required: true
+ *           description: The ID of the project manager.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: The ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174001"
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PMOptionalIssueFiltersDTO'
+ *       responses:
+ *         '200':
+ *           description: Successfully retrieved filtered and paginated issues.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/IssueViewDTO'
+ *           examples:
+ *             example:
+ *               - id: "1"
+ *                 assignee:
+ *                   id: "1"
+ *                   name: "John Doe"
+ *                   profileUrl: "https://example.com/profile/1"
+ *                 stage:
+ *                   id: "1"
+ *                   name: "Backlog"
+ *                   type: "BACKLOG"
+ *                 name: "Issue 1"
+ *                 title: "First Issue"
+ *                 priority: "HIGH_PRIORITY"
+ *                 storyPoints: 5
+ *                 labels:
+ *                   - id: "101"
+ *                     name: "Frontend"
+ *                   - id: "102"
+ *                     name: "Backend"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '500':
+ *           $ref: '#/components/responses/InternalServerErrorException'
  */

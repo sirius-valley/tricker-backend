@@ -126,6 +126,9 @@
  *           type: number
  *           nullable: true
  *           description: The story points associated with the issue.
+ *         isBlocked:
+ *           type: boolean
+ *           description: A boolean that defines if the issue is currently blocked
  *         labels:
  *           type: array
  *           items:
@@ -145,6 +148,7 @@
  *         title: "Complete task 1"
  *         priority: "HIGH"
  *         storyPoints: 5
+ *         isBlocked: false
  *         labels:
  *           - id: "123e4567-e89b-12d3-a456-426614174013"
  *             name: "Bug"

@@ -1,10 +1,10 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateRequest } from '@utils';
+import { db, validateRequest, validateUserIsProjectManager } from '@utils';
 import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO } from '@domains/issue/dto';
+import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
@@ -24,6 +24,15 @@ issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectP
   const { stageIds, priorities, isOutOfEstimation, cursor } = req.body;
 
   const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor });
+
+  return res.status(HttpStatus.OK).json(issues);
+});
+
+issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(PMOptionalIssueFiltersDTO, 'body'), validateUserIsProjectManager(), async (req: Request<UserProjectParamsDTO, any, PMOptionalIssueFiltersDTO>, res: Response) => {
+  const { userId, projectId } = req.params;
+  const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor } = req.body;
+
+  const issues: IssueViewDTO[] = await issueService.getPMIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, assigneeIds });
 
   return res.status(HttpStatus.OK).json(issues);
 });

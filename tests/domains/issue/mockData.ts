@@ -4,6 +4,8 @@ import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
 import { StageType } from '@prisma/client';
 import { type ProjectStageDTO } from '@domains/projectStage/dto';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type RoleDTO } from '@domains/role/dto';
 
 export const mockIssueDTO: IssueDTO = {
   assigneeId: 'user123',
@@ -97,6 +99,18 @@ export const mockNotRegisteredUserDTO: UserDTO = {
   emittedUserProjectRole: [],
 };
 
+export const mockLogicallyDeletedUserDTO: UserDTO = {
+  id: 'user123',
+  cognitoId: 'cognito145',
+  email: 'johnDoe@mail.com',
+  name: 'John Doe',
+  profileImage: null,
+  projectsRoleAssigned: [],
+  createdAt: new Date('2024-03-12T10:00:00Z'),
+  deletedAt: new Date('2024-03-12T10:00:00Z'),
+  emittedUserProjectRole: [],
+};
+
 export const mockProjectDTO: ProjectDTO = {
   id: 'Project777',
   name: 'Tricker',
@@ -123,10 +137,21 @@ export const mockIssueViewDTO: IssueViewDTO = {
   title: 'Fake issue',
   priority: 'MEDIUM_PRIORITY',
   storyPoints: 1,
+  isBlocked: false,
   labels: [],
 };
 
-export const mockIssueFilterParameters = {
+export const mockDevIssueFilterParameters = {
+  userId: 'user124',
+  projectId: 'Project777',
+  stageIds: ['stage456'],
+  priorities: ['MEDIUM_PRIORITY' as Priority],
+  isOutOfEstimation: false,
+  labelIds: undefined,
+  cursor: undefined,
+};
+
+export const mockPMIssueFilterParameters = {
   userId: 'user123',
   projectId: 'Project777',
   stageIds: ['stage456'],
@@ -135,4 +160,25 @@ export const mockIssueFilterParameters = {
   isOutOfEstimation: false,
   labelIds: undefined,
   cursor: undefined,
+};
+
+export const mockUserProjectRoleDTO: UserProjectRoleDTO = {
+  id: 'userProjectRole852',
+  userId: 'user123',
+  userEmitterId: 'user123',
+  projectId: 'Project777',
+  roleId: 'role333',
+  createdAt: new Date('2024-03-12T09:00:00Z'),
+  updatedAt: new Date('2024-03-12T09:00:00Z'),
+  deletedAt: null,
+};
+
+export const mockPMRoleDTO: RoleDTO = {
+  id: 'role888',
+  name: 'Project Manager',
+};
+
+export const mockDevRoleDTO: RoleDTO = {
+  id: 'role111',
+  name: 'Developer',
 };
