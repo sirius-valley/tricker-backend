@@ -88,7 +88,7 @@ export class IsAfterOrEqualDateConstraint implements ValidatorConstraintInterfac
   validate(dateInput: any, args: ValidationArguments): boolean | Promise<boolean> {
     const [date] = args.constraints;
     const userInput = new Date(dateInput as string);
-    return typeof dateInput !== 'string' && userInput.toString() !== 'Invalid Date' && date instanceof Date && userInput.getTime() >= date.getTime();
+    return typeof dateInput === 'string' && userInput.toString() !== 'Invalid Date' && date instanceof Date && userInput.getTime() >= date.getTime();
   }
 }
 

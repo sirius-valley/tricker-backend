@@ -2,7 +2,7 @@ import { type Request, type Response } from 'express';
 import { validateRequest, validateUserIsProjectManager, ValidationException, userProjectRoleRepository, roleRepository, ForbiddenException, NotFoundException } from '@utils';
 import { IsString, IsNumber } from 'class-validator';
 import { mockDevRoleDTO, mockPMRoleDTO, mockUserProjectRoleDTO } from '../domains/issue/mockData';
-import { type UserProjectParamsDTO } from '@domains/issue/dto';
+import { ManualTimeModificationRequestDTO, type UserProjectParamsDTO } from '@domains/issue/dto';
 
 class TargetClass {
   @IsString()
@@ -55,6 +55,50 @@ describe('validations tests', () => {
     const next = jest.fn();
 
     await expect(validateRequest(ExtendedTargetClass, 'body')(req, res, next)).rejects.toThrow(ValidationException);
+    expect(next).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('ManualTimeModificationRequestDTO validation tests', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('Should successfully validate DTO', async () => {
+    const date = new Date().toISOString();
+    const req = {
+      body: {
+        timeAmount: 10,
+        date, // Use today's date
+        reason: 'Testing',
+      },
+    } as unknown as Request;
+
+    const res = {} as unknown as Response;
+    const next = jest.fn();
+
+    await validateRequest(ManualTimeModificationRequestDTO, 'body')(req, res, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(req.body).toBeInstanceOf(ManualTimeModificationRequestDTO);
+    expect(req.body.timeAmount).toBe(10);
+    expect(req.body.date).toBe(date);
+    expect(req.body.reason).toBe('Testing');
+  });
+
+  it('Should throw exception when validating DTO with invalid data', async () => {
+    const req = {
+      body: {
+        timeAmount: -10, // Negative time amount
+        date: 'invalid date', // Invalid date format
+        reason: '', // Empty reason
+      },
+    } as unknown as Request;
+
+    const res = {} as unknown as Response;
+    const next = jest.fn();
+
+    await expect(validateRequest(ManualTimeModificationRequestDTO, 'body')(req, res, next)).rejects.toThrow(ValidationException);
     expect(next).toHaveBeenCalledTimes(0);
   });
 });
