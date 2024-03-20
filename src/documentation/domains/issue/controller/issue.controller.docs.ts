@@ -146,6 +146,7 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
+ *
  *   /api/issue/pm/{userId}/project/{projectId}:
  *     post:
  *       summary: Retrieve filtered and paginated issues for the project manager general view of the issues.
@@ -212,6 +213,99 @@
  *           $ref: '#/components/responses/ForbiddenException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
- *         '500':
- *           $ref: '#/components/responses/InternalServerErrorException'
+ *
+ *   /api/issue/{issueId}/flag/add:
+ *     post:
+ *       summary: Flag an issue as blocked.
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: "path"
+ *           name: "issueId"
+ *           description: "The ID of the issue to flag."
+ *           required: true
+ *           type: "string"
+ *           example: "b6b04c2d-5e2c-4dcb-8ce3-2d5d98d10ade"
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/IssueAddBlockerParamsDTO"
+ *             example:
+ *               reason: "Blocked by card b6b04c2d-5e2c-4dcb-8ce3-2d5d98d10eru"
+ *               comment: "Waiting for resolution"
+ *       responses:
+ *         200:
+ *           description: "Issue successfully flagged as blocked."
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/schemas/IssueExtendedDTO"
+ *           examples:
+ *             application/json:
+ *               id: a3d3c9ff-7b46-4d2d-bd73-e3a6ec6c2547
+ *               assignee:
+ *                 id: 1f94d52d-aa8c-4bb9-85d6-0c3453c06738
+ *                 name: John Doe
+ *                 profileUrl: https://example.com/profile/1
+ *               name: TRI-120
+ *               title: Issue Title
+ *               description: Description of the issue.
+ *               priority: HIGH_PRIORITY
+ *               storyPoints: 5
+ *               isBlocked: true
+ *               labels:
+ *                 - id: 8713b333-6b7d-41b8-b39a-ebb9bcfa0b31
+ *                   name: Bug
+ *                 - id: 96d44c11-b28b-46ab-a17d-3e04f672f18f
+ *                   name: Feature
+ *               chronology:
+ *                 - eventId: e859ce2f-1d08-4a89-bbf2-01922c438c3d
+ *                   message: Issue blocked by user
+ *                   comment: This is a comment explaining why the issue was blocked
+ *                   isBlocker: true
+ *                   time: 13:45:22
+ *                   date: '2024-03-20'
+ *                 - eventId: b04a231e-25e0-4aef-8dd9-69f3b0b5e059
+ *                   message: Issue unblocked by user
+ *                   comment: This is a comment explaining why the issue was unblocked
+ *                   isBlocker: false
+ *                   time: 14:30:10
+ *                   date: '2024-03-21'
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *   /api/issue/{issueId}/flag/remove:
+ *     delete:
+ *       summary: "Remove the blocked flag from an issue."
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: "path"
+ *           name: "issueId"
+ *           description: "The ID of the issue to unflag."
+ *           required: true
+ *           type: "string"
+ *           example: "12345"
+ *       responses:
+ *         204:
+ *           description: "Issue successfully unflagged."
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  */

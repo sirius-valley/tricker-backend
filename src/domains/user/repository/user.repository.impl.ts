@@ -117,6 +117,11 @@ export class UserRepositoryImpl implements UserRepository {
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
   }
 
+  /**
+   * Retrieves a user by their Cognito ID.
+   * @param cognitoId - The Cognito ID of the user.
+   * @returns A Promise that resolves to a UserDTO object if the user is found, or null if not found.
+   */
   async getByCognitoId(cognitoId: string): Promise<UserDTO | null> {
     const user: User | null = await this.db.user.findUnique({
       where: {

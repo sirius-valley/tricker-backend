@@ -342,17 +342,41 @@ export class IssueViewDTO {
   }
 }
 
+/**
+ * Represents detailed information about an issue.
+ */
 export class IssueDetailsDTO {
+  /** The ID of the issue. */
   id: string;
+
+  /** Information about the assignee of the issue. */
   assignee: UserIssueDTO | null;
+
+  /** The name of the issue. */
   name: string;
+
+  /** The title of the issue. */
   title: string;
+
+  /** The description of the issue. */
   description: string | null;
+
+  /** The priority of the issue. */
   priority: Priority;
+
+  /** The story points associated with the issue. */
   storyPoints: number | null;
+
+  /** A boolean flag indicating whether the issue is blocked. */
   isBlocked: boolean;
+
+  /** The labels associated with the issue. */
   labels: LabelDTO[];
 
+  /**
+   * Constructs a new instance of the IssueDetailsDTO class.
+   * @param issue - The issue object used to initialize the instance.
+   */
   constructor(issue: IssueDetailsDTO) {
     this.id = issue.id;
     this.assignee = issue.assignee;
@@ -366,9 +390,17 @@ export class IssueDetailsDTO {
   }
 }
 
+/**
+ * Represents extended information about an issue, including its chronology.
+ */
 export class IssueExtendedDTO extends IssueDetailsDTO {
+  /** The chronological history log of events associated with the issue. */
   chronology: EventHistoryLogDTO[];
 
+  /**
+   * Constructs a new instance of the IssueExtendedDTO class.
+   * @param issue - The issue object used to initialize the instance.
+   */
   constructor(issue: IssueExtendedDTO) {
     super(issue);
     this.chronology = issue.chronology;
@@ -385,12 +417,32 @@ export interface UserProject {
   projectId: string;
 }
 
+/**
+ * Represents an association between a user and an issue.
+ */
 export interface IssueAndAssignee {
+  /**
+   * The Cognito ID of the user associated with the issue.
+   */
   userCognitoId: string;
+
+  /**
+   * The ID of the issue.
+   */
   issueId: string;
 }
 
+/**
+ * Represents the status of an issue, indicating whether it's blocked or not.
+ */
 export interface IssueAndIsBlocked {
+  /**
+   * The ID of the issue.
+   */
   issueId: string;
+
+  /**
+   * A boolean flag indicating whether the issue is blocked or not.
+   */
   isBlocked: boolean;
 }

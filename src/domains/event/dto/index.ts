@@ -262,32 +262,92 @@ export interface TimeTrackingDates {
   endDate: Date | null;
 }
 
+/**
+ * Data Transfer Object (DTO) for adding a blocker to an issue.
+ */
 export class IssueAddBlockerParamsDTO {
+  /**
+   * The reason for adding the blocker.
+   */
   @IsString()
   @IsNotEmpty()
   reason!: string;
 
+  /**
+   * Additional comments about the blocker.
+   */
   @IsString()
   @IsNotEmpty()
   comment!: string;
 }
 
+/**
+ * Input interface for adding a blocker to an issue.
+ */
 export interface IssueAddBlockerInput {
+  /**
+   * The ID of the issue to which the blocker is being added.
+   */
   issueId: string;
+
+  /**
+   * The Cognito ID of the user adding the blocker.
+   */
   userCognitoId: string;
+
+  /**
+   * The ID of the event from the provider, if available.
+   */
   providerEventId: string | null;
+
+  /**
+   * The reason for adding the blocker.
+   */
   reason: string;
+
+  /**
+   * Additional comments about the blocker.
+   */
   comment: string;
 }
 
+/**
+ * Data Transfer Object (DTO) for representing event history logs.
+ */
 export class EventHistoryLogDTO {
+  /**
+   * The ID of the event.
+   */
   eventId: string;
+
+  /**
+   * The message associated with the event.
+   */
   message: string;
+
+  /**
+   * Additional comments about the event.
+   */
   comment: string;
+
+  /**
+   * Indicates whether the event is a blocker.
+   */
   isBlocker: boolean;
+
+  /**
+   * The time of the event.
+   */
   time: string;
+
+  /**
+   * The date of the event.
+   */
   date: string;
 
+  /**
+   * Constructs an event history log object.
+   */
   constructor(history: EventHistoryLogDTO) {
     this.eventId = history.eventId;
     this.message = history.message;

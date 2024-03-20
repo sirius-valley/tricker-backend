@@ -218,4 +218,91 @@
  *         id: "123456"
  *         name: "John Doe"
  *         profileUrl: "https://example.com/profile/johndoe"
+ *
+ *     EventHistoryLogDTO:
+ *       type: object
+ *       properties:
+ *         eventId:
+ *           type: string
+ *           example: "abc123"
+ *         message:
+ *           type: string
+ *           example: "Issue blocked by user"
+ *         comment:
+ *           type: string
+ *           example: "This is a comment explaining why the issue was blocked"
+ *         isBlocker:
+ *           type: boolean
+ *           example: true
+ *         time:
+ *           type: string
+ *           example: "13:45:22"
+ *         date:
+ *           type: string
+ *           example: "2024-03-20"
+ *
+ *     IssueDetailsDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "123456"
+ *         assignee:
+ *           $ref: "#/components/schemas/UserIssueDTO"
+ *         name:
+ *           type: string
+ *           example: "Issue 1"
+ *         title:
+ *           type: string
+ *           example: "First Issue"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "This is the description of the issue."
+ *         priority:
+ *           type: string
+ *           enum:
+ *             - "NO_PRIORITY"
+ *             - "LOW_PRIORITY"
+ *             - "MEDIUM_PRIORITY"
+ *             - "HIGH_PRIORITY"
+ *             - "URGENT"
+ *           example: "HIGH_PRIORITY"
+ *         storyPoints:
+ *           type: number
+ *           nullable: true
+ *           example: 5
+ *         isBlocked:
+ *           type: boolean
+ *           example: false
+ *         labels:
+ *           type: array
+ *           items:
+ *             $ref: "#/components/schemas/LabelDTO"
+ *
+ *     IssueExtendedDTO:
+ *       allOf:
+ *         - $ref: "#/components/schemas/IssueDetailsDTO"
+ *         - type: object
+ *           properties:
+ *             chronology:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/EventHistoryLogDTO"
+ *
+ *     IssueAddBlockerParamsDTO:
+ *       type: object
+ *       properties:
+ *         reason:
+ *           type: string
+ *           description: The reason for adding the blocker.
+ *         comment:
+ *           type: string
+ *           description: Additional comments about the blocker.
+ *       required:
+ *         - reason
+ *         - comment
+ *       example:
+ *         reason: Blocked by card TRI-120
+ *         comment: Waiting it to be finished
  * */

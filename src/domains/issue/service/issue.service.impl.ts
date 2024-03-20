@@ -106,6 +106,11 @@ export class IssueServiceImpl implements IssueService {
     return this.issueRepository.getWithFilters(filters);
   }
 
+  /**
+   * Blocks an issue using a Tricker UI.
+   * @param input - An object containing the issue ID, user ID, reason, and comment for blocking the issue.
+   * @returns A Promise that resolves to an IssueExtendedDTO object representing the updated issue details.
+   */
   async blockIssueWithTrickerUI(input: IssueAddBlockerInput): Promise<IssueExtendedDTO> {
     const user: UserDTO = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
 
@@ -124,6 +129,13 @@ export class IssueServiceImpl implements IssueService {
     return new IssueExtendedDTO({ ...issue, chronology: [] });
   }
 
+  /**
+   * Unblocks the issue using the Tricker UI.
+   * @param input - An object containing the user Cognito ID and issue ID.
+   * @returns A Promise that resolves to an IssueExtendedDTO representing the updated issue.
+   * @throws NotFoundException if the user or issue is not found.
+   * @throws ForbiddenException if the user is not the assignee of the issue.
+   */
   async unblockIssueWithTrickerUI(input: IssueAndAssignee): Promise<IssueExtendedDTO> {
     const user: UserDTO = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
     const issue: IssueDTO = (await this.issueRepository.getById(input.issueId))!;
@@ -177,14 +189,25 @@ export class IssueServiceImpl implements IssueService {
     return project;
   }
 
+  /**
+   * Validates the issue and assignee.
+   * @param input - An object containing the user Cognito ID and issue ID.
+   * @returns A Promise that resolves to a UserDTO representing the validated user.
+   * @throws NotFoundException if the user or issue is not found.
+   * @throws ForbiddenException if the user is not the assignee of the issue.
+   */
   private async validateIssueAndAssignee(input: IssueAndAssignee): Promise<UserDTO> {
+    console.log(input.userCognitoId);
     const user: UserDTO | null = await this.userRepository.getByCognitoId(input.userCognitoId);
     if (user === null) {
       throw new NotFoundException('User');
     }
+    if (user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
 
     const issue: IssueDTO | null = await this.issueRepository.getById(input.issueId);
-    if (issue === null) {
+    if (issue === null || issue.deletedAt !== null) {
       throw new NotFoundException('Issue');
     }
 

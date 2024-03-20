@@ -112,6 +112,11 @@ export class IssueRepositoryImpl implements IssueRepository {
     });
   }
 
+  /**
+   * Updates the "isBlocked" status of an issue.
+   * @param input - An object containing the issue ID and the new "isBlocked" status.
+   * @returns A Promise that resolves to an IssueDetailsDTO object representing the updated issue details.
+   */
   async updateIsBlocked(input: IssueAndIsBlocked): Promise<IssueDetailsDTO> {
     const issue = await this.db.issue.update({
       where: {

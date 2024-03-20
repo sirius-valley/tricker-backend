@@ -8,6 +8,7 @@ import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueVi
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -54,19 +55,20 @@ issueRouter.get('/:issueId/worked-time', validateRequest(IssueIdParamDTO, 'param
 
 issueRouter.post('/:issueId/flag/add', validateRequest(IssueIdParamDTO, 'params'), validateRequest(IssueAddBlockerParamsDTO, 'body'), async (req: Request<IssueIdParamDTO, any, IssueAddBlockerParamsDTO>, res: Response) => {
   const { issueId } = req.params;
-  const { userId } = res.locals;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
   const { reason, comment } = req.body;
 
-  const issue: IssueExtendedDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: userId, reason, comment, providerEventId: null });
+  console.log('entrando controlador');
+  const issue: IssueExtendedDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: sub, reason, comment, providerEventId: null });
 
   return res.status(HttpStatus.OK).json(issue);
 });
 
 issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = req.params;
-  const { userId } = res.locals;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const issue: IssueExtendedDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: userId });
+  const issue: IssueExtendedDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.status(HttpStatus.OK).json(issue);
+  return res.status(HttpStatus.NO_CONTENT).json(issue);
 });
