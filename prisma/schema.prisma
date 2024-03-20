@@ -219,6 +219,8 @@ model ProjectStage {
 
   project Project @relation(fields: [projectId], references: [id])
   stage   Stage   @relation(fields: [stageId], references: [id])
+
+  @@unique([stageId, projectId])
 }
 
 model ProjectLabel {
