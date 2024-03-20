@@ -30,10 +30,12 @@ export class ProjectDataDTO {
 
 export class UserRole {
   email: string;
+  name: string;
   role: string;
 
   constructor(userRole: UserRole) {
     this.email = userRole.email;
+    this.name = userRole.name;
     this.role = userRole.role;
   }
 }
