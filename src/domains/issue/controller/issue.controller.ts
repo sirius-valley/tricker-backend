@@ -4,10 +4,10 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, type IssueExtendedDTO } from '@domains/issue/dto';
+import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
-import { IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
 import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
@@ -58,17 +58,16 @@ issueRouter.post('/:issueId/flag/add', validateRequest(IssueIdParamDTO, 'params'
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
   const { reason, comment } = req.body;
 
-  console.log('entrando controlador');
-  const issue: IssueExtendedDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: sub, reason, comment, providerEventId: null });
+  const event: BlockerStatusModificationDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: sub, reason, comment, providerEventId: null });
 
-  return res.status(HttpStatus.OK).json(issue);
+  return res.status(HttpStatus.OK).json(event);
 });
 
 issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = req.params;
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const issue: IssueExtendedDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
+  const event: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.status(HttpStatus.NO_CONTENT).json(issue);
+  return res.status(HttpStatus.NO_CONTENT).json(event);
 });

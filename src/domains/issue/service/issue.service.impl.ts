@@ -1,9 +1,9 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
-import { type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -110,11 +110,15 @@ export class IssueServiceImpl implements IssueService {
    * Blocks an issue using a Tricker UI.
    * @param input - An object containing the issue ID, user ID, reason, and comment for blocking the issue.
    * @returns A Promise that resolves to an IssueExtendedDTO object representing the updated issue details.
+   * @throws {ConflictException} If the issue is already blocked.
    */
-  async blockIssueWithTrickerUI(input: IssueAddBlockerInput): Promise<IssueExtendedDTO> {
-    const user: UserDTO = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
+  async blockIssueWithTrickerUI(input: IssueAddBlockerInput): Promise<BlockerStatusModificationDTO> {
+    const { user, issue } = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
+    if (issue.isBlocked) {
+      throw new ConflictException('Issue already blocked');
+    }
 
-    await this.eventRepository.createIssueBlockEvent({
+    const blockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
       userEmitterId: user.id,
       reason: input.reason,
@@ -124,9 +128,9 @@ export class IssueServiceImpl implements IssueService {
       type: TrickerBlockEventType.BLOCKED_BY,
     });
 
-    const issue: IssueDetailsDTO = await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: true });
-    // TODO: will create chronology logic in issue TRI-149
-    return new IssueExtendedDTO({ ...issue, chronology: [] });
+    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: true });
+
+    return blockEvent;
   }
 
   /**
@@ -136,10 +140,12 @@ export class IssueServiceImpl implements IssueService {
    * @throws NotFoundException if the user or issue is not found.
    * @throws ForbiddenException if the user is not the assignee of the issue.
    */
-  async unblockIssueWithTrickerUI(input: IssueAndAssignee): Promise<IssueExtendedDTO> {
-    const user: UserDTO = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
-    const issue: IssueDTO = (await this.issueRepository.getById(input.issueId))!;
-    await this.eventRepository.createIssueBlockEvent({
+  async unblockIssueWithTrickerUI(input: IssueAndAssignee): Promise<BlockerStatusModificationDTO> {
+    const { user, issue } = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
+    if (!issue.isBlocked) {
+      throw new ConflictException('Issue already unblocked');
+    }
+    const unblockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
       userEmitterId: user.id,
       reason: `Unblocked by user ${user.name}.`,
@@ -149,9 +155,9 @@ export class IssueServiceImpl implements IssueService {
       type: TrickerBlockEventType.BLOCKED_BY,
     });
 
-    const updatedIssue: IssueDetailsDTO = await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: false });
-    // TODO: will create chronology logic in issue TRI-149
-    return new IssueExtendedDTO({ ...updatedIssue, chronology: [] });
+    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: false });
+
+    return unblockEvent;
   }
 
   /**
@@ -196,8 +202,7 @@ export class IssueServiceImpl implements IssueService {
    * @throws NotFoundException if the user or issue is not found.
    * @throws ForbiddenException if the user is not the assignee of the issue.
    */
-  private async validateIssueAndAssignee(input: IssueAndAssignee): Promise<UserDTO> {
-    console.log(input.userCognitoId);
+  private async validateIssueAndAssignee(input: IssueAndAssignee): Promise<{ user: UserDTO; issue: IssueDTO }> {
     const user: UserDTO | null = await this.userRepository.getByCognitoId(input.userCognitoId);
     if (user === null) {
       throw new NotFoundException('User');
@@ -215,6 +220,6 @@ export class IssueServiceImpl implements IssueService {
       throw new ForbiddenException();
     }
 
-    return user;
+    return { user, issue };
   }
 }

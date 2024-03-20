@@ -10,7 +10,7 @@
  *       security:
  *         - bearerAuth: []
  *       parameters:
- *         - $ref: '#/components/parameters/IssuePauseParams'
+ *         - $ref: '#/components/parameters/IssueIdParamDTO'
  *       responses:
  *         '200':
  *           description: "Successful operation"
@@ -243,38 +243,18 @@
  *           content:
  *             application/json:
  *               schema:
- *                 $ref: "#/components/schemas/IssueExtendedDTO"
+ *                 $ref: "#/components/schemas/BlockerStatusModificationDTO"
  *           examples:
  *             application/json:
- *               id: a3d3c9ff-7b46-4d2d-bd73-e3a6ec6c2547
- *               assignee:
- *                 id: 1f94d52d-aa8c-4bb9-85d6-0c3453c06738
- *                 name: John Doe
- *                 profileUrl: https://example.com/profile/1
- *               name: TRI-120
- *               title: Issue Title
- *               description: Description of the issue.
- *               priority: HIGH_PRIORITY
- *               storyPoints: 5
- *               isBlocked: true
- *               labels:
- *                 - id: 8713b333-6b7d-41b8-b39a-ebb9bcfa0b31
- *                   name: Bug
- *                 - id: 96d44c11-b28b-46ab-a17d-3e04f672f18f
- *                   name: Feature
- *               chronology:
- *                 - eventId: e859ce2f-1d08-4a89-bbf2-01922c438c3d
- *                   message: Issue blocked by user
- *                   comment: This is a comment explaining why the issue was blocked
- *                   isBlocker: true
- *                   time: 13:45:22
- *                   date: '2024-03-20'
- *                 - eventId: b04a231e-25e0-4aef-8dd9-69f3b0b5e059
- *                   message: Issue unblocked by user
- *                   comment: This is a comment explaining why the issue was unblocked
- *                   isBlocker: false
- *                   time: 14:30:10
- *                   date: '2024-03-21'
+ *               id: d4dbf27b-9ed0-4d7f-b6b7-50b5c9aabcde
+ *               providerEventId: e12eef67-3b10-4a82-b0fb-6dfac2d9abcd
+ *               userEmitterId: c8acbf32-5f3a-4e14-8f1c-28e5d0faabcd
+ *               issueId: a6b5e9d3-fc47-4b71-bc81-d6c4f2feabcd
+ *               status: Resolved
+ *               eventRegisteredAt: "2024-03-10T08:15:30Z"
+ *               createdAt: "2024-03-10T08:20:45Z"
+ *               reason: "Resolved after investigation"
+ *               comment: "Blocker was due to misconfiguration in the database server"
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':
@@ -283,6 +263,8 @@
  *           $ref: '#/components/responses/ForbiddenException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  *   /api/issue/{issueId}/flag/remove:
  *     delete:
  *       summary: "Remove the blocked flag from an issue."
@@ -296,7 +278,7 @@
  *           description: "The ID of the issue to unflag."
  *           required: true
  *           type: "string"
- *           example: "12345"
+ *           example: "275a2419-ef61-4bee-95d8-572f80ec5b03"
  *       responses:
  *         204:
  *           description: "Issue successfully unflagged."
@@ -308,4 +290,6 @@
  *           $ref: '#/components/responses/ForbiddenException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  */

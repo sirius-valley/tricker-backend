@@ -16,6 +16,7 @@ export class IssueDTO {
   description: string | null;
   priority: Priority;
   storyPoints: number | null;
+  isBlocked: boolean;
   createdAt: Date;
   deletedAt: Date | null;
 
@@ -31,6 +32,7 @@ export class IssueDTO {
     this.description = issue.description;
     this.priority = issue.priority;
     this.storyPoints = issue.storyPoints;
+    this.isBlocked = issue.isBlocked;
     this.createdAt = issue.createdAt;
     this.deletedAt = issue.deletedAt;
   }

@@ -20,6 +20,7 @@ export const mockIssueDTO: IssueDTO = {
   providerIssueId: 'externalIssue456',
   stageId: 'stage789',
   title: 'Sample Issue Title',
+  isBlocked: false,
 };
 
 export const invalidMockTimeTrackingDTO: TimeTrackingDTO = {

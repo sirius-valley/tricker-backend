@@ -18,7 +18,8 @@ import {
   mockIssueAddBlockerInput,
   mockTrickerUnBlockEventDTO,
 } from './mockData';
-import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type BlockerStatusModificationDTO } from '@domains/event/dto';
 
 describe('issue service tests', () => {
   let issueService: IssueService;
@@ -212,13 +213,13 @@ describe('issue service tests', () => {
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerBlockEventDTO);
       issueRepositoryMock.updateIsBlocked.mockResolvedValue(mockIssueDetailsDTO);
 
-      const expected: IssueExtendedDTO = { ...mockIssueDetailsDTO, chronology: [] };
+      const expected: BlockerStatusModificationDTO = mockTrickerBlockEventDTO;
       // when
-      const received: IssueExtendedDTO = await issueService.blockIssueWithTrickerUI(mockIssueAddBlockerInput);
+      const received: BlockerStatusModificationDTO = await issueService.blockIssueWithTrickerUI(mockIssueAddBlockerInput);
       // then
       expect.assertions(2);
-      expect(received.assignee?.id).toEqual(expected.assignee?.id);
-      expect(received.name).toEqual(expected.name);
+      expect(received.reason).toEqual(expected.reason);
+      expect(received.comment).toEqual(expected.comment);
     });
 
     it('should throw NotFoundException when user id is not correct', async (): Promise<void> => {
@@ -263,6 +264,16 @@ describe('issue service tests', () => {
       await expect(issueService.blockIssueWithTrickerUI({ ...mockIssueAddBlockerInput, issueId: wrongUserId })).rejects.toThrow("Not found. Couldn't find Issue");
     });
 
+    it('should throw ConflictException when issue is already blocked', async (): Promise<void> => {
+      // given
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, isBlocked: true });
+
+      // then
+      expect.assertions(1);
+      await expect(issueService.blockIssueWithTrickerUI(mockIssueAddBlockerInput)).rejects.toThrow(ConflictException);
+    });
+
     it('should throw ForbiddenException when user is not the owner of the issue', async (): Promise<void> => {
       // given - when
       const wrongUserId = 'wrongId';
@@ -278,14 +289,24 @@ describe('issue service tests', () => {
     it('should successfully generate the blocking event and change Issue status', async (): Promise<void> => {
       // given
       userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
-      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, isBlocked: true });
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerUnBlockEventDTO);
       issueRepositoryMock.updateIsBlocked.mockResolvedValue({ ...mockIssueDetailsDTO, isBlocked: false });
       // when
-      const received: IssueExtendedDTO = await issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput);
+      const received: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput);
       // then
       expect.assertions(1);
-      expect(received.isBlocked).toEqual(false);
+      expect(received.reason).toEqual('Unblocked by user John Doe');
+    });
+
+    it('should throw ConflictException when issue is already unblocked', async (): Promise<void> => {
+      // given
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+
+      // then
+      expect.assertions(1);
+      await expect(issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput)).rejects.toThrow(ConflictException);
     });
   });
 });

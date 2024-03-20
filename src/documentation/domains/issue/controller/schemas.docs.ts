@@ -305,4 +305,48 @@
  *       example:
  *         reason: Blocked by card TRI-120
  *         comment: Waiting it to be finished
+ *
+ *     BlockerStatusModificationDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: d4dbf27b-9ed0-4d7f-b6b7-50b5c9aabcde
+ *           description: Unique identifier of the modification.
+ *         providerEventId:
+ *           type: string
+ *           nullable: true
+ *           example: e12eef67-3b10-4a82-b0fb-6dfac2d9abcd
+ *           description: Identifier of the provider event associated with the modification.
+ *         userEmitterId:
+ *           type: string
+ *           nullable: true
+ *           example: c8acbf32-5f3a-4e14-8f1c-28e5d0faabcd
+ *           description: Identifier of the user who emitted the modification.
+ *         issueId:
+ *           type: string
+ *           example: a6b5e9d3-fc47-4b71-bc81-d6c4f2feabcd
+ *           description: Identifier of the issue that is being modified.
+ *         status:
+ *           type: string
+ *           example: Resolved
+ *           description: New status of the blocker.
+ *         eventRegisteredAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-10T08:15:30Z"
+ *           description: Date and time when the event was registered.
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-10T08:20:45Z"
+ *           description: Date and time when the modification was created.
+ *         reason:
+ *           type: string
+ *           example: Resolved after investigation
+ *           description: Reason for the modification.
+ *         comment:
+ *           type: string
+ *           example: Blocker was due to misconfiguration in the database server
+ *           description: Additional comment related to the modification.
  * */
