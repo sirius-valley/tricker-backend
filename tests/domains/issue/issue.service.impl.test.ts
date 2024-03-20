@@ -1,7 +1,12 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, roleRepositoryMock } from './mock';
+import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock, userProjectRoleRepositoryMock, roleRepositoryMock } from './mock';
 import { ConflictException, NotFoundException } from '@utils';
 import {
+  mockDevIssueFilterParameters,
+  mockPMRoleDTO,
+  mockUserProjectRoleDTO,
+  mockPMIssueFilterParameters,
+  mockLogicallyDeletedUserDTO,
   mockIssueDTO,
   stoppedMockTimeTrackingDTO,
   validMockManualTimeModification,
@@ -9,21 +14,21 @@ import {
   mockUserDTO,
   mockProjectDTO,
   mockIssueViewDTO,
-  mockDevIssueFilterParameters,
   mockNotRegisteredUserDTO,
-  mockPMRoleDTO,
-  mockUserProjectRoleDTO,
-  mockPMIssueFilterParameters,
-  mockLogicallyDeletedUserDTO,
+  validMockTimeTrackingDTO,
+  mockIssueDTOWithoutStage,
+  mockProjectStageDTO,
+  mockProjectStageDTOStarted,
 } from './mockData';
 import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type TimeTrackingDTO } from '@domains/event/dto';
 
 describe('issue service tests', () => {
   let issueService: IssueService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    issueService = new IssueServiceImpl(issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock);
+    issueService = new IssueServiceImpl(issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock);
   });
 
   describe('pause method', () => {
@@ -201,6 +206,109 @@ describe('issue service tests', () => {
       expect.assertions(2);
       expect(receivedArray.length).toEqual(expectedArray.length);
       expect(receivedArray[0].id).toEqual(expectedArray[0].id);
+    });
+  });
+
+  describe('resumeTimer method', () => {
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getById.mockResolvedValue(null);
+
+      // when
+      const result = issueService.resumeTimer(issueId);
+
+      // then
+      await expect(result).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException if issue does not have stage', async () => {
+      // given
+      const issueId = mockIssueDTOWithoutStage.id;
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTOWithoutStage);
+
+      // when
+      const result = issueService.resumeTimer(issueId);
+
+      // then
+      await expect(result).rejects.toThrow(ConflictException);
+      await expect(result).rejects.toThrow('This issue needs to be started in order to be able to track time');
+    });
+
+    it('should throw ConflictException if issue stage is not started type', async () => {
+      // given
+      const issueId = 'issueId';
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTO);
+
+      // when
+      const result = issueService.resumeTimer(issueId);
+
+      // then
+      await expect(result).rejects.toThrow(ConflictException);
+      await expect(result).rejects.toThrow('This issue needs to be started in order to be able to track time');
+    });
+
+    it('should throw ConflictException if issue is already tracking time', async () => {
+      // given
+      const issueId = 'issueId';
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(validMockTimeTrackingDTO);
+
+      const result = issueService.resumeTimer(issueId);
+
+      // then
+      await expect(result).rejects.toThrow(ConflictException);
+      await expect(result).rejects.toThrow('This issue is already tracking time');
+    });
+
+    it('should return TimeTrackingDTO if issue has never tracked time', async () => {
+      // given
+      const issueId = 'issueId';
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(null);
+      const validEvent: TimeTrackingDTO = {
+        id: 'eventId',
+        issueId: mockIssueDTO.id,
+        startTime: new Date(),
+        endTime: null,
+      };
+      eventRepositoryMock.createTimeTrackingEvent.mockResolvedValue(validEvent);
+
+      // when
+      const result = await issueService.resumeTimer(issueId);
+
+      // then
+      expect(result).toBe(validEvent);
+    });
+
+    it('should return TimeTrackingDTO if issue is legally resumed', async () => {
+      // given
+      const issueId = 'issueId';
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      const validEvent: TimeTrackingDTO = {
+        id: 'eventId',
+        issueId: mockIssueDTO.id,
+        startTime: new Date(),
+        endTime: new Date(),
+      };
+      eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(validEvent);
+      const newValidEvent: TimeTrackingDTO = {
+        id: 'newEventId',
+        issueId: mockIssueDTO.id,
+        startTime: new Date(),
+        endTime: null,
+      };
+      eventRepositoryMock.createTimeTrackingEvent.mockResolvedValue(newValidEvent);
+
+      // when
+      const result = await issueService.resumeTimer(issueId);
+
+      // then
+      expect(result).toBe(newValidEvent);
     });
   });
 });

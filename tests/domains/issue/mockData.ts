@@ -3,6 +3,7 @@ import { type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/e
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
 import { StageType } from '@prisma/client';
+import { type ProjectStageDTO } from '@domains/projectStage/dto';
 import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 import { type RoleDTO } from '@domains/role/dto';
 
@@ -21,6 +22,19 @@ export const mockIssueDTO: IssueDTO = {
   stageId: 'stage789',
   title: 'Sample Issue Title',
 };
+
+export const mockIssueDTOWithoutStage: IssueDTO = { ...mockIssueDTO, stageId: null };
+
+export const mockProjectStageDTO: ProjectStageDTO = {
+  id: 'd0725f8b-3823-4c6c-a2b8-9bd828f8b61c',
+  projectId: '28b8f326-6a73-4f0e-b625-b1f54f900e0a',
+  stageId: '83e8df95-7e75-4dde-aea1-280e144ada0e',
+  type: 'UNSTARTED',
+  createdAt: new Date(),
+  deletedAt: null,
+};
+
+export const mockProjectStageDTOStarted: ProjectStageDTO = { ...mockProjectStageDTO, type: 'STARTED' };
 
 export const invalidMockTimeTrackingDTO: TimeTrackingDTO = {
   issueId: 'issue789',

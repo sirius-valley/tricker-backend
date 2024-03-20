@@ -8,14 +8,65 @@ import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectDTO } from '@domains/project/dto';
+import { type ProjectStageRepository } from '@domains/projectStage/repository';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
     private readonly issueRepository: IssueRepository,
     private readonly eventRepository: EventRepository,
     private readonly userRepository: UserRepository,
-    private readonly projectRepository: ProjectRepository
+    private readonly projectRepository: ProjectRepository,
+    private readonly projectStageRepository: ProjectStageRepository
   ) {}
+
+  /**
+   * Resumes the timer for tracking time on an issue.
+   *
+   * This function resumes the timer for tracking time on the specified issue.
+   * It ensures that the issue exists and is in a state where time tracking can be resumed.
+   * If the issue is already tracking time, a ConflictException is thrown.
+   *
+   * @param {string} issueId - The ID of the issue to resume time tracking for.
+   * @returns {Promise<TimeTrackingDTO>} A promise that resolves to the time tracking DTO for the resumed timer.
+   * @throws {NotFoundException} If the specified issue does not exist.
+   * @throws {ConflictException} If the issue is not in a state where time tracking can be resumed, or if the issue is already tracking time.
+   */
+  async resumeTimer(issueId: string): Promise<TimeTrackingDTO> {
+    const issue = await this.issueRepository.getById(issueId);
+    if (issue == null) throw new NotFoundException('issue');
+
+    // this is kinda odd because you first have to check if your stageId is not null instead of just look for the project stage (look to do)
+    // if (issue.stageId == null && !(await this.isIssueInStartedStage(issue))) throw new ConflictException('This issue needs to be started in order to be able to track time.')
+
+    const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue);
+    if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
+
+    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+
+    if (lastTimeTrackingEvent != null && lastTimeTrackingEvent.endTime == null) {
+      throw new ConflictException('This issue is already tracking time');
+    }
+
+    return await this.eventRepository.createTimeTrackingEvent(issueId);
+  }
+
+  /**
+   * Checks if the issue has a stage assigned and that it is in started stage.
+   *
+   * @param {Object} params - Parameters for checking the issue's stage.
+   * @param {string | null} params.stageId - The ID of the current stage of the issue.
+   * @param {string} params.projectId - The ID of the project the issue belongs to.
+   * @returns {Promise<boolean>} A promise that resolves to true if the issue is in a started stage, otherwise false.
+   */
+  private async isIssueInStartedStage({ stageId, projectId }: { stageId: string | null; projectId: string }): Promise<boolean> {
+    if (stageId == null) return false;
+    const projectStage = await this.projectStageRepository.getByProjectIdAndStageId({
+      stageId,
+      projectId,
+    });
+
+    return projectStage != null && projectStage.type === 'STARTED';
+  }
 
   /**
    * Pauses the timer for a specific issue.
