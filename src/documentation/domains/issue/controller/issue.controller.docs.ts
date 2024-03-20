@@ -6,6 +6,8 @@
  *       summary: Resume timer for an issue
  *       tags:
  *         - Issue
+ *       security:
+ *         - bearerAuth: []
  *       description: Resume the timer for a specific issue.
  *       parameters:
  *         - name: issueId
