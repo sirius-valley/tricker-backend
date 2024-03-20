@@ -30,7 +30,7 @@
  *         '409':
  *           $ref: '#/components/responses/ConflictException'
  *   /api/issue/{issueId}/pause:
- *     get:
+ *     post:
  *       summary: Pause timer for an issue
  *       tags:
  *         - Issue
@@ -40,7 +40,7 @@
  *       parameters:
  *         - $ref: '#/components/parameters/IssuePauseParams'
  *       responses:
- *         '200':
+ *         '201':
  *           description: "Successful operation"
  *           content:
  *             application/json:

@@ -37,15 +37,15 @@ issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectPa
   return res.status(HttpStatus.OK).json(issues);
 });
 
-issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.post('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.pauseTimer(issueId);
 
-  return res.status(HttpStatus.OK).json(event);
+  return res.status(HttpStatus.CREATED).json(event);
 });
 
-issueRouter.post('/:issueId/resume', async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.post('/:issueId/resume', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.resumeTimer(issueId);
