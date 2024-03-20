@@ -36,12 +36,12 @@ issueRouter.get('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), 
   return res.status(HttpStatus.OK).json(event);
 });
 
-issueRouter.get('/:issueId/resume', async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.post('/:issueId/resume', async (_req: Request<IssuePauseParams>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.resumeTimer(issueId);
 
-  return res.status(HttpStatus.OK).json(event);
+  return res.status(HttpStatus.CREATED).json(event);
 });
 
 issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<Response<number>> => {

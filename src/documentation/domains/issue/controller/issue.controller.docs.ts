@@ -2,7 +2,7 @@
  * @swagger
  * paths:
  *   /api/issue/{issueId}/resume:
- *     get:
+ *     post:
  *       summary: Resume timer for an issue
  *       tags:
  *         - Issue
@@ -17,7 +17,7 @@
  *           schema:
  *             type: string
  *       responses:
- *         '200':
+ *         '201':
  *           description: Successful operation
  *           content:
  *             application/json:
