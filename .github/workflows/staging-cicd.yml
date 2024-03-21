@@ -28,6 +28,9 @@ jobs:
       - name: Build server
         run: npm run build
 
+      - name: Migrate DB
+        run: npm run db:migrate
+
         # TODO USE OIDC PROVIDER
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
