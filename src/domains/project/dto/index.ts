@@ -18,16 +18,6 @@ export class ProjectDTO {
   }
 }
 
-export class UserRole {
-  email: string;
-  role: string;
-
-  constructor(userRole: UserRole) {
-    this.email = userRole.email;
-    this.role = userRole.role;
-  }
-}
-
 // todo: replace this with something more useful in the future
 export interface BasicProjectDataDTO {
   name: string;

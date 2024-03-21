@@ -28,11 +28,29 @@ export class ProjectDataDTO {
   }
 }
 
+/**
+ * Represents a user role object with data used in integration.
+ */
 export class UserRole {
+  /**
+   * The email of the user.
+   */
   email: string;
+
+  /**
+   * The name of the user.
+   */
   name: string;
+
+  /**
+   * The role of the user.
+   */
   role: string;
 
+  /**
+   * Constructs a new instance of the UserRole class.
+   * @param {UserRole} userRole - The user role object used to initialize the instance.
+   */
   constructor(userRole: UserRole) {
     this.email = userRole.email;
     this.name = userRole.name;
