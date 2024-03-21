@@ -30,6 +30,8 @@ jobs:
 
       - name: Migrate DB
         run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{secrets.DATABASE_URL}}
 
         # TODO USE OIDC PROVIDER
       - name: Setup AWS Credentials
