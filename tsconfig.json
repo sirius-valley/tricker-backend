@@ -36,6 +36,7 @@
     "tests/**/*",
     "tests/*",
     "jest.config.ts",
+    "prisma/seed.ts"
   ],
   "exclude": ["node_modules"]
 }
