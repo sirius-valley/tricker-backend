@@ -1,5 +1,5 @@
-import { type IssueDetailsDTO, type IssueDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
-import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
+import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
 import { StageType } from '@prisma/client';
@@ -189,7 +189,7 @@ export const mockTrickerBlockEventDTO: BlockerStatusModificationDTO = {
   eventRegisteredAt: new Date('2024-03-12T09:00:00Z'),
   reason: 'Blocked by card TRI-01',
   comment: 'Waiting card TRI-01 to be finished',
-  createdAt: new Date('2024-03-12T09:00:00Z'),
+  createdAt: new Date('2024-03-12T09:01:00Z'),
   status: 'BLOCKED_BY',
   issueId: 'issue789',
   providerEventId: null,
@@ -230,4 +230,88 @@ export const mockIssueAddBlockerInput: IssueAddBlockerInput = {
   providerEventId: null,
   reason: 'Blocked by card TRI-01',
   comment: 'Waiting card TRI-01 to be finished',
+};
+
+export const mockIssueChangeLogDTO: IssueChangeLogDTO = {
+  id: 'issueChangeLog887',
+  createdAt: new Date('2024-03-11T09:00:00Z'),
+  eventRegisteredAt: new Date('2024-03-11T09:00:00Z'),
+  issueId: 'issue789',
+  providerEventId: '',
+  userEmitterId: 'user123',
+  field: 'state',
+  from: undefined,
+  to: 'TODO',
+};
+
+export const mockAssigneeIssueChangeLogDTO: IssueChangeLogDTO = {
+  id: 'issueChangeLog888',
+  createdAt: new Date('2024-03-14T09:00:00Z'),
+  eventRegisteredAt: new Date('2024-03-14T09:00:00Z'),
+  issueId: 'issue789',
+  providerEventId: '',
+  userEmitterId: 'user123',
+  field: 'assignee',
+  from: undefined,
+  to: 'John Doe',
+};
+
+export const mockIssueExtendedDTO: IssueExtendedDTO = {
+  description: 'This is a sample issue description.',
+  id: 'issue789',
+  storyPoints: 5,
+  name: 'Sample Issue',
+  priority: 'NO_PRIORITY',
+  title: 'Sample Issue Title',
+  assignee: {
+    id: 'user123',
+    name: 'John Doe',
+    profileUrl: null,
+  },
+  labels: [{ id: 'label999', name: 'Backend' }],
+  isBlocked: true,
+  chronology: [
+    {
+      isBlocker: false,
+      eventId: 'issueChangeLog887',
+      date: new Date('2024-03-11T09:00:00Z'),
+      comment: undefined,
+      message: 'Issue stage has changed to TODO',
+    },
+    {
+      isBlocker: false,
+      eventId: 'b09f23b5-7e1d-4e50-bd33-cac9cc53fccd',
+      date: new Date('2024-03-12T09:00:00Z'),
+      comment: undefined,
+      message: 'Time tracking has started',
+    },
+    {
+      isBlocker: true,
+      eventId: 'blockerEvent753',
+      date: new Date('2024-03-12T09:01:00Z'),
+      comment: 'Issue TRI-120 unblocked.',
+      message: 'Unblocked by user John Doe',
+    },
+    {
+      isBlocker: false,
+      eventId: 'b09f23b5-7e1d-4e50-bd33-cac9cc53fccd',
+      date: new Date('2024-03-12T10:00:00Z'),
+      comment: undefined,
+      message: 'Time tracking has started',
+    },
+    {
+      isBlocker: false,
+      eventId: '2bdcfe9c-80ff-43af-9f4d-438019c94e4d',
+      date: new Date('2024-03-13T09:00:00Z'),
+      comment: undefined,
+      message: 'modification for tests only',
+    },
+    {
+      isBlocker: false,
+      eventId: 'issueChangeLog888',
+      date: new Date('2024-03-14T09:00:00Z'),
+      comment: undefined,
+      message: 'Issue has been assigned to John Doe',
+    },
+  ],
 };

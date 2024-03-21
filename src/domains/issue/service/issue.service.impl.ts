@@ -1,9 +1,9 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
-import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -160,7 +160,7 @@ export class IssueServiceImpl implements IssueService {
   /**
    * Blocks an issue using a Tricker UI.
    * @param input - An object containing the issue ID, user ID, reason, and comment for blocking the issue.
-   * @returns A Promise that resolves to an IssueExtendedDTO object representing the updated issue details.
+   * @returns A Promise that resolves to an BlockerStatusModificationDTO object representing the updated issue details.
    * @throws {ConflictException} If the issue is already blocked.
    */
   async blockIssueWithTrickerUI(input: IssueAddBlockerInput): Promise<BlockerStatusModificationDTO> {
@@ -187,7 +187,7 @@ export class IssueServiceImpl implements IssueService {
   /**
    * Unblocks the issue using the Tricker UI.
    * @param input - An object containing the user Cognito ID and issue ID.
-   * @returns A Promise that resolves to an IssueExtendedDTO representing the updated issue.
+   * @returns A Promise that resolves to an BlockerStatusModificationDTO representing the updated issue.
    * @throws NotFoundException if the user or issue is not found.
    * @throws ForbiddenException if the user is not the assignee of the issue.
    */
@@ -209,6 +209,34 @@ export class IssueServiceImpl implements IssueService {
     await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: false });
 
     return unblockEvent;
+  }
+
+  /**
+   * Retrieves detailed information about a specific issue including its chronological events.
+   * @param issueId The unique identifier of the issue.
+   * @returns A promise that resolves to an IssueExtendedDTO object containing issue details and its chronological events.
+   * @throws NotFoundException if the specified issue is not found.
+   */
+  async getIssueWithChronology(issueId: string): Promise<IssueExtendedDTO> {
+    const issue: IssueDetailsDTO | null = await this.issueRepository.getIssueDetailsById(issueId);
+    if (issue === null) {
+      throw new NotFoundException('Issue');
+    }
+    const blockEvents: BlockerStatusModificationDTO[] = await this.eventRepository.getIssueBlockEvents(issueId);
+    const changeLogEvents: IssueChangeLogDTO[] = await this.eventRepository.getIssueChangeLogs(issueId);
+    const manualModifications: ManualTimeModificationDTO[] = await this.eventRepository.getIssueManualTimeModification(issueId);
+    const timeTrackingEvents: TimeTrackingDTO[] = await this.eventRepository.getIssueTimeTrackingEvents(issueId);
+
+    const parsedEvents: EventHistoryLogDTO[] = [];
+
+    this.parseBlockEvents(blockEvents, parsedEvents);
+    this.parseChangeLogEvents(changeLogEvents, parsedEvents);
+    this.parseManualTimeModifications(manualModifications, parsedEvents);
+    this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
+
+    const orderedEvents: EventHistoryLogDTO[] = parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    return { ...issue, chronology: orderedEvents };
   }
 
   /**
@@ -272,5 +300,100 @@ export class IssueServiceImpl implements IssueService {
     }
 
     return { user, issue };
+  }
+
+  /**
+   * Parses blocker events and adds them to the list of parsed events.
+   * @param blockEvents The list of blocker events to parse.
+   * @param parsedEvents The list of parsed events to update.
+   */
+  private parseBlockEvents(blockEvents: BlockerStatusModificationDTO[], parsedEvents: EventHistoryLogDTO[]): void {
+    blockEvents.forEach((event) =>
+      parsedEvents.push(
+        new EventHistoryLogDTO({
+          message: event.reason,
+          isBlocker: true,
+          date: event.createdAt,
+          eventId: event.id,
+          comment: event.comment,
+        })
+      )
+    );
+  }
+
+  /**
+   * Parses change log events and adds them to the list of parsed events.
+   * @param changeLogEvents The list of change log events to parse.
+   * @param parsedEvents The list of parsed events to update.
+   */
+  private parseChangeLogEvents(changeLogEvents: IssueChangeLogDTO[], parsedEvents: EventHistoryLogDTO[]): void {
+    changeLogEvents.forEach((event) => {
+      let message: string;
+      if (event.field !== 'state') {
+        message = event.to === undefined ? 'Issue has been unassigned' : `Issue has been assigned to ${event.to}`;
+      } else {
+        message = event.to === undefined ? 'Issue has not any stage assigned' : `Issue stage has changed to ${event.to}`;
+      }
+
+      parsedEvents.push(
+        new EventHistoryLogDTO({
+          message,
+          isBlocker: false,
+          date: event.createdAt,
+          eventId: event.id,
+          comment: undefined,
+        })
+      );
+    });
+  }
+
+  /**
+   * Parses manual time modifications and adds them to the list of parsed events.
+   * @param manualModifications The list of manual time modifications to parse.
+   * @param parsedEvents The list of parsed events to update.
+   */
+  private parseManualTimeModifications(manualModifications: ManualTimeModificationDTO[], parsedEvents: EventHistoryLogDTO[]): void {
+    manualModifications.forEach((event) =>
+      parsedEvents.push(
+        new EventHistoryLogDTO({
+          message: event.reason,
+          isBlocker: false,
+          date: event.modificationDate,
+          eventId: event.id,
+          comment: undefined,
+        })
+      )
+    );
+  }
+
+  /**
+   * Parses time tracking events and adds them to the list of parsed events.
+   * @param timeTrackingEvents The list of time tracking events to parse.
+   * @param parsedEvents The list of parsed events to update.
+   */
+  private parseTimeTrackingEvents(timeTrackingEvents: TimeTrackingDTO[], parsedEvents: EventHistoryLogDTO[]): void {
+    timeTrackingEvents.forEach((event) => {
+      parsedEvents.push(
+        new EventHistoryLogDTO({
+          message: 'Time tracking has started',
+          isBlocker: false,
+          date: event.startTime,
+          eventId: event.id,
+          comment: undefined,
+        })
+      );
+
+      if (event.endTime !== null) {
+        parsedEvents.push(
+          new EventHistoryLogDTO({
+            message: 'Time tracking has been paused',
+            isBlocker: false,
+            date: event.endTime,
+            eventId: event.id,
+            comment: undefined,
+          })
+        );
+      }
+    });
   }
 }

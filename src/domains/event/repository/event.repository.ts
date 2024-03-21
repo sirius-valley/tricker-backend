@@ -8,4 +8,6 @@ export interface EventRepository {
   updateTimeTrackingEvent: (input: UpdateTimeTracking) => Promise<TimeTrackingDTO>;
   getIssueManualTimeModification: (issueId: string) => Promise<ManualTimeModificationDTO[]>;
   getIssueTimeTrackingEvents: (issueId: string) => Promise<TimeTrackingDTO[]>;
+  getIssueBlockEvents: (issueId: string) => Promise<BlockerStatusModificationDTO[]>;
+  getIssueChangeLogs: (issueId: string) => Promise<IssueChangeLogDTO[]>;
 }

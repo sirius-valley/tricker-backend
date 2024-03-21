@@ -135,8 +135,6 @@ export class IssueRepositoryImpl implements IssueRepository {
       },
     });
 
-    console.log(issue);
-
     return new IssueDetailsDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
@@ -148,5 +146,41 @@ export class IssueRepositoryImpl implements IssueRepository {
       isBlocked: issue.isBlocked,
       labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
     });
+  }
+
+  /**
+   * Retrieves details of an issue by its unique identifier.
+   * @param id The unique identifier of the issue.
+   * @returns An issue details DTO if found, otherwise null.
+   */
+  async getIssueDetailsById(id: string): Promise<IssueDetailsDTO | null> {
+    const issue = await this.db.issue.findUnique({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        assignee: true,
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+      },
+    });
+
+    return issue === null
+      ? null
+      : new IssueDetailsDTO({
+          id: issue.id,
+          assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+          name: issue.name,
+          title: issue.title,
+          description: issue.description,
+          priority: issue.priority,
+          storyPoints: issue.storyPoints,
+          isBlocked: issue.isBlocked,
+          labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        });
   }
 }

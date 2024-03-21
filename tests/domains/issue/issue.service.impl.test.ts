@@ -21,8 +21,11 @@ import {
   mockProjectStageDTO,
   mockProjectStageDTOStarted,
   mockDevIssueFilterParameters,
+  mockIssueChangeLogDTO,
+  mockAssigneeIssueChangeLogDTO,
+  mockIssueExtendedDTO,
 } from './mockData';
-import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 
 describe('issue service tests', () => {
@@ -414,6 +417,33 @@ describe('issue service tests', () => {
 
       // then
       expect(result).toBe(newValidEvent);
+    });
+  });
+
+  describe('getIssueWithChronology method', () => {
+    it('should successfully return an IssueExtendedDTO', async (): Promise<void> => {
+      // given
+      issueRepositoryMock.getIssueDetailsById.mockResolvedValue(mockIssueDetailsDTO);
+      eventRepositoryMock.getIssueBlockEvents.mockResolvedValue([mockTrickerBlockEventDTO]);
+      eventRepositoryMock.getIssueChangeLogs.mockResolvedValue([mockIssueChangeLogDTO, mockAssigneeIssueChangeLogDTO]);
+      eventRepositoryMock.getIssueManualTimeModification.mockResolvedValue([{ ...validMockManualTimeModification, modificationDate: new Date('2024-03-13T09:00:00Z') }]);
+      eventRepositoryMock.getIssueTimeTrackingEvents.mockResolvedValue([stoppedMockTimeTrackingDTO]);
+      const expected: IssueExtendedDTO = mockIssueExtendedDTO;
+      // when
+      const received: IssueExtendedDTO = await issueService.getIssueWithChronology('issue789');
+      // then
+      expect.assertions(3);
+      expect(received.chronology.length).toEqual(6);
+      expect(received.chronology[0].message).toEqual(expected.chronology[0].message);
+      expect(received.chronology[5].date).toEqual(expected.chronology[5].date);
+    });
+
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given - when
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getIssueDetailsById.mockResolvedValue(null);
+      // then
+      await expect(issueService.getIssueWithChronology(issueId)).rejects.toThrow(NotFoundException);
     });
   });
 });
