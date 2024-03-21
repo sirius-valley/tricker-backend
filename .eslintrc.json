@@ -29,6 +29,5 @@
         "jest": true
       }
     }
-  ],
-  "ignorePatterns": ["prisma/seed.ts"]
+  ]
 }
