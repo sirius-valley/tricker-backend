@@ -48,16 +48,7 @@ export class LinearDataRetriever {
 
   async getIssues(projectId: string): Promise<Issue[]> {
     const team = await this.getTeam(projectId);
-    return (
-      await team.issues({
-        first: 250,
-        filter: {
-          state: {
-            type: { neqIgnoreCase: 'COMPLETED' },
-          },
-        },
-      })
-    ).nodes;
+    return (await team.issues({ first: 250 })).nodes;
   }
 
   async getIssue(issueId: string): Promise<Issue> {

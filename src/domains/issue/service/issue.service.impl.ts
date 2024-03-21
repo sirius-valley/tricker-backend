@@ -313,7 +313,7 @@ export class IssueServiceImpl implements IssueService {
         new EventHistoryLogDTO({
           message: event.reason,
           isBlocker: true,
-          date: event.createdAt,
+          date: event.eventRegisteredAt ?? event.createdAt,
           eventId: event.id,
           comment: event.comment,
         })
@@ -339,7 +339,7 @@ export class IssueServiceImpl implements IssueService {
         new EventHistoryLogDTO({
           message,
           isBlocker: false,
-          date: event.createdAt,
+          date: event.eventRegisteredAt ?? event.createdAt,
           eventId: event.id,
           comment: undefined,
         })

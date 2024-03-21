@@ -77,9 +77,9 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
   const { issueId } = req.params;
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
+  await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.status(HttpStatus.NO_CONTENT).json(event);
+  return res.status(HttpStatus.NO_CONTENT);
 });
 
 issueRouter.get('/:issueId/details', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
