@@ -13,7 +13,8 @@
     "dev": "npm run db:migrate && npm run db:generate && nodemon -L",
     "db:migrate": "prisma migrate deploy",
     "db:make-migrations": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:seed": "prisma seed"
   },
   "keywords": [],
   "author": "",
@@ -76,5 +77,8 @@
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
