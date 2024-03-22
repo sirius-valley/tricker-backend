@@ -4,12 +4,12 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO } from '@domains/issue/dto';
+import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
 import { type BlockerStatusModificationDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
-import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
+import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -61,6 +61,33 @@ issueRouter.get('/:issueId/worked-time', validateRequest(IssueIdParamDTO, 'param
   const workedTime: WorkedTimeDTO = await issueService.getIssueWorkedSeconds(issueId);
 
   return res.status(HttpStatus.OK).json(workedTime);
+});
+
+issueRouter.post('/:issueId/add-time', validateRequest(IssueIdParamDTO, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssueIdParamDTO, any, ManualTimeModificationRequestDTO>, res: Response) => {
+  const { issueId } = _req.params;
+  const modification = _req.body;
+
+  await issueService.createManualTimeTracking({
+    ...modification,
+    issueId,
+    date: new Date(modification.date),
+  });
+
+  return res.sendStatus(HttpStatus.OK);
+});
+
+issueRouter.post('/:issueId/remove-time', validateRequest(IssueIdParamDTO, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssueIdParamDTO, any, ManualTimeModificationRequestDTO>, res: Response) => {
+  const { issueId } = _req.params;
+  const modification = _req.body;
+
+  await issueService.createManualTimeTracking({
+    ...modification,
+    issueId,
+    timeAmount: -modification.timeAmount,
+    date: new Date(modification.date),
+  });
+
+  return res.sendStatus(HttpStatus.OK);
 });
 
 issueRouter.post('/:issueId/flag/add', validateRequest(IssueIdParamDTO, 'params'), validateRequest(IssueAddBlockerParamsDTO, 'body'), async (req: Request<IssueIdParamDTO, any, IssueAddBlockerParamsDTO>, res: Response) => {

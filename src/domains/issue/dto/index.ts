@@ -1,8 +1,9 @@
 import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
-import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { type LabelDTO } from '@domains/label/dto';
 import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
+import { IsTodayOrAfterToday } from '@utils';
 
 export class IssueDTO {
   id: string;
@@ -417,6 +418,60 @@ export interface UserProject {
   userId: string;
   /** Identifier of the project. */
   projectId: string;
+}
+
+/**
+ * Data transfer object (DTO) representing a manual time modification request.
+ * This DTO is used to validate and structure the input data for creating manual time modifications.
+ */
+export class ManualTimeModificationRequestDTO {
+  /**
+   * The amount of time to be added or subtracted. Must be a positive number.
+   */
+  @IsPositive()
+  @IsNumber()
+  timeAmount!: number;
+
+  // to transform manually into date in service
+  /**
+   * The date of the manual time modification. Must be a date string after or equal to today.
+   */
+  @IsTodayOrAfterToday()
+  @IsDateString()
+  readonly date!: string;
+
+  /**
+   * The reason for the manual time modification. Must not be empty.
+   */
+  @IsNotEmpty()
+  readonly reason!: string;
+}
+
+/**
+ * Interface representing input data for a manual time modification event.
+ *
+ * This interface defines the structure of the data required to create a manual time modification event.
+ */
+export interface ManualTimeModificationEventInput {
+  /**
+   * The ID of the issue for which the time modification is being made.
+   */
+  readonly issueId: string;
+
+  /**
+   * The amount of time to be added or subtracted. Positive if adding, negative if subtracting
+   */
+  readonly timeAmount: number;
+
+  /**
+   * The reason for the manual time modification.
+   */
+  readonly reason: string;
+
+  /**
+   * The date of the manual time modification.
+   */
+  readonly date: Date;
 }
 
 /**

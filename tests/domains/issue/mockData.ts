@@ -1,4 +1,4 @@
-import { type IssueDetailsDTO, type IssueDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
@@ -60,7 +60,6 @@ export const stoppedMockTimeTrackingDTO: TimeTrackingDTO = {
 
 export const validMockManualTimeModification: ManualTimeModificationDTO = {
   id: '2bdcfe9c-80ff-43af-9f4d-438019c94e4d',
-  userEmitterId: 'd27608ce-bf6c-4806-8e98-200e6c2cb29a',
   issueId: 'issue789',
   timeAmount: 10,
   modificationDate: new Date(),
@@ -69,7 +68,6 @@ export const validMockManualTimeModification: ManualTimeModificationDTO = {
 
 export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
   id: '2bdcfe9c-80ff-43af-9f4d-438019c94e4d',
-  userEmitterId: 'd27608ce-bf6c-4806-8e98-200e6c2cb29a',
   issueId: 'issue789',
   timeAmount: -7300,
   modificationDate: new Date(),
@@ -182,6 +180,20 @@ export const mockPMRoleDTO: RoleDTO = {
 export const mockDevRoleDTO: RoleDTO = {
   id: 'role111',
   name: 'Developer',
+};
+
+export const mockAddManualTimeModificationEventInput: ManualTimeModificationEventInput = {
+  issueId: 'ABC123',
+  timeAmount: 3600, // Adding 1 hour (in seconds)
+  reason: 'Meeting with client',
+  date: new Date('2024-03-19T12:00:00Z'),
+};
+
+export const mockRemoveManualTimeModificationEventInput: ManualTimeModificationEventInput = {
+  issueId: 'ABC123',
+  timeAmount: -3600, // Removing 1 hour (in seconds)
+  reason: 'Meeting with client',
+  date: new Date('2024-03-19T12:00:00Z'),
 };
 
 export const mockTrickerBlockEventDTO: BlockerStatusModificationDTO = {

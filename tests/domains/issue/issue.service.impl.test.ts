@@ -1,7 +1,10 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock } from './mock';
+import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import {
+  mockDevIssueFilterParameters,
+  mockPMIssueFilterParameters,
+  mockLogicallyDeletedUserDTO,
   mockIssueDTO,
   stoppedMockTimeTrackingDTO,
   validMockManualTimeModification,
@@ -10,17 +13,16 @@ import {
   mockProjectDTO,
   mockIssueViewDTO,
   mockNotRegisteredUserDTO,
-  mockPMIssueFilterParameters,
-  mockLogicallyDeletedUserDTO,
-  mockTrickerBlockEventDTO,
-  mockIssueDetailsDTO,
-  mockIssueAddBlockerInput,
-  mockTrickerUnBlockEventDTO,
   validMockTimeTrackingDTO,
   mockIssueDTOWithoutStage,
   mockProjectStageDTO,
   mockProjectStageDTOStarted,
-  mockDevIssueFilterParameters,
+  mockTrickerBlockEventDTO,
+  mockIssueDetailsDTO,
+  mockIssueAddBlockerInput,
+  mockTrickerUnBlockEventDTO,
+  mockAddManualTimeModificationEventInput,
+  mockRemoveManualTimeModificationEventInput,
 } from './mockData';
 import { type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
@@ -311,6 +313,56 @@ describe('issue service tests', () => {
       // then
       expect.assertions(1);
       await expect(issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput)).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('add/remove time method', () => {
+    it('should create manual time modification event', async () => {
+      // given
+      const input = mockAddManualTimeModificationEventInput;
+      const workedTime = 100; // Example worked time
+
+      issueRepositoryMock.getById.mockResolvedValueOnce(mockIssueDTO);
+      const getIssueWorkedSecondsSpy = jest.spyOn(issueService, 'getIssueWorkedSeconds').mockResolvedValueOnce({ workedTime });
+      eventRepositoryMock.createManualTimeModification.mockResolvedValueOnce(validMockManualTimeModification);
+
+      // when
+      const result = await issueService.createManualTimeTracking(mockAddManualTimeModificationEventInput);
+
+      // then
+      expect(issueRepositoryMock.getById).toHaveBeenCalledWith(input.issueId);
+      expect(getIssueWorkedSecondsSpy).toHaveBeenCalledWith(input.issueId);
+      expect(eventRepositoryMock.createManualTimeModification).toHaveBeenCalledWith(input);
+      expect(result).toEqual(validMockManualTimeModification);
+    });
+
+    it('should throw NotFoundException if issue not found', async () => {
+      // given
+      const input = mockAddManualTimeModificationEventInput;
+      issueRepositoryMock.getById.mockResolvedValueOnce(null);
+
+      // when
+      const result = issueService.createManualTimeTracking(mockAddManualTimeModificationEventInput);
+
+      // then
+      await expect(result).rejects.toThrow(NotFoundException);
+      expect(issueRepositoryMock.getById).toHaveBeenCalledWith(input.issueId);
+    });
+
+    it('should throw ConflictException if subtracting time exceeds total worked time', async () => {
+      // given
+      const input = mockRemoveManualTimeModificationEventInput;
+      const workedTime = 100; // Example worked time
+      issueRepositoryMock.getById.mockResolvedValueOnce(mockIssueDTO);
+      const getIssueWorkedSecondsSpy = jest.spyOn(issueService, 'getIssueWorkedSeconds').mockResolvedValueOnce({ workedTime });
+
+      // when
+      const result = issueService.createManualTimeTracking(input);
+
+      // then
+      await expect(result).rejects.toThrow(ConflictException);
+      expect(issueRepositoryMock.getById).toHaveBeenCalledWith(input.issueId);
+      expect(getIssueWorkedSecondsSpy).toHaveBeenCalledWith(input.issueId);
     });
   });
 

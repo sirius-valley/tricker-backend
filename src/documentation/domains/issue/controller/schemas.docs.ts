@@ -225,6 +225,28 @@
  *         name: "John Doe"
  *         profileUrl: "https://example.com/profile/johndoe"
  *
+ *     ManualTimeModificationRequestDTO:
+ *       type: object
+ *       properties:
+ *         timeAmount:
+ *           type: number
+ *           format: integer
+ *           description: The amount of time to be added or subtracted, in seconds. Must be positive always.
+ *           example: 3600
+ *         date:
+ *           type: string
+ *           format: date-time
+ *           description: The date of the manual time modification in ISO 8601 format.
+ *           example: 2024-03-19T12:00:00Z
+ *         reason:
+ *           type: string
+ *           description: The reason for the manual time modification.
+ *           example: "Meeting with client"
+ *       required:
+ *         - timeAmount
+ *         - date
+ *         - reason
+ *
  *     EventHistoryLogDTO:
  *       type: object
  *       properties:

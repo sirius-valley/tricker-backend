@@ -3,6 +3,7 @@ import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, B
 import type { ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
+import { type ManualTimeModificationEventInput } from '@domains/issue';
 
 export class EventRepositoryImpl implements EventRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
@@ -113,5 +114,24 @@ export class EventRepositoryImpl implements EventRepository {
     });
 
     return new TimeTrackingDTO(event);
+  }
+
+  /**
+   * Creates a manual time modification event.
+   * @async
+   * @param {ManualTimeModificationEventInput} input - The input data for the manual time modification event.
+   * @returns {Promise<ManualTimeModificationDTO>} A promise that resolves to the created manual time modification DTO.
+   */
+  async createManualTimeModification(input: ManualTimeModificationEventInput): Promise<ManualTimeModificationDTO> {
+    const event = await this.db.manualTimeModification.create({
+      data: {
+        issueId: input.issueId,
+        reason: input.reason,
+        timeAmount: input.timeAmount,
+        modificationDate: input.date,
+      },
+    });
+
+    return new ManualTimeModificationDTO({ ...event });
   }
 }
