@@ -14,7 +14,7 @@
  *         - "id"
  *         - "name"
  *       example:
- *         id: "1"
+ *         id: "e0841d34-b9b2-4ae7-b7b8-330f89fb8ff4"
  *         name: "Project Manager"
  *     ProjectDTO:
  *       type: object
@@ -41,8 +41,8 @@
  *         - "createdAt"
  *         - "deletedAt"
  *       example:
- *         id: "123"
- *         providerId: 'linear_12568'
+ *         id: "e0841d34-b9b2-4ae7-b7b8-330f89fb8ff4"
+ *         providerId: 'e0841d34-b9b2-4ae7-b7b8-330f89fb8ff4'
  *         name: "Example Project"
  *         image: "http://exampleImage.com.example"
  *         createdAt: "2024-02-12T00:00:00Z"

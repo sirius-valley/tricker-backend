@@ -17,7 +17,7 @@ export class UserRepositoryImpl implements UserRepository {
   }
 
   async getById(id: string): Promise<UserDTO | null> {
-    const userPrisma: User | null = await this.db.user.findUnique({
+    const userPrisma = await this.db.user.findUnique({
       where: {
         id,
       },
@@ -26,20 +26,28 @@ export class UserRepositoryImpl implements UserRepository {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
         emittedUserProjectRole: {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
       },
     });
 
-    return userPrisma === null ? null : new UserDTO({ ...userPrisma, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+    return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
   async getByProviderId(providerId: string): Promise<UserDTO | null> {
-    const userPrisma: User | null = await this.db.user.findUnique({
+    const userPrisma = await this.db.user.findUnique({
       where: {
         cognitoId: providerId,
       },
@@ -48,20 +56,28 @@ export class UserRepositoryImpl implements UserRepository {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
         emittedUserProjectRole: {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
       },
     });
 
-    return userPrisma === null ? null : new UserDTO({ ...userPrisma, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+    return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
   async getByEmail(email: string): Promise<UserDTO | null> {
-    const userPrisma: User | null = await this.db.user.findFirst({
+    const userPrisma = await this.db.user.findFirst({
       where: {
         email,
       },
@@ -70,20 +86,28 @@ export class UserRepositoryImpl implements UserRepository {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
         emittedUserProjectRole: {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
       },
     });
 
-    return userPrisma === null ? null : new UserDTO({ ...userPrisma, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+    return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
   async update(input: UserUpdateInputDTO): Promise<UserDTO | null> {
-    const userPrisma: User | null = await this.db.user.update({
+    const userPrisma = await this.db.user.update({
       where: {
         id: input.id,
       },
@@ -96,22 +120,37 @@ export class UserRepositoryImpl implements UserRepository {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
         emittedUserProjectRole: {
           where: {
             deletedAt: null,
           },
+          include: {
+            project: true,
+            role: true,
+          },
         },
       },
     });
 
-    return userPrisma === null ? null : new UserDTO({ ...userPrisma, emittedUserProjectRole: [], projectsRoleAssigned: [] });
+    return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
-  async createWithoutCognitoId(email: string): Promise<UserDTO> {
+  /**
+   * Creates a new user without a Cognito ID.
+   * @param {string} email - The email address of the user.
+   * @param {string} name - The name of the user.
+   * @returns {Promise<UserDTO>} A promise that resolves with the created user DTO.
+   */
+  async createWithoutCognitoId(email: string, name: string): Promise<UserDTO> {
     const user: User = await this.db.user.create({
       data: {
         email,
+        name,
       },
     });
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
