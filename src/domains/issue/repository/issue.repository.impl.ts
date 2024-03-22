@@ -135,8 +135,6 @@ export class IssueRepositoryImpl implements IssueRepository {
       },
     });
 
-    console.log(issue);
-
     return new IssueDetailsDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,

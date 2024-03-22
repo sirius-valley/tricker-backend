@@ -17,7 +17,7 @@ export class UserServiceImpl implements UserService {
   }
 
   async getByProviderUserId(providerUserId: string): Promise<UserDTO> {
-    const user = await this.repository.getByProviderId(providerUserId);
+    const user = await this.repository.getByCognitoId(providerUserId);
     if (user === null || user.deletedAt != null) {
       throw new NotFoundException('User');
     }
@@ -41,7 +41,7 @@ export class UserServiceImpl implements UserService {
     const payload: CustomCognitoIdTokenPayload = await verifyIdAwsToken(idToken);
     let user: UserDTO | null;
 
-    user = await this.repository.getByProviderId(payload.sub);
+    user = await this.repository.getByCognitoId(payload.sub);
     if (user === null) {
       user = await this.repository.getByEmail(payload.email);
       if (user === null) {

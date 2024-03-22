@@ -230,7 +230,7 @@
  *       properties:
  *         eventId:
  *           type: string
- *           example: "abc123"
+ *           example: "123e4567-e89b-12d3-a456-426614174015"
  *         message:
  *           type: string
  *           example: "Issue blocked by user"
@@ -240,19 +240,18 @@
  *         isBlocker:
  *           type: boolean
  *           example: true
- *         time:
- *           type: string
- *           example: "13:45:22"
  *         date:
  *           type: string
- *           example: "2024-03-20"
+ *           format: date-time
+ *           example: "2024-03-10T08:15:30Z"
+ *           description: Date and time when the event was registered.
  *
  *     IssueDetailsDTO:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           example: "123456"
+ *           example: "123e4567-e89b-12d3-a456-426614174015"
  *         assignee:
  *           $ref: "#/components/schemas/UserIssueDTO"
  *         name:

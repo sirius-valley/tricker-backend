@@ -46,10 +46,10 @@ export class UserRepositoryImpl implements UserRepository {
     return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
-  async getByProviderId(providerId: string): Promise<UserDTO | null> {
+  async getByCognitoId(cognitoId: string): Promise<UserDTO | null> {
     const userPrisma = await this.db.user.findUnique({
       where: {
-        cognitoId: providerId,
+        cognitoId,
       },
       include: {
         projectsRoleAssigned: {
@@ -154,32 +154,5 @@ export class UserRepositoryImpl implements UserRepository {
       },
     });
     return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
-  }
-
-  /**
-   * Retrieves a user by their Cognito ID.
-   * @param cognitoId - The Cognito ID of the user.
-   * @returns A Promise that resolves to a UserDTO object if the user is found, or null if not found.
-   */
-  async getByCognitoId(cognitoId: string): Promise<UserDTO | null> {
-    const user: User | null = await this.db.user.findUnique({
-      where: {
-        cognitoId,
-      },
-      include: {
-        projectsRoleAssigned: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        emittedUserProjectRole: {
-          where: {
-            deletedAt: null,
-          },
-        },
-      },
-    });
-
-    return user === null ? null : new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
   }
 }
