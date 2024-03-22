@@ -1,5 +1,5 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO } from '@domains/issue/dto';
 import { type Issue, type PrismaClient, StageType } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { LabelDTO } from '@domains/label/dto';
@@ -109,6 +109,42 @@ export class IssueRepositoryImpl implements IssueRepository {
         isBlocked: issue.isBlocked,
         labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
       });
+    });
+  }
+
+  /**
+   * Updates the "isBlocked" status of an issue.
+   * @param input - An object containing the issue ID and the new "isBlocked" status.
+   * @returns A Promise that resolves to an IssueDetailsDTO object representing the updated issue details.
+   */
+  async updateIsBlocked(input: IssueAndIsBlocked): Promise<IssueDetailsDTO> {
+    const issue = await this.db.issue.update({
+      where: {
+        id: input.issueId,
+      },
+      data: {
+        isBlocked: input.isBlocked,
+      },
+      include: {
+        assignee: true,
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+      },
+    });
+
+    return new IssueDetailsDTO({
+      id: issue.id,
+      assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+      name: issue.name,
+      title: issue.title,
+      description: issue.description,
+      priority: issue.priority,
+      storyPoints: issue.storyPoints,
+      isBlocked: issue.isBlocked,
+      labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
     });
   }
 }

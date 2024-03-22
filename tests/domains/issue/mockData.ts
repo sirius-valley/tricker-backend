@@ -1,5 +1,5 @@
-import { type IssueDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
-import { type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueViewDTO, type Priority } from '@domains/issue/dto';
+import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
 import { StageType } from '@prisma/client';
@@ -21,6 +21,7 @@ export const mockIssueDTO: IssueDTO = {
   providerIssueId: 'externalIssue456',
   stageId: 'stage789',
   title: 'Sample Issue Title',
+  isBlocked: false,
 };
 
 export const mockIssueDTOWithoutStage: IssueDTO = { ...mockIssueDTO, stageId: null };
@@ -181,4 +182,52 @@ export const mockPMRoleDTO: RoleDTO = {
 export const mockDevRoleDTO: RoleDTO = {
   id: 'role111',
   name: 'Developer',
+};
+
+export const mockTrickerBlockEventDTO: BlockerStatusModificationDTO = {
+  id: 'blockerEvent753',
+  eventRegisteredAt: new Date('2024-03-12T09:00:00Z'),
+  reason: 'Blocked by card TRI-01',
+  comment: 'Waiting card TRI-01 to be finished',
+  createdAt: new Date('2024-03-12T09:00:00Z'),
+  status: 'BLOCKED_BY',
+  issueId: 'issue789',
+  providerEventId: null,
+  userEmitterId: 'user123',
+};
+
+export const mockTrickerUnBlockEventDTO: BlockerStatusModificationDTO = {
+  id: 'blockerEvent753',
+  eventRegisteredAt: new Date('2024-03-12T09:00:00Z'),
+  reason: 'Unblocked by user John Doe',
+  comment: 'Issue TRI-120 unblocked.',
+  createdAt: new Date('2024-03-12T09:00:00Z'),
+  status: 'BLOCKED_BY',
+  issueId: 'issue789',
+  providerEventId: null,
+  userEmitterId: 'user123',
+};
+
+export const mockIssueDetailsDTO: IssueDetailsDTO = {
+  description: 'This is a sample issue description.',
+  id: 'issue789',
+  storyPoints: 5,
+  name: 'Sample Issue',
+  priority: 'NO_PRIORITY',
+  title: 'Sample Issue Title',
+  assignee: {
+    id: 'user123',
+    name: 'John Doe',
+    profileUrl: null,
+  },
+  labels: [{ id: 'label999', name: 'Backend' }],
+  isBlocked: true,
+};
+
+export const mockIssueAddBlockerInput: IssueAddBlockerInput = {
+  issueId: 'issue789',
+  userCognitoId: 'cognito145',
+  providerEventId: null,
+  reason: 'Blocked by card TRI-01',
+  comment: 'Waiting card TRI-01 to be finished',
 };

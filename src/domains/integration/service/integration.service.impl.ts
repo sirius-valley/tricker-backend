@@ -176,7 +176,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByProviderId(input.pmProviderId);
+    const pm = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];

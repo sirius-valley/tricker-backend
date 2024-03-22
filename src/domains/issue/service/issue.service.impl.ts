@@ -1,9 +1,9 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
-import { type ManualTimeModificationDTO, type TimeTrackingDTO, UpdateTimeTracking } from '@domains/event/dto';
-import { ConflictException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
+import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -158,6 +158,60 @@ export class IssueServiceImpl implements IssueService {
   }
 
   /**
+   * Blocks an issue using a Tricker UI.
+   * @param input - An object containing the issue ID, user ID, reason, and comment for blocking the issue.
+   * @returns A Promise that resolves to an IssueExtendedDTO object representing the updated issue details.
+   * @throws {ConflictException} If the issue is already blocked.
+   */
+  async blockIssueWithTrickerUI(input: IssueAddBlockerInput): Promise<BlockerStatusModificationDTO> {
+    const { user, issue } = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
+    if (issue.isBlocked) {
+      throw new ConflictException('Issue already blocked');
+    }
+
+    const blockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
+      issueId: input.issueId,
+      userEmitterId: user.id,
+      reason: input.reason,
+      comment: input.comment,
+      createdAt: new Date(),
+      providerEventId: null,
+      type: TrickerBlockEventType.BLOCKED_BY,
+    });
+
+    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: true });
+
+    return blockEvent;
+  }
+
+  /**
+   * Unblocks the issue using the Tricker UI.
+   * @param input - An object containing the user Cognito ID and issue ID.
+   * @returns A Promise that resolves to an IssueExtendedDTO representing the updated issue.
+   * @throws NotFoundException if the user or issue is not found.
+   * @throws ForbiddenException if the user is not the assignee of the issue.
+   */
+  async unblockIssueWithTrickerUI(input: IssueAndAssignee): Promise<BlockerStatusModificationDTO> {
+    const { user, issue } = await this.validateIssueAndAssignee({ issueId: input.issueId, userCognitoId: input.userCognitoId });
+    if (!issue.isBlocked) {
+      throw new ConflictException('Issue already unblocked');
+    }
+    const unblockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
+      issueId: input.issueId,
+      userEmitterId: user.id,
+      reason: `Unblocked by user ${user.name}.`,
+      comment: `Issue ${issue.name} unblocked.`,
+      createdAt: new Date(),
+      providerEventId: null,
+      type: TrickerBlockEventType.BLOCKED_BY,
+    });
+
+    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: false });
+
+    return unblockEvent;
+  }
+
+  /**
    * Validates the existence of a user.
    * Throws a NotFoundException if the user does not exist or is inactive.
    * @param userId - The ID of the user to validate.
@@ -190,5 +244,33 @@ export class IssueServiceImpl implements IssueService {
     }
 
     return project;
+  }
+
+  /**
+   * Validates the issue and assignee.
+   * @param input - An object containing the user Cognito ID and issue ID.
+   * @returns A Promise that resolves to a UserDTO representing the validated user.
+   * @throws NotFoundException if the user or issue is not found.
+   * @throws ForbiddenException if the user is not the assignee of the issue.
+   */
+  private async validateIssueAndAssignee(input: IssueAndAssignee): Promise<{ user: UserDTO; issue: IssueDTO }> {
+    const user: UserDTO | null = await this.userRepository.getByCognitoId(input.userCognitoId);
+    if (user === null) {
+      throw new NotFoundException('User');
+    }
+    if (user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+
+    const issue: IssueDTO | null = await this.issueRepository.getById(input.issueId);
+    if (issue === null || issue.deletedAt !== null) {
+      throw new NotFoundException('Issue');
+    }
+
+    if (issue.assigneeId !== user.id) {
+      throw new ForbiddenException();
+    }
+
+    return { user, issue };
   }
 }
