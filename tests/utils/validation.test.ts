@@ -107,7 +107,7 @@ describe('ManualTimeModificationRequestDTO validation tests', () => {
     const req = {
       body: {
         timeAmount: -10, // Negative time amount
-        date: subDays(new Date(), 1), // Invalid date
+        date: subDays(new Date(), 1), // Today's date minus 1 day
         reason: '', // Empty reason
       },
     } as unknown as Request;
