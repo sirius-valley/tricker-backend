@@ -48,7 +48,16 @@ export class LinearDataRetriever {
 
   async getIssues(projectId: string): Promise<Issue[]> {
     const team = await this.getTeam(projectId);
-    return (await team.issues({ first: 250 })).nodes;
+    return (
+      await team.issues({
+        first: 250,
+        filter: {
+          state: {
+            type: { nin: ['completed', 'canceled'] },
+          },
+        },
+      })
+    ).nodes;
   }
 
   async getIssue(issueId: string): Promise<Issue> {
