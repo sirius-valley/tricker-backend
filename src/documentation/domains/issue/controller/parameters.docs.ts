@@ -2,14 +2,7 @@
  * @swagger
  * components:
  *   parameters:
- *     IssuePauseParams:
- *       in: path
- *       name: issueId
- *       required: true
- *       schema:
- *         type: string
- *       description: The ID of the issue to pause the timer for.
- *     IssueWorkedTimeParamsDTO:
+ *     IssueIdParamDTO:
  *       in: path
  *       name: issueId
  *       required: true

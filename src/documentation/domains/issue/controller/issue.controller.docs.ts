@@ -38,7 +38,7 @@
  *       security:
  *         - bearerAuth: []
  *       parameters:
- *         - $ref: '#/components/parameters/IssuePauseParams'
+ *         - $ref: '#/components/parameters/IssueIdParamDTO'
  *       responses:
  *         '201':
  *           description: "Timer paused succesfully"
@@ -162,6 +162,7 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '500':
  *           $ref: '#/components/responses/InternalServerErrorException'
+ *
  *   /api/issue/pm/{userId}/project/{projectId}:
  *     post:
  *       summary: Retrieve filtered and paginated issues for the project manager general view of the issues.
@@ -306,4 +307,83 @@
  *              application/json:
  *                schema:
  *                  $ref: "#/components/responses/ConflictException"
+ *
+ *   /api/issue/{issueId}/flag/add:
+ *     post:
+ *       summary: Flag an issue as blocked.
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: "path"
+ *           name: "issueId"
+ *           description: "The ID of the issue to flag."
+ *           required: true
+ *           type: "string"
+ *           example: "b6b04c2d-5e2c-4dcb-8ce3-2d5d98d10ade"
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/IssueAddBlockerParamsDTO"
+ *             example:
+ *               reason: "Blocked by card b6b04c2d-5e2c-4dcb-8ce3-2d5d98d10eru"
+ *               comment: "Waiting for resolution"
+ *       responses:
+ *         200:
+ *           description: "Issue successfully flagged as blocked."
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/schemas/BlockerStatusModificationDTO"
+ *           examples:
+ *             application/json:
+ *               id: d4dbf27b-9ed0-4d7f-b6b7-50b5c9aabcde
+ *               providerEventId: e12eef67-3b10-4a82-b0fb-6dfac2d9abcd
+ *               userEmitterId: c8acbf32-5f3a-4e14-8f1c-28e5d0faabcd
+ *               issueId: a6b5e9d3-fc47-4b71-bc81-d6c4f2feabcd
+ *               status: Resolved
+ *               eventRegisteredAt: "2024-03-10T08:15:30Z"
+ *               createdAt: "2024-03-10T08:20:45Z"
+ *               reason: "Resolved after investigation"
+ *               comment: "Blocker was due to misconfiguration in the database server"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
+ *   /api/issue/{issueId}/flag/remove:
+ *     delete:
+ *       summary: "Remove the blocked flag from an issue."
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: "path"
+ *           name: "issueId"
+ *           description: "The ID of the issue to unflag."
+ *           required: true
+ *           type: "string"
+ *           example: "275a2419-ef61-4bee-95d8-572f80ec5b03"
+ *       responses:
+ *         204:
+ *           description: "Issue successfully unflagged."
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  */

@@ -1,5 +1,5 @@
-import { type EventInput } from '@domains/event/dto';
-import { IsArray, IsBoolean, IsDateString, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
+import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
+import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { type LabelDTO } from '@domains/label/dto';
 import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
@@ -17,6 +17,7 @@ export class IssueDTO {
   description: string | null;
   priority: Priority;
   storyPoints: number | null;
+  isBlocked: boolean;
   createdAt: Date;
   deletedAt: Date | null;
 
@@ -32,6 +33,7 @@ export class IssueDTO {
     this.description = issue.description;
     this.priority = issue.priority;
     this.storyPoints = issue.storyPoints;
+    this.isBlocked = issue.isBlocked;
     this.createdAt = issue.createdAt;
     this.deletedAt = issue.deletedAt;
   }
@@ -97,7 +99,7 @@ export class IssueInput {
  * Data Transfer Object (DTO) for parameters send by frontend related to worked time on an issue.
  * This class defines validation rules for issueId property.
  */
-export class IssueWorkedTimeParamsDTO {
+export class IssueIdParamDTO {
   /**
    * The ID of the issue.
    * Must be a non-empty string formatted as a UUID.
@@ -124,19 +126,6 @@ const PriorityType: {
 };
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
-
-/**
- * HTTP URL parameters for the endpoint that pauses the timer of an issue.
- */
-export class IssuePauseParams {
-  /**
-   * The ID of the issue to pause the timer for.
-   * @type {string}
-   */
-  @IsString()
-  @IsDefined()
-  readonly issueId!: string;
-}
 
 /**
  * Data Transfer Object (DTO) for representing worked time.
@@ -357,6 +346,71 @@ export class IssueViewDTO {
 }
 
 /**
+ * Represents detailed information about an issue.
+ */
+export class IssueDetailsDTO {
+  /** The ID of the issue. */
+  id: string;
+
+  /** Information about the assignee of the issue. */
+  assignee: UserIssueDTO | null;
+
+  /** The name of the issue. */
+  name: string;
+
+  /** The title of the issue. */
+  title: string;
+
+  /** The description of the issue. */
+  description: string | null;
+
+  /** The priority of the issue. */
+  priority: Priority;
+
+  /** The story points associated with the issue. */
+  storyPoints: number | null;
+
+  /** A boolean flag indicating whether the issue is blocked. */
+  isBlocked: boolean;
+
+  /** The labels associated with the issue. */
+  labels: LabelDTO[];
+
+  /**
+   * Constructs a new instance of the IssueDetailsDTO class.
+   * @param issue - The issue object used to initialize the instance.
+   */
+  constructor(issue: IssueDetailsDTO) {
+    this.id = issue.id;
+    this.assignee = issue.assignee;
+    this.name = issue.name;
+    this.title = issue.title;
+    this.description = issue.description;
+    this.priority = issue.priority;
+    this.storyPoints = issue.storyPoints;
+    this.isBlocked = issue.isBlocked;
+    this.labels = issue.labels;
+  }
+}
+
+/**
+ * Represents extended information about an issue, including its chronology.
+ */
+export class IssueExtendedDTO extends IssueDetailsDTO {
+  /** The chronological history log of events associated with the issue. */
+  chronology: EventHistoryLogDTO[];
+
+  /**
+   * Constructs a new instance of the IssueExtendedDTO class.
+   * @param issue - The issue object used to initialize the instance.
+   */
+  constructor(issue: IssueExtendedDTO) {
+    super(issue);
+    this.chronology = issue.chronology;
+  }
+}
+
+/**
  * Interface representing a user-project relationship.
  */
 export interface UserProject {
@@ -418,4 +472,34 @@ export interface ManualTimeModificationEventInput {
    * The date of the manual time modification.
    */
   readonly date: Date;
+}
+
+/**
+ * Represents an association between a user and an issue.
+ */
+export interface IssueAndAssignee {
+  /**
+   * The Cognito ID of the user associated with the issue.
+   */
+  userCognitoId: string;
+
+  /**
+   * The ID of the issue.
+   */
+  issueId: string;
+}
+
+/**
+ * Represents the status of an issue, indicating whether it's blocked or not.
+ */
+export interface IssueAndIsBlocked {
+  /**
+   * The ID of the issue.
+   */
+  issueId: string;
+
+  /**
+   * A boolean flag indicating whether the issue is blocked or not.
+   */
+  isBlocked: boolean;
 }

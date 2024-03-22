@@ -4,10 +4,12 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueWorkedTimeParamsDTO, IssuePauseParams, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
+import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
+import { type BlockerStatusModificationDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
 export const issueRouter = Router();
@@ -37,7 +39,7 @@ issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectPa
   return res.status(HttpStatus.OK).json(issues);
 });
 
-issueRouter.post('/:issueId/pause', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.post('/:issueId/pause', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.pauseTimer(issueId);
@@ -45,7 +47,7 @@ issueRouter.post('/:issueId/pause', validateRequest(IssuePauseParams, 'params'),
   return res.status(HttpStatus.CREATED).json(event);
 });
 
-issueRouter.post('/:issueId/resume', validateRequest(IssuePauseParams, 'params'), async (_req: Request<IssuePauseParams>, res: Response) => {
+issueRouter.post('/:issueId/resume', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
 
   const event = await issueService.resumeTimer(issueId);
@@ -53,7 +55,7 @@ issueRouter.post('/:issueId/resume', validateRequest(IssuePauseParams, 'params')
   return res.status(HttpStatus.CREATED).json(event);
 });
 
-issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDTO, 'params'), async (req: Request<IssueWorkedTimeParamsDTO>, res: Response): Promise<Response<number>> => {
+issueRouter.get('/:issueId/worked-time', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response): Promise<Response<number>> => {
   const { issueId } = req.params;
 
   const workedTime: WorkedTimeDTO = await issueService.getIssueWorkedSeconds(issueId);
@@ -61,7 +63,7 @@ issueRouter.get('/:issueId/worked-time', validateRequest(IssueWorkedTimeParamsDT
   return res.status(HttpStatus.OK).json(workedTime);
 });
 
-issueRouter.post('/:issueId/add-time', validateRequest(IssuePauseParams, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssuePauseParams, any, ManualTimeModificationRequestDTO>, res: Response) => {
+issueRouter.post('/:issueId/add-time', validateRequest(IssueIdParamDTO, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssueIdParamDTO, any, ManualTimeModificationRequestDTO>, res: Response) => {
   const { issueId } = _req.params;
   const modification = _req.body;
 
@@ -74,7 +76,7 @@ issueRouter.post('/:issueId/add-time', validateRequest(IssuePauseParams, 'params
   return res.sendStatus(HttpStatus.OK);
 });
 
-issueRouter.post('/:issueId/remove-time', validateRequest(IssuePauseParams, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssuePauseParams, any, ManualTimeModificationRequestDTO>, res: Response) => {
+issueRouter.post('/:issueId/remove-time', validateRequest(IssueIdParamDTO, 'params'), validateRequest(ManualTimeModificationRequestDTO, 'body'), async (_req: Request<IssueIdParamDTO, any, ManualTimeModificationRequestDTO>, res: Response) => {
   const { issueId } = _req.params;
   const modification = _req.body;
 
@@ -86,4 +88,23 @@ issueRouter.post('/:issueId/remove-time', validateRequest(IssuePauseParams, 'par
   });
 
   return res.sendStatus(HttpStatus.OK);
+});
+
+issueRouter.post('/:issueId/flag/add', validateRequest(IssueIdParamDTO, 'params'), validateRequest(IssueAddBlockerParamsDTO, 'body'), async (req: Request<IssueIdParamDTO, any, IssueAddBlockerParamsDTO>, res: Response) => {
+  const { issueId } = req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+  const { reason, comment } = req.body;
+
+  const event: BlockerStatusModificationDTO = await issueService.blockIssueWithTrickerUI({ issueId, userCognitoId: sub, reason, comment, providerEventId: null });
+
+  return res.status(HttpStatus.OK).json(event);
+});
+
+issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
+  const { issueId } = req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+
+  const event: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
+
+  return res.status(HttpStatus.NO_CONTENT).json(event);
 });

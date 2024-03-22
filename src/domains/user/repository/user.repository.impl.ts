@@ -46,10 +46,10 @@ export class UserRepositoryImpl implements UserRepository {
     return userPrisma === null ? null : new UserDTO(userPrisma);
   }
 
-  async getByProviderId(providerId: string): Promise<UserDTO | null> {
+  async getByCognitoId(cognitoId: string): Promise<UserDTO | null> {
     const userPrisma = await this.db.user.findUnique({
       where: {
-        cognitoId: providerId,
+        cognitoId,
       },
       include: {
         projectsRoleAssigned: {

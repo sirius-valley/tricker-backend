@@ -3,7 +3,7 @@
  * components:
  *   responses:
  *     ConflictException:
- *       description: "Conflict with data"
+ *       description: "Conflict exception"
  *       content:
  *         application/json:
  *           schema:
@@ -15,12 +15,9 @@
  *               message:
  *                 type: "string"
  *                 description: "The error message"
- *               error:
- *                 type: "object"
- *                 description: "An object where you can set the error code by providing it when it is thrown"
- *       example:
- *         message: "Conflict. User already exists"
- *         code: 409
+ *           example:
+ *             message: "Conflict. User already exists"
+ *             code: 409
  *     UnauthorizedException:
  *       description: "Unauthorized. You must log in to access this content."
  *       content:

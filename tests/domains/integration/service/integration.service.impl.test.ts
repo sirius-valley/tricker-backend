@@ -187,7 +187,7 @@ describe('Integration service', () => {
 
   describe('retrieveProjectsFromProvider method', () => {
     it('should successfully retrieve a projects list', async () => {
-      jest.spyOn(userMockRepository, 'getByProviderId').mockResolvedValue(user);
+      jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
       jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
       jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
