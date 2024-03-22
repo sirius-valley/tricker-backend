@@ -4,6 +4,7 @@ import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domain
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 import { LinearClient } from '@linear/sdk';
 import { type AuthorizationRequestDTO } from '@domains/integration/dto';
+import { compareDesc, endOfDay } from 'date-fns';
 
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
@@ -76,6 +77,44 @@ export function IsValidApiKey(validationOptions?: ValidationOptions) {
       constraints: [],
       options: validationOptions,
       validator: IsValidApiKeyConstraint,
+    });
+  };
+}
+
+/**
+ * Validator constraint class for checking if a date (in form of string) is after today or today to the provided date.
+ */
+@ValidatorConstraint()
+export class IsTodayOrAfterTodayConstraint implements ValidatorConstraintInterface {
+  validate(dateInput: string, args: ValidationArguments): boolean | Promise<boolean> {
+    // date parameter of annotation
+    const [date] = args.constraints;
+    if (date !== undefined && !(date instanceof Date)) throw new Error();
+
+    const userInput = new Date(dateInput);
+
+    return userInput.toString() !== 'Invalid Date' && compareDesc(userInput, date ?? endOfDay(new Date())) > 0;
+  }
+
+  defaultMessage(validationArguments?: ValidationArguments): string {
+    return 'Date is not today or after today';
+  }
+}
+
+/**
+ * Validates whether a date is after or equal to the provided date.
+ * @param {Date} date - The date to compare against. If not provided, today's date will be used
+ * @param {ValidationOptions} validationOptions - Additional validation options.
+ */
+export function IsTodayOrAfterToday(date?: Date, validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isTodayOrAfterToday',
+      target: object.constructor,
+      propertyName,
+      constraints: [date],
+      options: validationOptions,
+      validator: IsTodayOrAfterTodayConstraint,
     });
   };
 }

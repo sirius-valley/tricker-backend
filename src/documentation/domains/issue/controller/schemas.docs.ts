@@ -225,6 +225,28 @@
  *         name: "John Doe"
  *         profileUrl: "https://example.com/profile/johndoe"
  *
+ *     ManualTimeModificationRequestDTO:
+ *       type: object
+ *       properties:
+ *         timeAmount:
+ *           type: number
+ *           format: integer
+ *           description: The amount of time to be added or subtracted, in seconds. Must be positive always.
+ *           example: 3600
+ *         date:
+ *           type: string
+ *           format: date-time
+ *           description: The date of the manual time modification in ISO 8601 format.
+ *           example: 2024-03-19T12:00:00Z
+ *         reason:
+ *           type: string
+ *           description: The reason for the manual time modification.
+ *           example: "Meeting with client"
+ *       required:
+ *         - timeAmount
+ *         - date
+ *         - reason
+ *
  *     EventHistoryLogDTO:
  *       type: object
  *       properties:
@@ -243,14 +265,15 @@
  *         date:
  *           type: string
  *           format: date-time
- *           example: "2024-02-12T00:00:00Z"
+ *           example: "2024-03-10T08:15:30Z"
+ *           description: Date and time when the event was registered.
  *
  *     IssueDetailsDTO:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           example: "123456"
+ *           example: "123e4567-e89b-12d3-a456-426614174015"
  *         assignee:
  *           $ref: "#/components/schemas/UserIssueDTO"
  *         name:

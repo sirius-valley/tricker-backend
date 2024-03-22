@@ -41,7 +41,7 @@
  *         - $ref: '#/components/parameters/IssueIdParamDTO'
  *       responses:
  *         '201':
- *           description: "Successful operation"
+ *           description: "Timer paused succesfully"
  *           content:
  *             application/json:
  *               schema:
@@ -63,7 +63,7 @@
  *         - in: path
  *           name: issueId
  *           schema:
- *             $ref: '#/components/parameters/IssueWorkedTimeParamsDTO'
+ *             $ref: '#/components/parameters/IssueIdParamDTO'
  *           required: true
  *           description: The ID of the issue to retrieve worked seconds for
  *       responses:
@@ -229,6 +229,84 @@
  *           $ref: '#/components/responses/ForbiddenException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *         '500':
+ *           $ref: '#/components/responses/InternalServerErrorException'
+ *   /api/issue/{issueId}/add-time:
+ *     post:
+ *       summary: Create manual time modification for an issue.
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       description: Creates a manual time modification event for adding worked time to an issue.
+ *       parameters:
+ *         - in: path
+ *           name: issueId
+ *           required: true
+ *           description: The ID of the issue.
+ *           schema:
+ *             type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
+ *       responses:
+ *         '200':
+ *           description: Manual time modification created successfully.
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '500':
+ *           $ref: '#/components/responses/InternalServerErrorException'
+ *   /api/issue/{issueId}/remove-time:
+ *     post:
+ *       summary: Creates manual time modification for an issue.
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       description: Creates a manual time modification event to subtract worked time from an issue.
+ *       parameters:
+ *         - in: path
+ *           name: issueId
+ *           required: true
+ *           description: The ID of the issue.
+ *           schema:
+ *             type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
+ *       responses:
+ *          '200':
+ *            description: Manual time modification created successfully.
+ *          '400':
+ *            description: "Data validation error"
+ *            content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/responses/ValidationException'
+ *          '401':
+ *            $ref: '#/components/responses/UnauthorizedException'
+ *          '404':
+ *            description: "Entity not found"
+ *            content:
+ *              application/json:
+ *                schema:
+ *                  $ref: '#/components/responses/NotFoundException'
+ *          '409':
+ *            description: "Inconsistent data"
+ *            content:
+ *              application/json:
+ *                schema:
+ *                  $ref: "#/components/responses/ConflictException"
  *
  *   /api/issue/{issueId}/flag/add:
  *     post:

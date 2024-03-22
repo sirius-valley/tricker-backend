@@ -3,7 +3,7 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -66,6 +66,25 @@ export class IssueServiceImpl implements IssueService {
     });
 
     return projectStage != null && projectStage.type === 'STARTED';
+  }
+
+  /**
+   * Creates a manual tracking time event for adding or subtracting worked time from an issue.
+   * @param {ManualTimeModificationEventInput} input - Input data for the manual time tracking event.
+   * @returns {Promise<ManualTimeModificationDTO>} A promise resolving to the created manual time modification DTO.
+   * @throws {NotFoundException} If the specified issue doesn't exist.
+   * @throws {ConflictException} If subtracting time exceeds the total worked time of the issue.
+   */
+  async createManualTimeTracking(input: ManualTimeModificationEventInput): Promise<ManualTimeModificationDTO> {
+    const issue = await this.issueRepository.getById(input.issueId);
+    if (issue == null) throw new NotFoundException('issue');
+
+    const { workedTime } = await this.getIssueWorkedSeconds(input.issueId);
+    if (input.timeAmount < 0 && workedTime < -input.timeAmount) {
+      throw new ConflictException('The time amount you are trying to substract exceeds the total worked time of the issue');
+    }
+
+    return await this.eventRepository.createManualTimeModification(input);
   }
 
   /**
