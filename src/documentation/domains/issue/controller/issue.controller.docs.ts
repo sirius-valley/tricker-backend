@@ -63,7 +63,7 @@
  *         - in: path
  *           name: issueId
  *           schema:
- *             $ref: '#/components/parameters/IssueWorkedTimeParamsDTO'
+ *             $ref: '#/components/parameters/IssueIdParamDTO'
  *           required: true
  *           description: The ID of the issue to retrieve worked seconds for
  *       responses:
