@@ -1,5 +1,5 @@
 import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
-import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleExtendedDTO } from '@domains/userProjectRole/dto';
 
 export type CustomCognitoIdTokenPayload = CognitoIdTokenPayload & {
   name: string;
@@ -22,10 +22,10 @@ export class UserDTO {
   email: string;
   name: string | null;
   profileImage: string | null;
-  projectsRoleAssigned: UserProjectRoleDTO[];
+  projectsRoleAssigned: UserProjectRoleExtendedDTO[];
   createdAt: Date;
   deletedAt: Date | null;
-  emittedUserProjectRole: UserProjectRoleDTO[];
+  emittedUserProjectRole: UserProjectRoleExtendedDTO[];
 
   constructor(user: UserDTO) {
     this.id = user.id;
