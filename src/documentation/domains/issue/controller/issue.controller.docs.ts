@@ -246,12 +246,12 @@
  *           description: The ID of the issue.
  *           schema:
  *             type: string
- *         - in: body
- *           name: body
- *           required: true
- *           description: Input data for manual time modification.
- *           schema:
- *             $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
  *       responses:
  *         '200':
  *           description: Manual time modification created successfully.
@@ -278,12 +278,12 @@
  *           description: The ID of the issue.
  *           schema:
  *             type: string
- *         - in: body
- *           name: body
- *           required: true
- *           description: Input data for manual time modification removal.
- *           schema:
- *             $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ManualTimeModificationRequestDTO'
  *       responses:
  *          '200':
  *            description: Manual time modification created successfully.

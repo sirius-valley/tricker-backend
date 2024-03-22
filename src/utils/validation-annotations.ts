@@ -4,7 +4,7 @@ import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domain
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 import { LinearClient } from '@linear/sdk';
 import { type AuthorizationRequestDTO } from '@domains/integration/dto';
-import { compareAsc, startOfDay } from 'date-fns';
+import { compareDesc, endOfDay } from 'date-fns';
 
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
@@ -93,7 +93,7 @@ export class IsTodayOrAfterTodayConstraint implements ValidatorConstraintInterfa
 
     const userInput = new Date(dateInput);
 
-    return userInput.toString() !== 'Invalid Date' && compareAsc(userInput, date ?? startOfDay(new Date())) > 0;
+    return userInput.toString() !== 'Invalid Date' && compareDesc(userInput, date ?? endOfDay(new Date())) > 0;
   }
 
   defaultMessage(validationArguments?: ValidationArguments): string {
