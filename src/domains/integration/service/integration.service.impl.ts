@@ -209,7 +209,7 @@ export class IntegrationServiceImpl implements IntegrationService {
         role = await roleRepository.create(member.role);
       }
       if (user === null) {
-        user = await userRepository.createWithoutCognitoId(member.email);
+        user = await userRepository.createWithoutCognitoId(member.email, member.name);
       }
       integratedUsers.push({ ...user, role: role.id });
     }
@@ -267,7 +267,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   private async assignRoles(members: ProjectMemberDataDTO[], pmEmail: string): Promise<UserRole[]> {
     return members.map((member: ProjectMemberDataDTO) => {
       const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
-      return new UserRole({ email: member.email, role });
+      return new UserRole({ email: member.email, name: member.name, role });
     });
   }
 
