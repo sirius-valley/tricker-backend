@@ -3,6 +3,7 @@ import { validateRequest, validateUserIsProjectManager, ValidationException, use
 import { IsString, IsNumber } from 'class-validator';
 import { mockDevRoleDTO, mockPMRoleDTO, mockUserProjectRoleDTO } from '../domains/issue/mockData';
 import { ManualTimeModificationRequestDTO, type UserProjectParamsDTO } from '@domains/issue/dto';
+import { subDays } from 'date-fns';
 
 class TargetClass {
   @IsString()
@@ -91,6 +92,22 @@ describe('ManualTimeModificationRequestDTO validation tests', () => {
       body: {
         timeAmount: -10, // Negative time amount
         date: 'invalid date', // Invalid date format
+        reason: '', // Empty reason
+      },
+    } as unknown as Request;
+
+    const res = {} as unknown as Response;
+    const next = jest.fn();
+
+    await expect(validateRequest(ManualTimeModificationRequestDTO, 'body')(req, res, next)).rejects.toThrow(ValidationException);
+    expect(next).toHaveBeenCalledTimes(0);
+  });
+
+  it('Should throw exception when validating DTO with date before today', async () => {
+    const req = {
+      body: {
+        timeAmount: -10, // Negative time amount
+        date: subDays(new Date(), 1), // Invalid date
         reason: '', // Empty reason
       },
     } as unknown as Request;

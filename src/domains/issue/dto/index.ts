@@ -3,7 +3,7 @@ import { IsArray, IsBoolean, IsDateString, IsDefined, IsNotEmpty, IsNumber, IsOp
 import { type LabelDTO } from '@domains/label/dto';
 import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
-import { IsAfterOrEqualDate } from '@utils';
+import { IsTodayOrAfterToday } from '@utils';
 
 export class IssueDTO {
   id: string;
@@ -382,7 +382,7 @@ export class ManualTimeModificationRequestDTO {
   /**
    * The date of the manual time modification. Must be a date string after or equal to today.
    */
-  @IsAfterOrEqualDate(new Date(), { message: 'Date is not today or after today' })
+  @IsTodayOrAfterToday()
   @IsDateString()
   readonly date!: string;
 
