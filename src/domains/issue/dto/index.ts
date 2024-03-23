@@ -1,9 +1,9 @@
 import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { type LabelDTO } from '@domains/label/dto';
-import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type UserIssueDTO } from '@domains/user';
 import { IsTodayOrAfterToday } from '@utils';
+import { type StageExtendedDTO } from '@domains/projectStage/dto';
 
 export class IssueDTO {
   id: string;
@@ -11,7 +11,7 @@ export class IssueDTO {
   authorId: string | null;
   assigneeId: string | null;
   projectId: string;
-  stageId: string | null;
+  projectStageId: string | null;
   name: string;
   title: string;
   description: string | null;
@@ -27,7 +27,7 @@ export class IssueDTO {
     this.authorId = issue.authorId;
     this.assigneeId = issue.assigneeId;
     this.projectId = issue.projectId;
-    this.stageId = issue.stageId;
+    this.projectStageId = issue.projectStageId;
     this.name = issue.name;
     this.title = issue.title;
     this.description = issue.description;
@@ -74,7 +74,7 @@ export class IssueInput {
   authorId: string | null;
   assigneeId: string | null;
   projectId: string;
-  stageId: string | null;
+  projectStageId: string | null;
   name: string;
   title: string;
   description: string | null;
@@ -85,7 +85,7 @@ export class IssueInput {
     this.providerIssueId = data.providerIssueId;
     this.authorId = data.authorId;
     this.assigneeId = data.assigneeId;
-    this.stageId = data.stageId;
+    this.projectStageId = data.projectStageId;
     this.projectId = data.projectId;
     this.name = data.name;
     this.title = data.title;

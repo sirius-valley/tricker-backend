@@ -9,6 +9,7 @@ import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectDTO } from '@domains/project/dto';
 import { type ProjectStageRepository } from '@domains/projectStage/repository';
+import { type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
@@ -38,7 +39,7 @@ export class IssueServiceImpl implements IssueService {
     // this is kinda odd because you first have to check if your stageId is not null instead of just look for the project stage (look to do)
     // if (issue.stageId == null && !(await this.isIssueInStartedStage(issue))) throw new ConflictException('This issue needs to be started in order to be able to track time.')
 
-    const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue);
+    const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue.projectStageId);
     if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
 
     const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
@@ -53,17 +54,12 @@ export class IssueServiceImpl implements IssueService {
   /**
    * Checks if the issue has a stage assigned and that it is in started stage.
    *
-   * @param {Object} params - Parameters for checking the issue's stage.
-   * @param {string | null} params.stageId - The ID of the current stage of the issue.
-   * @param {string} params.projectId - The ID of the project the issue belongs to.
+   * @param projectStageId The ID pf the projectStage
    * @returns {Promise<boolean>} A promise that resolves to true if the issue is in a started stage, otherwise false.
    */
-  private async isIssueInStartedStage({ stageId, projectId }: { stageId: string | null; projectId: string }): Promise<boolean> {
-    if (stageId == null) return false;
-    const projectStage = await this.projectStageRepository.getByProjectIdAndStageId({
-      stageId,
-      projectId,
-    });
+  private async isIssueInStartedStage(projectStageId: string | null): Promise<boolean> {
+    if (projectStageId == null) return false;
+    const projectStage: ProjectStageDTO | null = await this.projectStageRepository.getById(projectStageId);
 
     return projectStage != null && projectStage.type === 'STARTED';
   }

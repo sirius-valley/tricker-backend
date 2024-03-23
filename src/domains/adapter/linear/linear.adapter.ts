@@ -9,7 +9,8 @@ import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type Sta
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type UserDataDTO } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
-import { type StageType } from '@domains/stage/dto';
+
+import { type StageType } from '@domains/projectStage/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
