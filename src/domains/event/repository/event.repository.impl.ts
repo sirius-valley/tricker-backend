@@ -1,6 +1,6 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
 import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
-import type { ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
+import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
@@ -114,6 +114,44 @@ export class EventRepositoryImpl implements EventRepository {
     });
 
     return new TimeTrackingDTO(event);
+  }
+
+  /**
+   * Retrieves blocker events related to a specific issue.
+   * @param issueId The unique identifier of the issue.
+   * @returns An array of blocker status modification DTOs.
+   */
+  async getIssueBlockEvents(issueId: string): Promise<BlockerStatusModificationDTO[]> {
+    const blockerEvents: BlockerStatusModification[] = await this.db.blockerStatusModification.findMany({
+      where: {
+        issueId,
+      },
+    });
+
+    return blockerEvents.map((event) => new BlockerStatusModificationDTO({ ...event, eventRegisteredAt: event.eventRegisteredAt ?? undefined }));
+  }
+
+  /**
+   * Retrieves change logs related to a specific issue.
+   * @param issueId The unique identifier of the issue.
+   * @returns An array of issue change log DTOs.
+   */
+  async getIssueChangeLogs(issueId: string): Promise<IssueChangeLogDTO[]> {
+    const changeLogs: IssueChangeLog[] = await this.db.issueChangeLog.findMany({
+      where: {
+        issueId,
+      },
+    });
+
+    return changeLogs.map(
+      (event) =>
+        new IssueChangeLogDTO({
+          ...event,
+          from: event.from ?? undefined,
+          to: event.to ?? undefined,
+          eventRegisteredAt: event.eventRegisteredAt ?? undefined,
+        })
+    );
   }
 
   /**

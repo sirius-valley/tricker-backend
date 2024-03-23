@@ -386,4 +386,61 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '409':
  *           $ref: '#/components/responses/ConflictException'
+ *
+ *   /api/issue/{issueId}/details:
+ *     get:
+ *       summary: Get details of a specific issue with chronology.
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: issueId
+ *           required: true
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           description: The UUID of the issue to retrieve details for.
+ *       responses:
+ *         '200':
+ *           description: Successful response. Returns the details of the issue with chronology.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/IssueExtendedDTO'
+ *               example:
+ *                 id: "789e0123-fghi-45jk-lmno-123456789012"
+ *                 assignee:
+ *                   userId: "789"
+ *                   name: "John Doe"
+ *                   profileUrl: "https://example.com/profiles/johndoe"
+ *                 name: "Issue 1"
+ *                 title: "First Issue"
+ *                 description: "This is the description of the issue."
+ *                 priority: "HIGH_PRIORITY"
+ *                 storyPoints: 5
+ *                 isBlocked: false
+ *                 labels:
+ *                   - id: "123e4567-e89b-12d3-a456-426614174015"
+ *                     name: "Bug"
+ *                   - id: "789e0123-fghi-45jk-lmno-123456789012"
+ *                     name: "Feature"
+ *                 chronology:
+ *                   - eventId: "123e4567-e89b-12d3-a456-426614174015"
+ *                     message: "Issue blocked by user"
+ *                     comment: "This is a comment explaining why the issue was blocked"
+ *                     isBlocker: true
+ *                     date: "2024-02-12T00:00:00Z"
+ *                   - eventId: "789e0123-fghi-45jk-lmno-123456789012"
+ *                     message: "Issue unblocked by admin"
+ *                     comment: "Admin removed the block on the issue"
+ *                     isBlocker: false
+ *                     date: "2024-02-13T00:00:00Z"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  */

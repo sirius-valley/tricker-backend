@@ -1,4 +1,4 @@
-import { type IssueLabel, type User, type WorkflowState } from '@linear/sdk';
+import { type IssueHistory, type IssueLabel, type User, type WorkflowState } from '@linear/sdk';
 
 export interface AdaptProjectDataInputDTO {
   providerProjectId: string;
@@ -13,4 +13,11 @@ export interface LinearIssueData {
   creator: User | undefined;
   assignee: User | undefined;
   priority: number;
+}
+
+export interface processIssueEventsInput {
+  linearIssueId: string;
+  history: IssueHistory[];
+  stages: WorkflowState[];
+  members: User[];
 }

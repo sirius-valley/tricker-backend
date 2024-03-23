@@ -1,6 +1,6 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
-import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
+import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory, type WorkflowState } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
@@ -42,16 +42,20 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
 
   /**
    * Adapt Linear issue events for a given Linear issue ID to Tricker issue events.
-   * @param {string} linearIssueId - The ID of the Linear issue.
+   * @param issue - Issue from Linear
+   * @param projectId - The ID of the Linear project
    * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
    * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
   // Retriever not configured because it has been already configured in the flow
-  async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
+  private async adaptIssueEventsData(issue: Issue, projectId: string): Promise<EventInput[]> {
     try {
-      const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(linearIssueId);
-      Logger.info(`Event nodes retrieved from issue ${linearIssueId}: ${history.length} -- ${new Date().toString()}`);
-      return await processIssueEvents(linearIssueId, history);
+      const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(issue);
+      const project: Team = await this.dataRetriever.getTeam(projectId);
+      const stages: WorkflowState[] = await this.dataRetriever.getStages(project);
+      const members: User[] = await this.dataRetriever.getMembers(projectId);
+      Logger.info(`Event nodes retrieved from issue ${issue.id}: ${history.length} -- ${new Date().toString()}`);
+      return await processIssueEvents({ linearIssueId: issue.id, history, stages, members });
     } catch (err: any) {
       const linearError = err as LinearError;
       throw new LinearIntegrationException(linearError.message, linearError.errors);
@@ -122,7 +126,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           storyPoints: issue.estimate ?? null,
           stage: issueData.stage != null ? issueData.stage.name : null,
           labels: issueData.labels.map((label) => label.name),
-          events: await this.adaptIssueEventsData(issue.id),
+          events: await this.adaptIssueEventsData(issue, providerProjectId),
         })
       );
     }
