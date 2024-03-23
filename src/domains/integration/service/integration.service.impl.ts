@@ -199,7 +199,6 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If a user or role cannot be found.
    */
   async integrateMembers(input: MembersIntegrationInputDTO): Promise<void> {
-    input.acceptedUsers.forEach((user) => { console.log(user); });
     const userRepository: UserRepositoryImpl = new UserRepositoryImpl(input.db);
     const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(input.db);
     const integratedUsers = [];
@@ -217,7 +216,6 @@ export class IntegrationServiceImpl implements IntegrationService {
     const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(input.db), userRepository, new ProjectRepositoryImpl(input.db), roleRepository);
     for (const user of integratedUsers) {
       const isAccepted: boolean = input.acceptedUsers.some((email) => email === user.email);
-      console.log(isAccepted);
       await userProjectRoleService.create({
         userId: user.id,
         projectId: input.projectId,
