@@ -14,6 +14,7 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
         projectId: input.projectId,
         roleId: input.roleId,
         userEmitterId: input.userEmitterId,
+        isAccepted: input.isAccepted,
       },
     });
 

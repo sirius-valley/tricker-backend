@@ -1,4 +1,4 @@
-import { type IssueInput, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, type IssueDetailsDTO } from '@domains/issue/dto';
+import { type IssueInput, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, type IssueDetailsDTO, type UserProject } from '@domains/issue/dto';
 
 export interface IssueRepository {
   create: (data: IssueInput) => Promise<IssueDTO>;
@@ -6,4 +6,6 @@ export interface IssueRepository {
   getById: (id: string) => Promise<IssueDTO | null>;
   getWithFilters: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
   updateIsBlocked: (input: IssueAndIsBlocked) => Promise<IssueDetailsDTO>;
+  getByProjectId: (projectId: string) => Promise<IssueViewDTO[]>;
+  getByProjectIdAndUserId: (input: UserProject) => Promise<IssueViewDTO[]>;
 }

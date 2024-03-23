@@ -75,3 +75,23 @@ export class UserIssueDTO {
     this.profileUrl = user.profileUrl;
   }
 }
+
+/**
+ * Represents an array of assignees that will br used as filter parameter.
+ */
+export class AssigneeFilterDataDTO {
+  /** The ID of the assignee. */
+  id: string;
+
+  /** The name of the assignee. */
+  name: string;
+
+  /**
+   * Constructs a new instance of the AssigneeFilterDataDTO class.
+   * @param assignee - The assignee object used to initialize the instance.
+   */
+  constructor(assignee: AssigneeFilterDataDTO) {
+    this.id = assignee.id;
+    this.name = assignee.name;
+  }
+}
