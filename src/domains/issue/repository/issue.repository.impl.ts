@@ -1,5 +1,5 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO, type UserProject } from '@domains/issue/dto';
 import { type Issue, type PrismaClient, StageType } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { LabelDTO } from '@domains/label/dto';
@@ -70,7 +70,15 @@ export class IssueRepositoryImpl implements IssueRepository {
         assignee: { cognitoId: { not: null } },
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
@@ -115,7 +123,15 @@ export class IssueRepositoryImpl implements IssueRepository {
         isBlocked: input.isBlocked,
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
@@ -149,7 +165,15 @@ export class IssueRepositoryImpl implements IssueRepository {
         deletedAt: null,
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
@@ -171,5 +195,102 @@ export class IssueRepositoryImpl implements IssueRepository {
           isBlocked: issue.isBlocked,
           labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
         });
+  }
+
+  /**
+   * Retrieves issues by project ID.
+   * @param {string} projectId - The ID of the project.
+   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
+   */
+  async getByProjectId(projectId: string): Promise<IssueViewDTO[]> {
+    const issues = await this.db.issue.findMany({
+      where: {
+        projectId,
+      },
+      include: {
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+        stage: {
+          where: {
+            projectId,
+          },
+        },
+      },
+    });
+
+    return issues.map((issue) => {
+      return new IssueViewDTO({
+        id: issue.id,
+        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        name: issue.name,
+        title: issue.title,
+        priority: issue.priority,
+        storyPoints: issue.storyPoints,
+        isBlocked: issue.isBlocked,
+        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      });
+    });
+  }
+
+  /**
+   * Retrieves issues by project ID and user ID.
+   * @param {UserProject} input - The project and user IDs.
+   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
+   */
+  async getByProjectIdAndUserId(input: UserProject): Promise<IssueViewDTO[]> {
+    const issues = await this.db.issue.findMany({
+      where: {
+        projectId: input.projectId,
+        assigneeId: input.userId,
+      },
+      include: {
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+        stage: {
+          where: {
+            projectId: input.projectId,
+          },
+        },
+      },
+    });
+
+    return issues.map((issue) => {
+      return new IssueViewDTO({
+        id: issue.id,
+        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        name: issue.name,
+        title: issue.title,
+        priority: issue.priority,
+        storyPoints: issue.storyPoints,
+        isBlocked: issue.isBlocked,
+        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      });
+    });
   }
 }

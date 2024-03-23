@@ -219,7 +219,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
     const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(input.db), userRepository, new ProjectRepositoryImpl(input.db), roleRepository);
     for (const user of integratedUsers) {
-      const isAccepted: boolean = input.acceptedUsers.find((email) => email === user.email) !== null;
+      const isAccepted: boolean = input.acceptedUsers.some((email) => email === user.email);
       await userProjectRoleService.create({
         userId: user.id,
         projectId: input.projectId,

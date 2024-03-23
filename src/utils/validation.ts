@@ -8,9 +8,12 @@ import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@
 import { db } from '@utils/database';
 import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repository';
 import { type UserProjectParamsDTO } from '@domains/issue/dto';
+import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
+import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 
 export const userProjectRoleRepository: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
 export const roleRepository: RoleRepository = new RoleRepositoryImpl(db);
+export const userRepository: UserRepository = new UserRepositoryImpl(db);
 
 export type ClassType<T> = new (...args: any[]) => T;
 
@@ -48,9 +51,14 @@ export function validateRequest<T>(target: ClassType<T>, reqKey: RequestPart) {
  */
 export function validateUserIsProjectManager() {
   return async (req: Request<UserProjectParamsDTO, any, any, any, any>, res: Response, next: NextFunction) => {
-    const { userId, projectId } = req.params;
-    const userProjectRole: UserProjectRoleDTO | null = await userProjectRoleRepository.getByProjectIdAndUserId({ userId, projectId });
-    if (userProjectRole === null) {
+    const { projectId } = req.params;
+    const { sub } = res.locals.context as CognitoAccessTokenPayload;
+    const user: UserDTO | null = await userRepository.getByCognitoId(sub);
+    if (user === null || user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+    const userProjectRole: UserProjectRoleDTO | null = await userProjectRoleRepository.getByProjectIdAndUserId({ userId: user.id, projectId });
+    if (userProjectRole === null || userProjectRole.deletedAt !== null) {
       throw new NotFoundException('UserProjectRole');
     }
     const role: RoleDTO | null = await roleRepository.getById(userProjectRole.roleId);
