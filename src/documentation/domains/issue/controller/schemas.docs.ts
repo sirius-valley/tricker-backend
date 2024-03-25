@@ -39,9 +39,11 @@
  *           items:
  *             type: string
  *             enum:
- *               - "HIGH"
- *               - "MEDIUM"
- *               - "LOW"
+ *               - "URGENT"
+ *               - "HIGH_PRIORITY"
+ *               - "MEDIUM_PRIORITY"
+ *               - "LOW_PRIORITY"
+ *               - "NO_PRIORITY"
  *         isOutOfEstimation:
  *           type: boolean
  *         cursor:
@@ -52,8 +54,8 @@
  *           - "123e4567-e89b-12d3-a456-426614174002"
  *           - "123e4567-e89b-12d3-a456-426614174003"
  *         priorities:
- *           - "HIGH"
- *           - "MEDIUM"
+ *           - "HIGH_PRIORITY"
+ *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: true
  *         cursor: "123e4567-e89b-12d3-a456-426614174004"
  *
@@ -70,9 +72,11 @@
  *           items:
  *             type: string
  *             enum:
- *               - "HIGH"
- *               - "MEDIUM"
- *               - "LOW"
+ *               - "URGENT"
+ *               - "HIGH_PRIORITY"
+ *               - "MEDIUM_PRIORITY"
+ *               - "LOW_PRIORITY"
+ *               - "NO_PRIORITY"
  *         isOutOfEstimation:
  *           type: boolean
  *         cursor:
@@ -83,8 +87,8 @@
  *           - "123e4567-e89b-12d3-a456-426614174005"
  *           - "123e4567-e89b-12d3-a456-426614174006"
  *         priorities:
- *           - "HIGH"
- *           - "MEDIUM"
+ *           - "HIGH_PRIORITY"
+ *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: false
  *         cursor: "123e4567-e89b-12d3-a456-426614174007"
  *
@@ -150,7 +154,7 @@
  *         name: "Task 1"
  *         title: "Complete task 1"
  *         description: Here is displayed the description of the task
- *         priority: "HIGH"
+ *         priority: "HIGH_PRIORITY"
  *         storyPoints: 5
  *         isBlocked: false
  *         labels:

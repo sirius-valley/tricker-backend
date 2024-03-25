@@ -41,7 +41,7 @@
  *         - $ref: '#/components/parameters/IssueIdParamDTO'
  *       responses:
  *         '201':
- *           description: "Timer paused succesfully"
+ *           description: "Timer paused successfully"
  *           content:
  *             application/json:
  *               schema:
@@ -116,8 +116,8 @@
  *                 - "123e4567-e89b-12d3-a456-426614174002"
  *                 - "123e4567-e89b-12d3-a456-426614174003"
  *               priorities:
- *                 - "HIGH"
- *                 - "MEDIUM"
+ *                 - "HIGH_PRIORITY"
+ *                 - "MEDIUM_PRIORITY"
  *               isOutOfEstimation: true
  *               cursor: "123e4567-e89b-12d3-a456-426614174004"
  *       responses:
@@ -142,7 +142,7 @@
  *                   name: "Task 1"
  *                   title: "Complete task 1"
  *                   description: Here is displayed the card description
- *                   priority: "HIGH"
+ *                   priority: "HIGH_PRIORITY"
  *                   storyPoints: 5
  *                   labels:
  *                     - id: "123e4567-e89b-12d3-a456-426614174008"
@@ -153,7 +153,7 @@
  *                   name: "Task 2"
  *                   title: "Complete task 2"
  *                   description: Here is displayed the card description
- *                   priority: "MEDIUM"
+ *                   priority: "MEDIUM_PRIORITY"
  *                   storyPoints: null
  *                   labels: []
  *         '400':

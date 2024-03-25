@@ -57,6 +57,7 @@ export class IssueRepositoryImpl implements IssueRepository {
    * @returns A Promise that resolves to an array of IssueViewDTO objects representing the retrieved issues.
    */
   async getWithFilters(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    console.log(filters.priorities);
     const issues = await this.db.issue.findMany({
       cursor: filters.cursor !== undefined ? { id: filters.cursor } : undefined,
       take: 20,
@@ -66,7 +67,6 @@ export class IssueRepositoryImpl implements IssueRepository {
         assigneeId: filters.assigneeIds === undefined ? { not: null } : { in: filters.assigneeIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
         priority: { in: filters.priorities },
-        // assignee: { cognitoId: { not: null } },
       },
       include: {
         assignee: {
