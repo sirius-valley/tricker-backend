@@ -4,6 +4,7 @@ export interface IssueRepository {
   create: (data: IssueInput) => Promise<IssueDTO>;
   getByProviderId: (providerId: string) => Promise<null | IssueDTO>;
   getById: (id: string) => Promise<IssueDTO | null>;
+  getIssueDetailsById: (id: string) => Promise<IssueDetailsDTO | null>;
   getWithFilters: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
   updateIsBlocked: (input: IssueAndIsBlocked) => Promise<IssueDetailsDTO>;
 }
