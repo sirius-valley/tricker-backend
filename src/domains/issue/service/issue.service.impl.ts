@@ -236,6 +236,23 @@ export class IssueServiceImpl implements IssueService {
     if (issue === null) {
       throw new NotFoundException('Issue');
     }
+    const orderedEvents: EventHistoryLogDTO[] = await this.getIssueChronology(issueId);
+
+    return { ...issue, chronology: orderedEvents };
+  }
+
+  /**
+   * Retrieves the chronology of events for a specific issue.
+   *
+   * @param issueId The ID of the issue to retrieve the chronology for.
+   * @returns A Promise that resolves to an array of EventHistoryLogDTO objects representing the chronology of events.
+   * @throws NotFoundException if the issue with the given ID is not found.
+   */
+  async getIssueChronology(issueId: string): Promise<EventHistoryLogDTO[]> {
+    const issue: IssueDetailsDTO | null = await this.issueRepository.getIssueDetailsById(issueId);
+    if (issue === null) {
+      throw new NotFoundException('Issue');
+    }
     const blockEvents: BlockerStatusModificationDTO[] = await this.eventRepository.getIssueBlockEvents(issueId);
     const changeLogEvents: IssueChangeLogDTO[] = await this.eventRepository.getIssueChangeLogs(issueId);
     const manualModifications: ManualTimeModificationDTO[] = await this.eventRepository.getIssueManualTimeModification(issueId);
@@ -248,9 +265,7 @@ export class IssueServiceImpl implements IssueService {
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    const orderedEvents: EventHistoryLogDTO[] = parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    return { ...issue, chronology: orderedEvents };
+    return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
   /**

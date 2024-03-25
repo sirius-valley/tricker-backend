@@ -135,6 +135,7 @@ export const mockIssueViewDTO: IssueViewDTO = {
   name: 'TRI-001',
   title: 'Fake issue',
   priority: 'MEDIUM_PRIORITY',
+  description: 'Fake issue description',
   storyPoints: 1,
   isBlocked: false,
   labels: [],

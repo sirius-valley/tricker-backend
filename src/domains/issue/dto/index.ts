@@ -327,6 +327,7 @@ export class IssueViewDTO {
   stage: StageExtendedDTO | null;
   name: string;
   title: string;
+  description: string | null;
   priority: Priority;
   storyPoints: number | null;
   isBlocked: boolean;
@@ -338,6 +339,7 @@ export class IssueViewDTO {
     this.stage = issueView.stage;
     this.name = issueView.name;
     this.title = issueView.title;
+    this.description = issueView.description;
     this.priority = issueView.priority;
     this.storyPoints = issueView.storyPoints;
     this.isBlocked = issueView.isBlocked;

@@ -141,6 +141,7 @@
  *                     type: "IN_PROGRESS"
  *                   name: "Task 1"
  *                   title: "Complete task 1"
+ *                   description: Here is displayed the card description
  *                   priority: "HIGH"
  *                   storyPoints: 5
  *                   labels:
@@ -151,6 +152,7 @@
  *                   stage: null
  *                   name: "Task 2"
  *                   title: "Complete task 2"
+ *                   description: Here is displayed the card description
  *                   priority: "MEDIUM"
  *                   storyPoints: null
  *                   labels: []
@@ -215,6 +217,7 @@
  *                 name: "Issue 1"
  *                 title: "First Issue"
  *                 priority: "HIGH_PRIORITY"
+ *                 description: "Here is displayed the card description"
  *                 storyPoints: 5
  *                 labels:
  *                   - id: "101"
@@ -437,6 +440,36 @@
  *                     comment: "Admin removed the block on the issue"
  *                     isBlocker: false
  *                     date: "2024-02-13T00:00:00Z"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *
+ *   /api/issue/{issueId}/chronology:
+ *     get:
+ *       summary: Retrieve the chronology of events for a specific issue
+ *       tags:
+ *         - "Issue"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: issueId
+ *           required: true
+ *           description: ID of the issue to retrieve the chronology for
+ *           schema:
+ *             type: string
+ *       responses:
+ *         '200':
+ *           description: Successful operation
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/EventHistoryLogDTO'
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':

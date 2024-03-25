@@ -119,6 +119,9 @@
  *         title:
  *           type: string
  *           description: The title of the issue.
+ *         description:
+ *           type: string
+ *           description: The description of the issue.
  *         priority:
  *           $ref: '#/components/schemas/Priority'
  *           description: The priority of the issue.
@@ -146,6 +149,7 @@
  *           type: "IN_PROGRESS"
  *         name: "Task 1"
  *         title: "Complete task 1"
+ *         description: Here is displayed the description of the task
  *         priority: "HIGH"
  *         storyPoints: 5
  *         isBlocked: false
