@@ -387,7 +387,7 @@
  *         '409':
  *           $ref: '#/components/responses/ConflictException'
  *
- *   /api/issue/{issueId}/details:
+ *   /api/issue/{issueId}:
  *     get:
  *       summary: Get details of a specific issue with chronology.
  *       tags:

@@ -109,7 +109,7 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
   return res.status(HttpStatus.NO_CONTENT);
 });
 
-issueRouter.get('/:issueId/details', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
+issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = req.params;
 
   const issue: IssueExtendedDTO = await issueService.getIssueWithChronology(issueId);
