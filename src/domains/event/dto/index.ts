@@ -324,7 +324,7 @@ export class EventHistoryLogDTO {
   /**
    * Additional comments about the event.
    */
-  comment: string;
+  comment: string | undefined;
 
   /**
    * Indicates whether the event is a blocker.
@@ -332,14 +332,9 @@ export class EventHistoryLogDTO {
   isBlocker: boolean;
 
   /**
-   * The time of the event.
-   */
-  time: string;
-
-  /**
    * The date of the event.
    */
-  date: string;
+  date: Date;
 
   /**
    * Constructs an event history log object.
@@ -349,7 +344,6 @@ export class EventHistoryLogDTO {
     this.message = history.message;
     this.comment = history.comment;
     this.isBlocker = history.isBlocker;
-    this.time = history.time;
     this.date = history.date;
   }
 }

@@ -65,8 +65,7 @@ export class LinearDataRetriever {
     return await this.linearClient.issue(issueId);
   }
 
-  async getIssueHistory(issueId: string): Promise<IssueHistory[]> {
-    const issue = await this.getIssue(issueId);
+  async getIssueHistory(issue: Issue): Promise<IssueHistory[]> {
     return (await issue.history()).nodes;
   }
 

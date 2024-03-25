@@ -4,7 +4,7 @@ import HttpStatus from 'http-status';
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
+import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, type IssueExtendedDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
@@ -104,7 +104,15 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
   const { issueId } = req.params;
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
+  await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.status(HttpStatus.NO_CONTENT).json(event);
+  return res.status(HttpStatus.NO_CONTENT);
+});
+
+issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
+  const { issueId } = req.params;
+
+  const issue: IssueExtendedDTO = await issueService.getIssueWithChronology(issueId);
+
+  return res.status(HttpStatus.OK).json(issue);
 });
