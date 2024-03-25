@@ -1,6 +1,6 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
 import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO, type UserProject } from '@domains/issue/dto';
-import { type Issue, type PrismaClient, StageType } from '@prisma/client';
+import { type Issue, type PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { LabelDTO } from '@domains/label/dto';
 
@@ -63,11 +63,10 @@ export class IssueRepositoryImpl implements IssueRepository {
       where: {
         projectId: filters.projectId,
         projectStageId: { in: filters.stageIds },
-        OR: [{ assigneeId: filters.userId }, { assigneeId: { in: filters.assigneeIds } }],
+        assigneeId: filters.assigneeIds === undefined ? { not: null } : { in: filters.assigneeIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
         priority: { in: filters.priorities },
-        stage: filters.stageIds === undefined ? { AND: [{ type: { not: StageType.BACKLOG } }, { type: { not: StageType.COMPLETED } }] } : {},
-        assignee: { cognitoId: { not: null } },
+        // assignee: { cognitoId: { not: null } },
       },
       include: {
         assignee: {
@@ -86,12 +85,18 @@ export class IssueRepositoryImpl implements IssueRepository {
         },
         stage: true,
       },
-      orderBy: {
-        stage: {
-          type: 'asc',
-          name: 'asc',
+      orderBy: [
+        {
+          stage: {
+            type: 'asc',
+          },
         },
-      },
+        {
+          stage: {
+            name: 'asc',
+          },
+        },
+      ],
     });
 
     return issues.map((issue) => {

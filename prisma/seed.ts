@@ -3,8 +3,7 @@ import { Logger } from '@utils';
 
 const prisma = new PrismaClient();
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-async function runSeeding() {
+async function runSeeding(): Promise<void> {
   Logger.debug('Seeding db with predefined Organizations');
   await prisma.organization.upsert({
     where: {

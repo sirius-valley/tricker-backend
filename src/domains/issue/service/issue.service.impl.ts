@@ -146,7 +146,7 @@ export class IssueServiceImpl implements IssueService {
     await this.validateUserExistence(filters.userId);
     await this.validateProjectExistence(filters.projectId);
 
-    return this.getIssuesFilteredAndPaginated(filters);
+    return this.getIssuesFilteredAndPaginated({ ...filters, assigneeIds: [filters.userId] });
   }
 
   /**
@@ -156,8 +156,7 @@ export class IssueServiceImpl implements IssueService {
    * @throws {NotFoundException} If the user or project is not found.
    */
   async getPMIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
-    await this.validateUserExistence(filters.userId);
-    await this.validateProjectExistence(filters.projectId);
+    await this.validateProjectExistence(filters.projectId); // user already validated in middleware
 
     return this.getIssuesFilteredAndPaginated(filters);
   }
