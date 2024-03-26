@@ -44,6 +44,7 @@ jobs:
       - name: Serverless Deploy
         run: serverless deploy
         env:
+          BACKEND_URL: ${{secrets.BACKEND_URL}}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DB_USER: ${{ secrets.DB_USER}}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
