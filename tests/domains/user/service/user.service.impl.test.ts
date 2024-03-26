@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe('user service tests', () => {
   it('Should successfully get a user by a provided id', async () => {
-    jest.spyOn(mockRepository, 'getByProviderId').mockResolvedValue(user);
+    jest.spyOn(mockRepository, 'getByCognitoId').mockResolvedValue(user);
     const receivedUser: UserDTO = await service.getByProviderUserId('id');
 
     expect.assertions(2);
@@ -40,7 +40,7 @@ describe('user service tests', () => {
   });
 
   it('Should throw exception when user is null', async () => {
-    jest.spyOn(mockRepository, 'getByProviderId').mockResolvedValue(null);
+    jest.spyOn(mockRepository, 'getByCognitoId').mockResolvedValue(null);
 
     expect.assertions(2);
 

@@ -1,5 +1,5 @@
 import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
-import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleExtendedDTO } from '@domains/userProjectRole/dto';
 
 export type CustomCognitoIdTokenPayload = CognitoIdTokenPayload & {
   name: string;
@@ -22,10 +22,10 @@ export class UserDTO {
   email: string;
   name: string | null;
   profileImage: string | null;
-  projectsRoleAssigned: UserProjectRoleDTO[];
+  projectsRoleAssigned: UserProjectRoleExtendedDTO[];
   createdAt: Date;
   deletedAt: Date | null;
-  emittedUserProjectRole: UserProjectRoleDTO[];
+  emittedUserProjectRole: UserProjectRoleExtendedDTO[];
 
   constructor(user: UserDTO) {
     this.id = user.id;
@@ -62,4 +62,36 @@ export interface UserUpdateInputDTO {
 // todo: replace this with something more useful in the future
 export interface UserDataDTO {
   name: string;
+}
+
+export class UserIssueDTO {
+  id: string;
+  name: string | null;
+  profileUrl: string | null;
+
+  constructor(user: UserIssueDTO) {
+    this.id = user.id;
+    this.name = user.name;
+    this.profileUrl = user.profileUrl;
+  }
+}
+
+/**
+ * Represents an array of assignees that will br used as filter parameter.
+ */
+export class AssigneeFilterDataDTO {
+  /** The ID of the assignee. */
+  id: string;
+
+  /** The name of the assignee. */
+  name: string;
+
+  /**
+   * Constructs a new instance of the AssigneeFilterDataDTO class.
+   * @param assignee - The assignee object used to initialize the instance.
+   */
+  constructor(assignee: AssigneeFilterDataDTO) {
+    this.id = assignee.id;
+    this.name = assignee.name;
+  }
 }

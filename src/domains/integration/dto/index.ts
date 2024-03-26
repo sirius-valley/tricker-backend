@@ -2,21 +2,23 @@ import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
 import type { EventInput } from '@domains/event/dto';
+
+import { type StageType } from '@domains/projectStage/dto';
 
 export class ProjectDataDTO {
   projectId: string;
   members: ProjectMemberDataDTO[];
   projectName: string;
   image: string | null;
-  stages: string[];
+  stages: StageData[];
   labels: string[];
   issues: IssueDataDTO[];
 
-  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: string[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
+  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: StageData[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
     this.projectId = projectId;
     this.projectName = name;
     this.members = members;
@@ -27,12 +29,32 @@ export class ProjectDataDTO {
   }
 }
 
+/**
+ * Represents a user role object with data used in integration.
+ */
 export class UserRole {
+  /**
+   * The email of the user.
+   */
   email: string;
+
+  /**
+   * The name of the user.
+   */
+  name: string;
+
+  /**
+   * The role of the user.
+   */
   role: string;
 
+  /**
+   * Constructs a new instance of the UserRole class.
+   * @param {UserRole} userRole - The user role object used to initialize the instance.
+   */
   constructor(userRole: UserRole) {
     this.email = userRole.email;
+    this.name = userRole.name;
     this.role = userRole.role;
   }
 }
@@ -45,9 +67,12 @@ export interface MembersIntegrationInputDTO {
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
-export interface StageIntegrationInputDTO {
+/**
+ * Interface representing input data for stage integration.
+ */
+export interface StageIntegrationInput {
   projectId: string;
-  stages: string[];
+  stages: StageData[];
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 
@@ -226,6 +251,7 @@ export class ProviderKeyDTO {
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
   provider!: string;
 }
 
@@ -243,4 +269,12 @@ export class MailToken {
  * */
 export interface MailPayload {
   adminId: string;
+}
+
+/**
+ * Represents the stage adapted data from the provider
+ * */
+export interface StageData {
+  name: string;
+  type: StageType;
 }

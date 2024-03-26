@@ -2,14 +2,20 @@ import type { IssueHistory, IssueRelationHistoryPayload } from '@linear/sdk';
 import { BlockEventInput, ChangeScalarEventInput, type EventInput, LinearActionTypeConvention, LinearBlockTypeConvention } from '@domains/event/dto';
 import { reverseEnumMap } from '@utils/enums';
 import { Logger } from '@utils';
+import { type processIssueEventsInput } from '@domains/adapter/dto';
 
-export const processIssueEvents = async (issueId: string, history: IssueHistory[]): Promise<EventInput[]> => {
+/**
+ * Processes issue events and adapts them for consumption.
+ * @param input The input containing issue history and related data.
+ * @returns An array of processed event inputs.
+ */
+export const processIssueEvents = async (input: processIssueEventsInput): Promise<EventInput[]> => {
   const events: EventInput[] = [];
-  for (const event of history) {
+  for (const event of input.history) {
     if (event.relationChanges !== undefined) {
       const filteredRelationChanges = filterRelationChanges(event.relationChanges);
       for (const change of filteredRelationChanges) {
-        const blockEvent = createBlockEvent(change, event, issueId);
+        const blockEvent = createBlockEvent(change, event, input.linearIssueId);
         events.push(await blockEvent);
       }
     }
@@ -18,9 +24,9 @@ export const processIssueEvents = async (issueId: string, history: IssueHistory[
       const changeEvent = new ChangeScalarEventInput({
         createdAt: event.createdAt,
         field: 'state',
-        from: event.fromStateId,
-        to: event.toStateId,
-        issueId,
+        from: input.stages.find((stage) => event.fromStateId === stage.id)?.name,
+        to: input.stages.find((stage) => event.toStateId === stage.id)?.name,
+        issueId: input.linearIssueId,
         providerEventId: event.id,
         // userEmitterEmail: event.actorId! ?? event.botActor?.id, // always going to be one of those
         userEmitterEmail: (await event.actor)?.email,
@@ -32,16 +38,16 @@ export const processIssueEvents = async (issueId: string, history: IssueHistory[
       const changeEvent = new ChangeScalarEventInput({
         createdAt: event.createdAt,
         field: 'assignee',
-        from: event.fromAssigneeId,
-        to: event.toAssigneeId,
-        issueId,
+        from: input.members.find((member) => event.fromAssigneeId === member.id)?.name,
+        to: input.members.find((member) => event.toAssigneeId === member.id)?.name,
+        issueId: input.linearIssueId,
         providerEventId: event.id,
         userEmitterEmail: (await event.actor)?.email, // always going to be one of those
       });
       events.push(changeEvent);
     }
   }
-  Logger.complete(`Events from linear issue ${issueId} have been adapted -- ${new Date().toString()}`);
+  Logger.complete(`Events from linear issue ${input.linearIssueId} have been adapted -- ${new Date().toString()}`);
   return events;
 };
 

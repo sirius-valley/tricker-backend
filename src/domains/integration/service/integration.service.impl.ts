@@ -11,9 +11,7 @@ import { RoleRepositoryImpl } from '@domains/role/repository';
 import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
-import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { type StageDTO } from '@domains/stage/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
 import { type LabelDTO } from '@domains/label/dto';
@@ -31,7 +29,7 @@ import {
   type ProjectMemberDataDTO,
   type ProjectPreIntegratedDTO,
   type ProjectsPreIntegratedInputDTO,
-  type StageIntegrationInputDTO,
+  type StageIntegrationInput,
   UserRole,
 } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
@@ -44,6 +42,7 @@ import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
 import { IssueLabelRepositoryImpl } from '@domains/issueLabel/repository';
+import { type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -118,25 +117,30 @@ export class IntegrationServiceImpl implements IntegrationService {
     return project;
   }
 
+  /**
+   * Asynchronously integrates issues using the provided input data.
+   * @param input The input data for integrating issues.
+   * @returns A Promise that resolves once the integration process is complete.
+   */
   async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
     const issueRepository = new IssueRepositoryImpl(input.db);
-    const stageRepository = new StageRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
     const labelRepository = new LabelRepositoryImpl(input.db);
     const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
+    const projectStageRepository = new ProjectStageRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
       const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
-      let stage: StageDTO | null = null;
+      let projectStage: ProjectStageDTO | null = null;
       if (issueData.stage !== null) {
-        stage = await stageRepository.getByName(issueData.stage);
+        projectStage = await projectStageRepository.getByProjectIdAndName({ name: issueData.stage, projectId: input.projectId });
       }
       const newIssue = await issueRepository.create({
         providerIssueId: issueData.providerIssueId,
         authorId: author != null ? author.id : null,
         assigneeId: assignee != null ? assignee.id : null,
         projectId: input.projectId,
-        stageId: stage !== null ? stage.id : null,
+        projectStageId: projectStage !== null ? projectStage.id : null,
         name: issueData.name,
         title: issueData.title,
         description: issueData.description,
@@ -176,7 +180,7 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByProviderId(input.pmProviderId);
+    const pm = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
@@ -209,13 +213,13 @@ export class IntegrationServiceImpl implements IntegrationService {
         role = await roleRepository.create(member.role);
       }
       if (user === null) {
-        user = await userRepository.createWithoutCognitoId(member.email);
+        user = await userRepository.createWithoutCognitoId(member.email, member.name);
       }
       integratedUsers.push({ ...user, role: role.id });
     }
     const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(input.db), userRepository, new ProjectRepositoryImpl(input.db), roleRepository);
     for (const user of integratedUsers) {
-      const isAccepted: boolean = input.acceptedUsers.find((email) => email === user.email) !== null;
+      const isAccepted: boolean = input.acceptedUsers.some((email) => email === user.email);
       await userProjectRoleService.create({
         userId: user.id,
         projectId: input.projectId,
@@ -229,19 +233,16 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Integrates project stages using the provided input data,
    * creates or retrieves stages, and associates them with the project.
-   * @param {StageIntegrationInputDTO} input - Input data including project stages and project ID.
+   * @param {StageIntegrationInput} input - Input data including project stages and project ID.
    * @returns {Promise<void>} A promise that resolves once the integration is complete.
-   * @throws {NotFoundException} If a stage cannot be found.
    */
-  async integrateStages(input: StageIntegrationInputDTO): Promise<void> {
-    const stageRepository: StageRepositoryImpl = new StageRepositoryImpl(input.db);
+  async integrateStages(input: StageIntegrationInput): Promise<void> {
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(input.db);
-    for (const name of input.stages) {
-      let stage: StageDTO | null = await stageRepository.getByName(name);
-      if (stage === null) {
-        stage = await stageRepository.create(name);
+    for (const stageData of input.stages) {
+      const projectStage: ProjectStageDTO | null = await projectStageRepository.getByProjectIdAndName({ name: stageData.name, projectId: input.projectId });
+      if (projectStage === null) {
+        await projectStageRepository.create({ name: stageData.name, type: stageData.type, projectId: input.projectId });
       }
-      await projectStageRepository.create(input.projectId, stage.id);
     }
   }
 
@@ -267,7 +268,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   private async assignRoles(members: ProjectMemberDataDTO[], pmEmail: string): Promise<UserRole[]> {
     return members.map((member: ProjectMemberDataDTO) => {
       const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
-      return new UserRole({ email: member.email, role });
+      return new UserRole({ email: member.email, name: member.name, role });
     });
   }
 

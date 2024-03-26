@@ -1,14 +1,16 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventInput } from '@domains/event/dto';
-import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory } from '@linear/sdk';
+import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory, type WorkflowState } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
-import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type UserDataDTO } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
+
+import { type StageType } from '@domains/projectStage/dto';
 
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
@@ -40,16 +42,20 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
 
   /**
    * Adapt Linear issue events for a given Linear issue ID to Tricker issue events.
-   * @param {string} linearIssueId - The ID of the Linear issue.
+   * @param issue - Issue from Linear
+   * @param projectId - The ID of the Linear project
    * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
    * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
   // Retriever not configured because it has been already configured in the flow
-  async adaptIssueEventsData(linearIssueId: string): Promise<EventInput[]> {
+  private async adaptIssueEventsData(issue: Issue, projectId: string): Promise<EventInput[]> {
     try {
-      const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(linearIssueId);
-      Logger.info(`Event nodes retrieved from issue ${linearIssueId}: ${history.length} -- ${new Date().toString()}`);
-      return await processIssueEvents(linearIssueId, history);
+      const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(issue);
+      const project: Team = await this.dataRetriever.getTeam(projectId);
+      const stages: WorkflowState[] = await this.dataRetriever.getStages(project);
+      const members: User[] = await this.dataRetriever.getMembers(projectId);
+      Logger.info(`Event nodes retrieved from issue ${issue.id}: ${history.length} -- ${new Date().toString()}`);
+      return await processIssueEvents({ linearIssueId: issue.id, history, stages, members });
     } catch (err: any) {
       const linearError = err as LinearError;
       throw new LinearIntegrationException(linearError.message, linearError.errors);
@@ -68,7 +74,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
     const teamMembers: ProjectMemberDataDTO[] = await this.getMembersByProjectId(input.providerProjectId, key);
-    const stages: string[] = await this.getAndAdaptStages(team);
+    const stages: StageData[] = await this.getAndAdaptStages(team);
     const labels: string[] = await this.getAndAdaptLabels(team);
     const org: Organization = await this.dataRetriever.getOrganization();
     const issues = await this.adaptAllProjectIssuesData(input.providerProjectId);
@@ -120,7 +126,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           storyPoints: issue.estimate ?? null,
           stage: issueData.stage != null ? issueData.stage.name : null,
           labels: issueData.labels.map((label) => label.name),
-          events: await this.adaptIssueEventsData(issue.id),
+          events: await this.adaptIssueEventsData(issue, providerProjectId),
         })
       );
     }
@@ -143,8 +149,31 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * @returns {Promise<string[]>} A promise resolving with project stage names.
    * @param project
    */
-  private async getAndAdaptStages(project: Team): Promise<string[]> {
-    return (await this.dataRetriever.getStages(project)).map((stage) => stage.name);
+  private async getAndAdaptStages(project: Team): Promise<StageData[]> {
+    return (await this.dataRetriever.getStages(project)).map((stage) => {
+      let type: StageType;
+      switch (stage.type) {
+        case 'backlog':
+          type = 'BACKLOG';
+          break;
+        case 'unstarted':
+          type = 'UNSTARTED';
+          break;
+        case 'started':
+          type = 'STARTED';
+          break;
+        case 'completed':
+          type = 'COMPLETED';
+          break;
+        case 'canceled':
+          type = 'CANCELED';
+          break;
+        default:
+          type = 'OTHER';
+      }
+
+      return { type, name: stage.name };
+    });
   }
 
   /**
