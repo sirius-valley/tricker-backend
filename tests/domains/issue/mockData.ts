@@ -139,6 +139,7 @@ export const mockIssueViewDTO: IssueViewDTO = {
   storyPoints: 1,
   isBlocked: false,
   labels: [],
+  isTracking: false,
 };
 
 export const mockDevIssueFilterParameters = {
