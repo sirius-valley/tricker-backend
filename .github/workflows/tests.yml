@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - dev
-
+      - staging
+      
 jobs:
   backend-tests:
     name: Run Backend Tests
