@@ -1,7 +1,7 @@
-import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type Priority } from '@domains/issue';
 import { IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
+import { type StageExtendedDTO } from '@domains/projectStage/dto';
 
 export class ProjectDTO {
   id: string;

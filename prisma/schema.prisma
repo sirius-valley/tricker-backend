@@ -43,7 +43,7 @@ model Issue {
   authorId        String?   @db.Uuid
   assigneeId      String?   @db.Uuid
   projectId       String    @db.Uuid
-  stageId         String?   @db.Uuid
+  projectStageId  String?   @db.Uuid
   name            String
   title           String
   description     String?
@@ -57,7 +57,7 @@ model Issue {
   author                     User?                       @relation(name: "created", fields: [authorId], references: [id])
   assignee                   User?                       @relation(name: "assigned", fields: [assigneeId], references: [id])
   labels                     IssueLabel[]
-  stage                      Stage?                      @relation(fields: [stageId], references: [id])
+  stage                      ProjectStage?               @relation(fields: [projectStageId], references: [id])
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
   customFields               IssueCustomFields[]
@@ -81,14 +81,6 @@ model IssueCustomFields {
   value   String
 
   issue Issue @relation(fields: [issueId], references: [id])
-}
-
-model Stage {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
-
-  projectStages ProjectStage[]
-  issues        Issue[]
 }
 
 model Project {
@@ -210,15 +202,15 @@ model IssueChangeLog {
 model ProjectStage {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String    @db.Uuid
-  stageId   String    @db.Uuid
+  name      String
   type      StageType
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
+  issues  Issue[]
   project Project @relation(fields: [projectId], references: [id])
-  stage   Stage   @relation(fields: [stageId], references: [id])
 
-  @@unique([stageId, projectId])
+  @@unique([projectId, name])
 }
 
 model ProjectLabel {

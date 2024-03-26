@@ -11,9 +11,7 @@ import { RoleRepositoryImpl } from '@domains/role/repository';
 import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
-import { StageRepositoryImpl } from '@domains/stage/repository/stage.repository.impl';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { type StageDTO } from '@domains/stage/dto';
 import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
 import { type LabelDTO } from '@domains/label/dto';
@@ -44,6 +42,7 @@ import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
 import { IssueLabelRepositoryImpl } from '@domains/issueLabel/repository';
+import { type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -118,25 +117,30 @@ export class IntegrationServiceImpl implements IntegrationService {
     return project;
   }
 
+  /**
+   * Asynchronously integrates issues using the provided input data.
+   * @param input The input data for integrating issues.
+   * @returns A Promise that resolves once the integration process is complete.
+   */
   async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
     const issueRepository = new IssueRepositoryImpl(input.db);
-    const stageRepository = new StageRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
     const labelRepository = new LabelRepositoryImpl(input.db);
     const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
+    const projectStageRepository = new ProjectStageRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
       const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
-      let stage: StageDTO | null = null;
+      let projectStage: ProjectStageDTO | null = null;
       if (issueData.stage !== null) {
-        stage = await stageRepository.getByName(issueData.stage);
+        projectStage = await projectStageRepository.getByProjectIdAndName({ name: issueData.stage, projectId: input.projectId });
       }
       const newIssue = await issueRepository.create({
         providerIssueId: issueData.providerIssueId,
         authorId: author != null ? author.id : null,
         assigneeId: assignee != null ? assignee.id : null,
         projectId: input.projectId,
-        stageId: stage !== null ? stage.id : null,
+        projectStageId: projectStage !== null ? projectStage.id : null,
         name: issueData.name,
         title: issueData.title,
         description: issueData.description,
@@ -231,17 +235,14 @@ export class IntegrationServiceImpl implements IntegrationService {
    * creates or retrieves stages, and associates them with the project.
    * @param {StageIntegrationInput} input - Input data including project stages and project ID.
    * @returns {Promise<void>} A promise that resolves once the integration is complete.
-   * @throws {NotFoundException} If a stage cannot be found.
    */
   async integrateStages(input: StageIntegrationInput): Promise<void> {
-    const stageRepository: StageRepositoryImpl = new StageRepositoryImpl(input.db);
     const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(input.db);
     for (const stageData of input.stages) {
-      let stage: StageDTO | null = await stageRepository.getByName(stageData.name);
-      if (stage === null) {
-        stage = await stageRepository.create(stageData.name);
+      const projectStage: ProjectStageDTO | null = await projectStageRepository.getByProjectIdAndName({ name: stageData.name, projectId: input.projectId });
+      if (projectStage === null) {
+        await projectStageRepository.create({ name: stageData.name, type: stageData.type, projectId: input.projectId });
       }
-      await projectStageRepository.create({ stageId: stage.id, type: stageData.type, projectId: input.projectId });
     }
   }
 

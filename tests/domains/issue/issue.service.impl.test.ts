@@ -399,7 +399,7 @@ describe('issue service tests', () => {
       // given
       const issueId = 'issueId';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
-      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
 
       // when
       const result = issueService.resumeTimer(issueId);
@@ -413,7 +413,7 @@ describe('issue service tests', () => {
       // given
       const issueId = 'issueId';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
-      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(validMockTimeTrackingDTO);
 
       const result = issueService.resumeTimer(issueId);
@@ -427,7 +427,7 @@ describe('issue service tests', () => {
       // given
       const issueId = 'issueId';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
-      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(null);
       const validEvent: TimeTrackingDTO = {
         id: 'eventId',
@@ -448,7 +448,7 @@ describe('issue service tests', () => {
       // given
       const issueId = 'issueId';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
-      projectStageRepositoryMock.getByProjectIdAndStageId.mockResolvedValue(mockProjectStageDTOStarted);
+      projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       const validEvent: TimeTrackingDTO = {
         id: 'eventId',
         issueId: mockIssueDTO.id,

@@ -1,10 +1,10 @@
 import { type ProjectService } from '@domains/project/service/project.service';
 import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectDTO } from '@domains/project/dto';
-import { type StageExtendedDTO } from '@domains/stage/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { NotFoundException } from '@utils';
+import { type StageExtendedDTO } from '@domains/projectStage/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(

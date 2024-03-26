@@ -9,6 +9,7 @@ import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { type ProjectDTO } from '@domains/project/dto';
 import { type ProjectStageRepository } from '@domains/projectStage/repository';
+import { type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export class IssueServiceImpl implements IssueService {
   constructor(
@@ -35,10 +36,7 @@ export class IssueServiceImpl implements IssueService {
     const issue = await this.issueRepository.getById(issueId);
     if (issue == null) throw new NotFoundException('issue');
 
-    // this is kinda odd because you first have to check if your stageId is not null instead of just look for the project stage (look to do)
-    // if (issue.stageId == null && !(await this.isIssueInStartedStage(issue))) throw new ConflictException('This issue needs to be started in order to be able to track time.')
-
-    const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue);
+    const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue.projectStageId);
     if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
 
     const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
@@ -53,17 +51,12 @@ export class IssueServiceImpl implements IssueService {
   /**
    * Checks if the issue has a stage assigned and that it is in started stage.
    *
-   * @param {Object} params - Parameters for checking the issue's stage.
-   * @param {string | null} params.stageId - The ID of the current stage of the issue.
-   * @param {string} params.projectId - The ID of the project the issue belongs to.
+   * @param projectStageId The ID pf the projectStage
    * @returns {Promise<boolean>} A promise that resolves to true if the issue is in a started stage, otherwise false.
    */
-  private async isIssueInStartedStage({ stageId, projectId }: { stageId: string | null; projectId: string }): Promise<boolean> {
-    if (stageId == null) return false;
-    const projectStage = await this.projectStageRepository.getByProjectIdAndStageId({
-      stageId,
-      projectId,
-    });
+  private async isIssueInStartedStage(projectStageId: string | null): Promise<boolean> {
+    if (projectStageId == null) return false;
+    const projectStage: ProjectStageDTO | null = await this.projectStageRepository.getById(projectStageId);
 
     return projectStage != null && projectStage.type === 'STARTED';
   }
@@ -150,7 +143,7 @@ export class IssueServiceImpl implements IssueService {
     await this.validateUserExistence(filters.userId);
     await this.validateProjectExistence(filters.projectId);
 
-    return this.getIssuesFilteredAndPaginated(filters);
+    return this.getIssuesFilteredAndPaginated({ ...filters, assigneeIds: [filters.userId] });
   }
 
   /**
@@ -160,8 +153,7 @@ export class IssueServiceImpl implements IssueService {
    * @throws {NotFoundException} If the user or project is not found.
    */
   async getPMIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
-    await this.validateUserExistence(filters.userId);
-    await this.validateProjectExistence(filters.projectId);
+    await this.validateProjectExistence(filters.projectId); // user already validated in middleware
 
     return this.getIssuesFilteredAndPaginated(filters);
   }
@@ -241,6 +233,23 @@ export class IssueServiceImpl implements IssueService {
     if (issue === null) {
       throw new NotFoundException('Issue');
     }
+    const orderedEvents: EventHistoryLogDTO[] = await this.getIssueChronology(issueId);
+
+    return { ...issue, chronology: orderedEvents };
+  }
+
+  /**
+   * Retrieves the chronology of events for a specific issue.
+   *
+   * @param issueId The ID of the issue to retrieve the chronology for.
+   * @returns A Promise that resolves to an array of EventHistoryLogDTO objects representing the chronology of events.
+   * @throws NotFoundException if the issue with the given ID is not found.
+   */
+  async getIssueChronology(issueId: string): Promise<EventHistoryLogDTO[]> {
+    const issue: IssueDetailsDTO | null = await this.issueRepository.getIssueDetailsById(issueId);
+    if (issue === null) {
+      throw new NotFoundException('Issue');
+    }
     const blockEvents: BlockerStatusModificationDTO[] = await this.eventRepository.getIssueBlockEvents(issueId);
     const changeLogEvents: IssueChangeLogDTO[] = await this.eventRepository.getIssueChangeLogs(issueId);
     const manualModifications: ManualTimeModificationDTO[] = await this.eventRepository.getIssueManualTimeModification(issueId);
@@ -253,9 +262,7 @@ export class IssueServiceImpl implements IssueService {
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    const orderedEvents: EventHistoryLogDTO[] = parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    return { ...issue, chronology: orderedEvents };
+    return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
   /**

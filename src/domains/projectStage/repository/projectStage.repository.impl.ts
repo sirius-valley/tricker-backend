@@ -10,8 +10,8 @@ export class ProjectStageRepositoryImpl implements ProjectStageRepository {
     const projectStage: ProjectStage = await this.db.projectStage.create({
       data: {
         projectId: input.projectId,
-        stageId: input.stageId,
         type: input.type,
+        name: input.name,
       },
     });
 
@@ -19,23 +19,33 @@ export class ProjectStageRepositoryImpl implements ProjectStageRepository {
   }
 
   /**
-   * Retrieves a project stage by project ID and stage ID.
+   * Retrieves a project stage by project ID and name.
    *
    * @param {Object} input - The input object containing project ID and stage ID.
    * @param {string} input.projectId - The ID of the project.
-   * @param {string} input.stageId - The ID of the stage.
+   * @param {string} input.name - The name of the stage.
    * @returns {Promise<ProjectStageDTO | null>} A promise that resolves to the project stage DTO if found, otherwise null.
    */
-  async getByProjectIdAndStageId(input: { projectId: string; stageId: string }): Promise<ProjectStageDTO | null> {
+  async getByProjectIdAndName(input: { projectId: string; name: string }): Promise<ProjectStageDTO | null> {
     const projectStage: ProjectStage | null = await this.db.projectStage.findUnique({
       where: {
-        stageId_projectId: {
+        projectId_name: {
           projectId: input.projectId,
-          stageId: input.stageId,
+          name: input.name,
         },
       },
     });
 
     return projectStage != null ? new ProjectStageDTO(projectStage) : null;
+  }
+
+  async getById(id: string): Promise<ProjectStageDTO | null> {
+    const projectStage = await this.db.projectStage.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return projectStage === null ? null : new ProjectStageDTO(projectStage);
   }
 }

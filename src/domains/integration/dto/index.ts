@@ -6,7 +6,8 @@ import { Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
 import type { EventInput } from '@domains/event/dto';
-import { type StageType } from '@domains/stage/dto';
+
+import { type StageType } from '@domains/projectStage/dto';
 
 export class ProjectDataDTO {
   projectId: string;

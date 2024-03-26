@@ -1,12 +1,17 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
 import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO, type UserProject } from '@domains/issue/dto';
-import { type Issue, type PrismaClient, StageType } from '@prisma/client';
+import { type Issue, type PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { LabelDTO } from '@domains/label/dto';
 
 export class IssueRepositoryImpl implements IssueRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
+  /**
+   * Asynchronously creates an issue based on the provided input data.
+   * @param data The input data for creating the issue.
+   * @returns A Promise that resolves to an IssueDTO representing the created issue.
+   */
   async create(data: IssueInput): Promise<IssueDTO> {
     const issue: Issue = await this.db.issue.create({
       data: {
@@ -14,7 +19,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         authorId: data.authorId,
         assigneeId: data.assigneeId,
         projectId: data.projectId,
-        stageId: data.stageId,
+        projectStageId: data.projectStageId,
         name: data.name,
         title: data.title,
         description: data.description,
@@ -47,9 +52,9 @@ export class IssueRepositoryImpl implements IssueRepository {
   }
 
   /**
-   * Retrieves a list of issues with applied filters.
-   * @param filters - Parameters used for filtering issues.
-   * @returns An array of IssueViewDTO objects representing the filtered issues.
+   * Asynchronously retrieves issues based on the provided filters.
+   * @param filters The parameters for filtering issues.
+   * @returns A Promise that resolves to an array of IssueViewDTO objects representing the retrieved issues.
    */
   async getWithFilters(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     const issues = await this.db.issue.findMany({
@@ -57,53 +62,50 @@ export class IssueRepositoryImpl implements IssueRepository {
       take: 20,
       where: {
         projectId: filters.projectId,
-        OR: [{ assigneeId: filters.userId }, { assigneeId: { in: filters.assigneeIds } }],
-        stageId: { in: filters.stageIds },
+        projectStageId: { in: filters.stageIds },
+        assigneeId: filters.assigneeIds === undefined ? { not: null } : { in: filters.assigneeIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
         priority: { in: filters.priorities },
-        stage:
-          filters.stageIds === undefined
-            ? {
-                projectStages: {
-                  every: {
-                    OR: [{ type: { not: StageType.BACKLOG } }, { type: { not: StageType.COMPLETED } }],
-                  },
-                },
-              }
-            : {},
-        assignee: { cognitoId: { not: null } },
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
           },
         },
-        stage: {
-          include: {
-            projectStages: {
-              where: {
-                projectId: filters.projectId,
-              },
-            },
+        stage: true,
+      },
+      orderBy: [
+        {
+          stage: {
+            type: 'asc',
           },
         },
-      },
+        {
+          stage: {
+            name: 'asc',
+          },
+        },
+      ],
     });
 
     return issues.map((issue) => {
-      let type: StageType = StageType.OTHER;
-      if (issue.stage !== null) {
-        type = issue.stage.projectStages.find((projectStage) => projectStage.projectId === filters.projectId)!.type;
-      }
-
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
         name: issue.name,
         title: issue.title,
+        description: issue.description,
         priority: issue.priority,
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
@@ -126,7 +128,15 @@ export class IssueRepositoryImpl implements IssueRepository {
         isBlocked: input.isBlocked,
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
@@ -149,114 +159,6 @@ export class IssueRepositoryImpl implements IssueRepository {
   }
 
   /**
-   * Retrieves issues by project ID.
-   * @param {string} projectId - The ID of the project.
-   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
-   */
-  async getByProjectId(projectId: string): Promise<IssueViewDTO[]> {
-    const issues = await this.db.issue.findMany({
-      where: {
-        projectId,
-      },
-      include: {
-        assignee: {
-          where: {
-            projectsRoleAssigned: {
-              every: {
-                projectId,
-                isAccepted: true,
-              },
-            },
-          },
-        },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
-        stage: {
-          include: {
-            projectStages: {
-              where: {
-                projectId,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return issues.map((issue) => {
-      let type: StageType = StageType.OTHER;
-      if (issue.stage !== null) {
-        type = issue.stage.projectStages.find((projectStage) => projectStage.projectId === projectId)!.type;
-      }
-
-      return new IssueViewDTO({
-        id: issue.id,
-        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type } : null,
-        name: issue.name,
-        title: issue.title,
-        priority: issue.priority,
-        storyPoints: issue.storyPoints,
-        isBlocked: issue.isBlocked,
-        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
-      });
-    });
-  }
-
-  /**
-   * Retrieves issues by project ID and user ID.
-   * @param {UserProject} input - The project and user IDs.
-   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
-   */
-  async getByProjectIdAndUserId(input: UserProject): Promise<IssueViewDTO[]> {
-    const issues = await this.db.issue.findMany({
-      where: {
-        projectId: input.projectId,
-        assigneeId: input.userId,
-      },
-      include: {
-        assignee: true,
-        labels: {
-          include: {
-            label: true,
-          },
-        },
-        stage: {
-          include: {
-            projectStages: {
-              where: {
-                projectId: input.projectId,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return issues.map((issue) => {
-      let type: StageType = StageType.OTHER;
-      if (issue.stage !== null) {
-        type = issue.stage.projectStages.find((projectStage) => projectStage.projectId === input.projectId)!.type;
-      }
-
-      return new IssueViewDTO({
-        id: issue.id,
-        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type } : null,
-        name: issue.name,
-        title: issue.title,
-        priority: issue.priority,
-        storyPoints: issue.storyPoints,
-        isBlocked: issue.isBlocked,
-        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
-      });
-    });
-  }
-
-  /**
    * Retrieves details of an issue by its unique identifier.
    * @param id The unique identifier of the issue.
    * @returns An issue details DTO if found, otherwise null.
@@ -268,7 +170,15 @@ export class IssueRepositoryImpl implements IssueRepository {
         deletedAt: null,
       },
       include: {
-        assignee: true,
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
         labels: {
           include: {
             label: true,
@@ -290,5 +200,104 @@ export class IssueRepositoryImpl implements IssueRepository {
           isBlocked: issue.isBlocked,
           labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
         });
+  }
+
+  /**
+   * Retrieves issues by project ID.
+   * @param {string} projectId - The ID of the project.
+   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
+   */
+  async getByProjectId(projectId: string): Promise<IssueViewDTO[]> {
+    const issues = await this.db.issue.findMany({
+      where: {
+        projectId,
+      },
+      include: {
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+        stage: {
+          where: {
+            projectId,
+          },
+        },
+      },
+    });
+
+    return issues.map((issue) => {
+      return new IssueViewDTO({
+        id: issue.id,
+        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        name: issue.name,
+        title: issue.title,
+        description: issue.description,
+        priority: issue.priority,
+        storyPoints: issue.storyPoints,
+        isBlocked: issue.isBlocked,
+        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      });
+    });
+  }
+
+  /**
+   * Retrieves issues by project ID and user ID.
+   * @param {UserProject} input - The project and user IDs.
+   * @returns {Promise<IssueViewDTO[]>} The retrieved issues.
+   */
+  async getByProjectIdAndUserId(input: UserProject): Promise<IssueViewDTO[]> {
+    const issues = await this.db.issue.findMany({
+      where: {
+        projectId: input.projectId,
+        assigneeId: input.userId,
+      },
+      include: {
+        assignee: {
+          where: {
+            projectsRoleAssigned: {
+              every: {
+                isAccepted: true,
+              },
+            },
+          },
+        },
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+        stage: {
+          where: {
+            projectId: input.projectId,
+          },
+        },
+      },
+    });
+
+    return issues.map((issue) => {
+      return new IssueViewDTO({
+        id: issue.id,
+        assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        name: issue.name,
+        title: issue.title,
+        description: issue.description,
+        priority: issue.priority,
+        storyPoints: issue.storyPoints,
+        isBlocked: issue.isBlocked,
+        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      });
+    });
   }
 }

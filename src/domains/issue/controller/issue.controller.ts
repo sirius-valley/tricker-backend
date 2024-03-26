@@ -8,7 +8,7 @@ import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueVi
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { type BlockerStatusModificationDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
@@ -106,7 +106,7 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
 
   await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.status(HttpStatus.NO_CONTENT);
+  return res.sendStatus(HttpStatus.NO_CONTENT);
 });
 
 issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
@@ -115,4 +115,12 @@ issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (
   const issue: IssueExtendedDTO = await issueService.getIssueWithChronology(issueId);
 
   return res.status(HttpStatus.OK).json(issue);
+});
+
+issueRouter.get('/:issueId/chronology', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {
+  const { issueId } = req.params;
+
+  const chronology: EventHistoryLogDTO[] = await issueService.getIssueChronology(issueId);
+
+  return res.status(HttpStatus.OK).json(chronology);
 });

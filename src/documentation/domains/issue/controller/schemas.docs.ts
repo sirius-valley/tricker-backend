@@ -39,9 +39,11 @@
  *           items:
  *             type: string
  *             enum:
- *               - "HIGH"
- *               - "MEDIUM"
- *               - "LOW"
+ *               - "URGENT"
+ *               - "HIGH_PRIORITY"
+ *               - "MEDIUM_PRIORITY"
+ *               - "LOW_PRIORITY"
+ *               - "NO_PRIORITY"
  *         isOutOfEstimation:
  *           type: boolean
  *         cursor:
@@ -52,8 +54,8 @@
  *           - "123e4567-e89b-12d3-a456-426614174002"
  *           - "123e4567-e89b-12d3-a456-426614174003"
  *         priorities:
- *           - "HIGH"
- *           - "MEDIUM"
+ *           - "HIGH_PRIORITY"
+ *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: true
  *         cursor: "123e4567-e89b-12d3-a456-426614174004"
  *
@@ -70,9 +72,11 @@
  *           items:
  *             type: string
  *             enum:
- *               - "HIGH"
- *               - "MEDIUM"
- *               - "LOW"
+ *               - "URGENT"
+ *               - "HIGH_PRIORITY"
+ *               - "MEDIUM_PRIORITY"
+ *               - "LOW_PRIORITY"
+ *               - "NO_PRIORITY"
  *         isOutOfEstimation:
  *           type: boolean
  *         cursor:
@@ -83,8 +87,8 @@
  *           - "123e4567-e89b-12d3-a456-426614174005"
  *           - "123e4567-e89b-12d3-a456-426614174006"
  *         priorities:
- *           - "HIGH"
- *           - "MEDIUM"
+ *           - "HIGH_PRIORITY"
+ *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: false
  *         cursor: "123e4567-e89b-12d3-a456-426614174007"
  *
@@ -119,6 +123,9 @@
  *         title:
  *           type: string
  *           description: The title of the issue.
+ *         description:
+ *           type: string
+ *           description: The description of the issue.
  *         priority:
  *           $ref: '#/components/schemas/Priority'
  *           description: The priority of the issue.
@@ -146,7 +153,8 @@
  *           type: "IN_PROGRESS"
  *         name: "Task 1"
  *         title: "Complete task 1"
- *         priority: "HIGH"
+ *         description: Here is displayed the description of the task
+ *         priority: "HIGH_PRIORITY"
  *         storyPoints: 5
  *         isBlocked: false
  *         labels:
