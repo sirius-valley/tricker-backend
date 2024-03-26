@@ -2,9 +2,11 @@ import { type IMailgunClient } from 'mailgun.js/Interfaces';
 import process from 'process';
 import { type EmailService } from '@domains/email/service/email.service';
 import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from '@domains/email/dto';
-import path from 'path';
+// import path from 'path';
 import { prepareHtmlTemplate } from '@utils/templating';
+import { HTML_TEMPLATES } from '@domains/email/service/templates';
 
+// TODO: fix file reads, delete hardcoded html strings
 export class MailgunEmailService implements EmailService {
   constructor(private readonly client: IMailgunClient) {}
 
@@ -20,7 +22,8 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Confirmation',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/project_integration_finished.html'), variables),
+      // html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/project_integration_finished.html'), variables),
+      html: await prepareHtmlTemplate(HTML_TEMPLATES.PROJECT_INTEGRATION_FINISHED, variables),
     });
   }
 
@@ -36,7 +39,8 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Authorization',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_request.html'), variables),
+      // html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_request.html'), variables),
+      html: await prepareHtmlTemplate(HTML_TEMPLATES.ACCESS_REQUEST, variables),
     });
   }
 
@@ -52,7 +56,8 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Denial',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
+      // html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/declined_request.html'), variables),
+      html: await prepareHtmlTemplate(HTML_TEMPLATES.DECLINED_REQUEST, variables),
     });
   }
 
@@ -68,7 +73,8 @@ export class MailgunEmailService implements EmailService {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Access Granted',
-      html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_granted.html'), variables),
+      // html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/access_granted.html'), variables),
+      html: await prepareHtmlTemplate(HTML_TEMPLATES.ACCESS_GRANTED, variables),
     });
   }
 }
