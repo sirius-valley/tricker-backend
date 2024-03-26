@@ -141,6 +141,9 @@
  *           items:
  *             $ref: '#/components/schemas/LabelDTO'
  *           description: The labels associated with the issue.
+ *         isTracking:
+ *           type: boolean
+ *           description: A boolean that indicates whether time is currently being tracked or not
  *       example:
  *         id: "123e4567-e89b-12d3-a456-426614174010"
  *         assignee:
@@ -160,6 +163,7 @@
  *         labels:
  *           - id: "123e4567-e89b-12d3-a456-426614174013"
  *             name: "Bug"
+ *         isTracking: true
  *
  *     LabelDTO:
  *       type: object
