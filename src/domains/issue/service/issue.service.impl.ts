@@ -36,9 +36,6 @@ export class IssueServiceImpl implements IssueService {
     const issue = await this.issueRepository.getById(issueId);
     if (issue == null) throw new NotFoundException('issue');
 
-    // this is kinda odd because you first have to check if your stageId is not null instead of just look for the project stage (look to do)
-    // if (issue.stageId == null && !(await this.isIssueInStartedStage(issue))) throw new ConflictException('This issue needs to be started in order to be able to track time.')
-
     const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue.projectStageId);
     if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
 
