@@ -3,7 +3,7 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO, type IssueInput } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -19,6 +19,14 @@ export class IssueServiceImpl implements IssueService {
     private readonly projectRepository: ProjectRepository,
     private readonly projectStageRepository: ProjectStageRepository
   ) {}
+
+  async createIssue(input: IssueInput): Promise<IssueViewDTO> {
+    // verificar que no exista el id de linear ya, que la card no este creada
+    const issue = this.issueRepository.getByProviderId(input.providerIssueId);
+    if (issue != null) throw new ConflictException('Issue already exists');
+
+    return await this.issueRepository.create(input);
+  }
 
   /**
    * Resumes the timer for tracking time on an issue.

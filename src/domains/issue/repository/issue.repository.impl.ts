@@ -12,8 +12,8 @@ export class IssueRepositoryImpl implements IssueRepository {
    * @param data The input data for creating the issue.
    * @returns A Promise that resolves to an IssueDTO representing the created issue.
    */
-  async create(data: IssueInput): Promise<IssueDTO> {
-    const issue: Issue = await this.db.issue.create({
+  async create(data: IssueInput): Promise<IssueViewDTO> {
+    const issue = await this.db.issue.create({
       data: {
         providerIssueId: data.providerIssueId,
         authorId: data.authorId,
@@ -26,9 +26,30 @@ export class IssueRepositoryImpl implements IssueRepository {
         priority: data.priority,
         storyPoints: data.storyPoints,
       },
+      include: {
+        assignee: true,
+        stage: true,
+        labels: {
+          include: {
+            label: true,
+          },
+        },
+      },
     });
 
-    return new IssueDTO(issue);
+    return new IssueViewDTO({
+      id: issue.id,
+      assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
+      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+      name: issue.name,
+      title: issue.title,
+      description: issue.description,
+      priority: issue.priority,
+      storyPoints: issue.storyPoints,
+      isBlocked: issue.isBlocked,
+      labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      isTracking: false,
+    });
   }
 
   async getByProviderId(providerIssueId: string): Promise<IssueDTO | null> {
