@@ -265,6 +265,10 @@ export class IssueServiceImpl implements IssueService {
     return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
+  /* async updateIssue(data: IssueUpdateInput): Promise<IssueViewDTO> {
+    return new IssueViewDTO(data);
+  } */
+
   /**
    * Validates the existence of a user.
    * Throws a NotFoundException if the user does not exist or is inactive.

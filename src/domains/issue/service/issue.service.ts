@@ -13,4 +13,5 @@ export interface IssueService {
   unblockIssueWithTrickerUI: (input: IssueAndAssignee) => Promise<BlockerStatusModificationDTO>;
   getIssueWithChronology: (issueId: string) => Promise<IssueExtendedDTO>;
   getIssueChronology: (issueId: string) => Promise<EventHistoryLogDTO[]>;
+  // updateIssue: (data: IssueUpdateInput) => Promise<IssueViewDTO>;
 }

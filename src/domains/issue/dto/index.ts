@@ -95,6 +95,18 @@ export class IssueInput {
   }
 }
 
+export interface IssueUpdateInput {
+  providerIssueId: string;
+  assigneeId?: string | null;
+  projectStageId?: string | null;
+  name?: string;
+  title?: string;
+  description?: string | null;
+  priority?: Priority;
+  storyPoints?: number | null;
+  isBlocked?: boolean;
+}
+
 /**
  * Data Transfer Object (DTO) for parameters send by frontend related to worked time on an issue.
  * This class defines validation rules for issueId property.
