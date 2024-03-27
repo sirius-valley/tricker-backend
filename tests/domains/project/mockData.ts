@@ -21,6 +21,7 @@ export const mockIssueViewDTO1: IssueViewDTO = {
   storyPoints: 1,
   isBlocked: false,
   labels: [],
+  isTracking: false,
 };
 
 export const mockIssueViewDTO2: IssueViewDTO = {
@@ -42,6 +43,7 @@ export const mockIssueViewDTO2: IssueViewDTO = {
   storyPoints: 1,
   isBlocked: false,
   labels: [],
+  isTracking: false,
 };
 
 export const mockIssueViewDTO3: IssueViewDTO = {
@@ -63,6 +65,7 @@ export const mockIssueViewDTO3: IssueViewDTO = {
   storyPoints: 4,
   isBlocked: false,
   labels: [],
+  isTracking: false,
 };
 
 export const mockDevProjectFilterDTO: DevProjectFiltersDTO = {

@@ -33,7 +33,7 @@ export function IsValidOrganization(validationOptions?: ValidationOptions) {
 @ValidatorConstraint({ async: true })
 export class IsValidIssueProviderConstraint implements ValidatorConstraintInterface {
   async validate(issueProviderName: string, args: ValidationArguments): Promise<boolean> {
-    const issueProvider = issueProviderRepository.getByName(issueProviderName);
+    const issueProvider = issueProviderRepository.getByName(issueProviderName.trim().toUpperCase());
     return issueProvider != null;
   }
 }

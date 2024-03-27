@@ -2,7 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
 import type { EventInput } from '@domains/event/dto';
@@ -251,6 +251,7 @@ export class ProviderKeyDTO {
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
   provider!: string;
 }
 

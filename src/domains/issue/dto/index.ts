@@ -344,6 +344,7 @@ export class IssueViewDTO {
   storyPoints: number | null;
   isBlocked: boolean;
   labels: LabelDTO[];
+  isTracking: boolean;
 
   constructor(issueView: IssueViewDTO) {
     this.id = issueView.id;
@@ -356,6 +357,7 @@ export class IssueViewDTO {
     this.storyPoints = issueView.storyPoints;
     this.isBlocked = issueView.isBlocked;
     this.labels = issueView.labels;
+    this.isTracking = issueView.isTracking;
   }
 }
 

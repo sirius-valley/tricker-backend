@@ -83,6 +83,11 @@ export class IssueRepositoryImpl implements IssueRepository {
           },
         },
         stage: true,
+        timeTrackings: {
+          where: {
+            endTime: null,
+          },
+        },
       },
       orderBy: [
         {
@@ -110,6 +115,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
         labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        isTracking: issue.timeTrackings.length !== 0,
       });
     });
   }
@@ -232,6 +238,11 @@ export class IssueRepositoryImpl implements IssueRepository {
             projectId,
           },
         },
+        timeTrackings: {
+          where: {
+            endTime: null,
+          },
+        },
       },
     });
 
@@ -247,6 +258,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
         labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        isTracking: issue.timeTrackings.length !== 0,
       });
     });
   }
@@ -282,6 +294,11 @@ export class IssueRepositoryImpl implements IssueRepository {
             projectId: input.projectId,
           },
         },
+        timeTrackings: {
+          where: {
+            endTime: null,
+          },
+        },
       },
     });
 
@@ -297,6 +314,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
         labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        isTracking: issue.timeTrackings.length !== 0,
       });
     });
   }
