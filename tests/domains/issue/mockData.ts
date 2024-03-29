@@ -1,4 +1,4 @@
-import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueUpdateInput, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
@@ -140,6 +140,42 @@ export const mockIssueViewDTO: IssueViewDTO = {
   isBlocked: false,
   labels: [],
   isTracking: false,
+};
+
+export const mockUpdatedIssueViewDTO: IssueViewDTO = {
+  id: 'issue789',
+  assignee: {
+    id: 'user124',
+    name: 'John Smith',
+    profileUrl: null,
+  },
+  stage: {
+    id: 'stage457',
+    name: 'In Progress',
+    type: StageType.STARTED,
+  },
+  name: 'TRI-001',
+  title: 'Fake issue',
+  priority: 'MEDIUM_PRIORITY',
+  description: 'Fake issue description',
+  storyPoints: 1,
+  isBlocked: false,
+  labels: [],
+  isTracking: false,
+};
+
+export const mockIssueUpdateInput: IssueUpdateInput = {
+  assigneeId: 'user124',
+  name: undefined,
+  description: undefined,
+  title: undefined,
+  storyPoints: undefined,
+  isBlocked: undefined,
+  priority: undefined,
+  projectStageId: 'stage457',
+  projectId: undefined,
+  issueId: 'issue789',
+  providerIssueId: undefined,
 };
 
 export const mockDevIssueFilterParameters = {
