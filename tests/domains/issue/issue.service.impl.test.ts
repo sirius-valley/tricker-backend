@@ -502,12 +502,12 @@ describe('issue service tests', () => {
 
   describe('createIssue method', () => {
     it('should throw a ConflictException if an issue with the same providerIssueId exists', async () => {
-      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.getByProviderId.mockResolvedValue(mockIssueDTO);
 
-      const result = await issueService.createIssue(mockIssueInput);
+      const result = issueService.createIssue(mockIssueInput);
 
       await expect(result).rejects.toThrow(ConflictException);
-      expect(issueRepositoryMock.getById).toHaveBeenCalledWith(mockIssueDTO.providerIssueId);
+      expect(issueRepositoryMock.getByProviderId).toHaveBeenCalledWith(mockIssueInput.providerIssueId);
       expect(issueRepositoryMock.create).not.toHaveBeenCalled();
     });
   });
