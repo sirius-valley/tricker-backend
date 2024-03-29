@@ -20,8 +20,14 @@ export class IssueServiceImpl implements IssueService {
     private readonly projectStageRepository: ProjectStageRepository
   ) {}
 
+  /**
+   * Creates an issue based on the provided input.
+   *
+   * @param {IssueInput} input - The input data for creating the issue.
+   * @returns {Promise<IssueViewDTO>} - A promise resolving to the created issue view data transfer object.
+   * @throws {ConflictException} - Throws a ConflictException if an issue with the same providerIssueId already exists.
+   */
   async createIssue(input: IssueInput): Promise<IssueViewDTO> {
-    // verificar que no exista el id de linear ya, que la card no este creada
     const issue = this.issueRepository.getByProviderId(input.providerIssueId);
     if (issue != null) throw new ConflictException('Issue already exists');
 

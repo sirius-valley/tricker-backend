@@ -26,6 +26,7 @@ import {
   mockIssueChangeLogDTO,
   mockAssigneeIssueChangeLogDTO,
   mockIssueExtendedDTO,
+  mockIssueInput,
 } from './mockData';
 import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
@@ -496,6 +497,18 @@ describe('issue service tests', () => {
       issueRepositoryMock.getIssueDetailsById.mockResolvedValue(null);
       // then
       await expect(issueService.getIssueWithChronology(issueId)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('createIssue method', () => {
+    it('should throw a ConflictException if an issue with the same providerIssueId exists', async () => {
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+
+      const result = await issueService.createIssue(mockIssueInput);
+
+      await expect(result).rejects.toThrow(ConflictException);
+      expect(issueRepositoryMock.getById).toHaveBeenCalledWith(mockIssueDTO.providerIssueId);
+      expect(issueRepositoryMock.create).not.toHaveBeenCalled();
     });
   });
 });

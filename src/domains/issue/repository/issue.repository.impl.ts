@@ -2,13 +2,13 @@ import { type IssueRepository } from '@domains/issue/repository/issue.repository
 import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, type IssueAndIsBlocked, IssueDetailsDTO, type UserProject } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { LabelDTO } from '@domains/label/dto';
+import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 
 export class IssueRepositoryImpl implements IssueRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
   /**
-   * Asynchronously creates an issue based on the provided input data.
+   * Creates an issue based on the provided input data.
    * @param data The input data for creating the issue.
    * @returns A Promise that resolves to an IssueDTO representing the created issue.
    */
@@ -25,15 +25,14 @@ export class IssueRepositoryImpl implements IssueRepository {
         description: data.description,
         priority: data.priority,
         storyPoints: data.storyPoints,
+        labels: {
+          connect: data.labelIds.map((id) => ({ id })),
+        },
       },
       include: {
         assignee: true,
         stage: true,
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
       },
     });
 
@@ -47,7 +46,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       priority: issue.priority,
       storyPoints: issue.storyPoints,
       isBlocked: issue.isBlocked,
-      labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
       isTracking: false,
     });
   }
@@ -98,11 +97,7 @@ export class IssueRepositoryImpl implements IssueRepository {
             },
           },
         },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
         stage: true,
         timeTrackings: {
           where: {
@@ -135,7 +130,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         priority: issue.priority,
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
-        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
         isTracking: issue.timeTrackings.length !== 0,
       });
     });
@@ -164,11 +159,7 @@ export class IssueRepositoryImpl implements IssueRepository {
             },
           },
         },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
       },
     });
 
@@ -181,7 +172,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       priority: issue.priority,
       storyPoints: issue.storyPoints,
       isBlocked: issue.isBlocked,
-      labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+      labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
     });
   }
 
@@ -206,11 +197,7 @@ export class IssueRepositoryImpl implements IssueRepository {
             },
           },
         },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
       },
     });
 
@@ -225,7 +212,7 @@ export class IssueRepositoryImpl implements IssueRepository {
           priority: issue.priority,
           storyPoints: issue.storyPoints,
           isBlocked: issue.isBlocked,
-          labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+          labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
         });
   }
 
@@ -249,11 +236,7 @@ export class IssueRepositoryImpl implements IssueRepository {
             },
           },
         },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
         stage: {
           where: {
             projectId,
@@ -278,7 +261,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         priority: issue.priority,
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
-        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
         isTracking: issue.timeTrackings.length !== 0,
       });
     });
@@ -305,11 +288,7 @@ export class IssueRepositoryImpl implements IssueRepository {
             },
           },
         },
-        labels: {
-          include: {
-            label: true,
-          },
-        },
+        labels: true,
         stage: {
           where: {
             projectId: input.projectId,
@@ -334,7 +313,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         priority: issue.priority,
         storyPoints: issue.storyPoints,
         isBlocked: issue.isBlocked,
-        labels: issue.labels.map((label) => new LabelDTO({ id: label.label.id, name: label.label.name })),
+        labels: issue.labels.map((label) => new ProjectLabelDTO(label)),
         isTracking: issue.timeTrackings.length !== 0,
       });
     });

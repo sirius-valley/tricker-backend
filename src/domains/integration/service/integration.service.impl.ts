@@ -12,9 +12,8 @@ import { type RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
 import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
 import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { LabelRepositoryImpl } from '@domains/label/repository';
 import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
-import { type LabelDTO } from '@domains/label/dto';
+import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
@@ -41,7 +40,6 @@ import { IssueRepositoryImpl } from '@domains/issue/repository';
 import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
-import { IssueLabelRepositoryImpl } from '@domains/issueLabel/repository';
 import { type ProjectStageDTO } from '@domains/projectStage/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
@@ -58,10 +56,10 @@ export class IntegrationServiceImpl implements IntegrationService {
   ) {}
 
   /**
-   * Integrate a project into the Linear platform.
+   * Integrate a project into Tricker platform.
    * @param projectId {string} The ID of the project to integrate.
    * @param mailToken {string} Token provided in mail
-   * @returns The integrated project.
+   * @returns {ProjectDTO} The integrated project.
    * @throws {ConflictException} If the project has already been integrated or is inactive.
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
@@ -118,15 +116,15 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   /**
-   * Asynchronously integrates issues using the provided input data.
+   * Integrates issues using the provided input data.
    * @param input The input data for integrating issues.
    * @returns A Promise that resolves once the integration process is complete.
    */
   async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
     const issueRepository = new IssueRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
-    const labelRepository = new LabelRepositoryImpl(input.db);
-    const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
+    const labelRepository = new ProjectLabelRepositoryImpl(input.db);
+    // const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
     const projectStageRepository = new ProjectStageRepositoryImpl(input.db);
     for (const issueData of input.issues) {
       const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
@@ -134,6 +132,11 @@ export class IntegrationServiceImpl implements IntegrationService {
       let projectStage: ProjectStageDTO | null = null;
       if (issueData.stage !== null) {
         projectStage = await projectStageRepository.getByProjectIdAndName({ name: issueData.stage, projectId: input.projectId });
+      }
+      const labelIds: string[] = [];
+      for (const labelName of issueData.labels) {
+        const dto: ProjectLabelDTO | null = await labelRepository.getByNameAndProjectId({ name: labelName, projectId: input.projectId });
+        if (dto != null) labelIds.push(dto.id);
       }
       const newIssue = await issueRepository.create({
         providerIssueId: issueData.providerIssueId,
@@ -146,16 +149,21 @@ export class IntegrationServiceImpl implements IntegrationService {
         description: issueData.description,
         priority: issueData.priority,
         storyPoints: issueData.storyPoints,
+        labelIds,
       });
-      for (const label of issueData.labels) {
-        const labelId: LabelDTO = (await labelRepository.getByName(label))!;
-        await issueLabelRepository.create({ issueId: newIssue.id, labelId: labelId.id });
-      }
+
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
       Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
     }
   }
 
+  /**
+   * Integrates events into the system.
+   * This function processes a list of events and integrates them into the system, creating appropriate logs and entries
+   * in the database for each event type.
+   * @param {EventIntegrationInputDTO} input - The input data containing the events to integrate and the database connection.
+   * @returns {Promise<void>} A promise that resolves once all events have been integrated successfully.
+   */
   async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
     const eventRepository = new EventRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
@@ -254,14 +262,12 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If a label cannot be found.
    */
   async integrateLabels(input: LabelIntegrationInputDTO): Promise<void> {
-    const labelRepository: LabelRepositoryImpl = new LabelRepositoryImpl(input.db);
-    const projectLabel: ProjectLabelRepositoryImpl = new ProjectLabelRepositoryImpl(input.db);
+    const projectLabelRepository: ProjectLabelRepositoryImpl = new ProjectLabelRepositoryImpl(input.db);
     for (const name of input.labels) {
-      let label: LabelDTO | null = await labelRepository.getByName(name);
+      const label: ProjectLabelDTO | null = await projectLabelRepository.getByNameAndProjectId({ name, projectId: input.projectId });
       if (label === null) {
-        label = await labelRepository.create(name);
+        await projectLabelRepository.create({ name, projectId: input.projectId });
       }
-      await projectLabel.create(input.projectId, label.id);
     }
   }
 
