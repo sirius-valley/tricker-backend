@@ -510,5 +510,13 @@ describe('issue service tests', () => {
       expect(issueRepositoryMock.getByProviderId).toHaveBeenCalledWith(mockIssueInput.providerIssueId);
       expect(issueRepositoryMock.create).not.toHaveBeenCalled();
     });
+
+    it('creates an issue successfully', async () => {
+      issueRepositoryMock.getByProviderId.mockResolvedValue(null);
+      issueRepositoryMock.create.mockResolvedValue(mockIssueViewDTO);
+
+      const result = await issueService.createIssue(mockIssueInput);
+      expect(result).toEqual(mockIssueViewDTO);
+    });
   });
 });

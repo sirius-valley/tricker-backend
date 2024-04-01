@@ -28,7 +28,7 @@ export class IssueServiceImpl implements IssueService {
    * @throws {ConflictException} - Throws a ConflictException if an issue with the same providerIssueId already exists.
    */
   async createIssue(input: IssueInput): Promise<IssueViewDTO> {
-    const issue = this.issueRepository.getByProviderId(input.providerIssueId);
+    const issue = await this.issueRepository.getByProviderId(input.providerIssueId);
     if (issue != null) throw new ConflictException('Issue already exists');
 
     return await this.issueRepository.create(input);
