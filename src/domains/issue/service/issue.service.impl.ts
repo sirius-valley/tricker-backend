@@ -3,7 +3,7 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO, type IssueUpdateInput } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO, type IssueUpdateInput, type IssueInput } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -19,6 +19,20 @@ export class IssueServiceImpl implements IssueService {
     private readonly projectRepository: ProjectRepository,
     private readonly projectStageRepository: ProjectStageRepository
   ) {}
+
+  /**
+   * Creates an issue based on the provided input.
+   *
+   * @param {IssueInput} input - The input data for creating the issue.
+   * @returns {Promise<IssueViewDTO>} - A promise resolving to the created issue view data transfer object.
+   * @throws {ConflictException} - Throws a ConflictException if an issue with the same providerIssueId already exists.
+   */
+  async createIssue(input: IssueInput): Promise<IssueViewDTO> {
+    const issue = await this.issueRepository.getByProviderId(input.providerIssueId);
+    if (issue != null) throw new ConflictException('Issue already exists');
+
+    return await this.issueRepository.create(input);
+  }
 
   /**
    * Resumes the timer for tracking time on an issue.

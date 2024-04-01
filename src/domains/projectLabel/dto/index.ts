@@ -1,15 +1,20 @@
+/**
+ * Represents a data transfer object (DTO) for a label.
+ * This DTO contains information about a label, including its ID and name.
+ */
 export class ProjectLabelDTO {
+  /**
+   * The ID of the label.
+   */
   id: string;
-  projectId: string;
-  labelId: string;
-  createdAt: Date;
-  deletedAt: Date | null;
 
-  constructor(projectLabel: ProjectLabelDTO) {
-    this.id = projectLabel.id;
-    this.projectId = projectLabel.projectId;
-    this.labelId = projectLabel.labelId;
-    this.createdAt = projectLabel.createdAt;
-    this.deletedAt = projectLabel.deletedAt;
+  /**
+   * The name of the label.
+   */
+  name: string;
+
+  constructor(label: ProjectLabelDTO) {
+    this.id = label.id;
+    this.name = label.name;
   }
 }

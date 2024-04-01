@@ -27,6 +27,8 @@ app.use(cookieParser()); // Parse cookies
 app.use(
   cors({
     origin: Constants.CORS_WHITELIST,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'linear-signature'],
   })
 );
 

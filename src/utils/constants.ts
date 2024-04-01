@@ -29,7 +29,7 @@ export const Constants: ConstantsTypes = {
   // Port to run the server in
   PORT: process.env.PORT ?? '8080',
   // CORS urls to allow
-  CORS_WHITELIST: process.env.CORS_WHITELIST ?? '*',
+  CORS_WHITELIST: process.env.CORS_WHITELIST != null ? process.env.CORS_WHITELIST.split(', ') : [],
   // Authentication secret
   TOKEN_SECRET: process.env.AUTHORIZATION_SECRET ?? 'secret',
 };

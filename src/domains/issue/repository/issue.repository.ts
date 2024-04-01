@@ -1,7 +1,7 @@
 import { type IssueInput, type IssueDTO, type IssueViewDTO, type PMIssueFilterParameters, type IssueDetailsDTO, type UserProject, type IssueUpdateInput } from '@domains/issue/dto';
 
 export interface IssueRepository {
-  create: (data: IssueInput) => Promise<IssueDTO>;
+  create: (data: IssueInput) => Promise<IssueViewDTO>;
   getByProviderId: (providerId: string) => Promise<null | IssueDTO>;
   updateById: (data: IssueUpdateInput) => Promise<IssueViewDTO>;
   getById: (id: string) => Promise<IssueDTO | null>;
