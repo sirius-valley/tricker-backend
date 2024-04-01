@@ -1,6 +1,6 @@
 import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
-import { type LabelDTO } from '@domains/label/dto';
+import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
 import { type UserIssueDTO } from '@domains/user';
 import { IsTodayOrAfterToday } from '@utils';
 import { type StageExtendedDTO } from '@domains/projectStage/dto';
@@ -69,18 +69,71 @@ export class IssueDataDTO {
   }
 }
 
+/**
+ * Represents input data for creating or updating an issue.
+ * This class encapsulates the necessary properties for defining an issue, such as its ID, author, assignee, project details,
+ * name, title, description, priority, story points, and associated label IDs.
+ */
 export class IssueInput {
+  /**
+   * The ID of the issue provided by the provider.
+   */
   providerIssueId: string;
+
+  /**
+   * The ID of the author of the issue, if known. Can be null if not applicable.
+   */
   authorId: string | null;
+
+  /**
+   * The ID of the assignee of the issue, if known. Can be null if not assigned.
+   */
   assigneeId: string | null;
+
+  /**
+   * The ID of the project to which the issue belongs.
+   */
   projectId: string;
+
+  /**
+   * The ID of the project stage to which the issue belongs, if known. Can be null if not applicable.
+   */
   projectStageId: string | null;
+
+  /**
+   * The name of the issue.
+   */
   name: string;
+
+  /**
+   * The title of the issue.
+   */
   title: string;
+
+  /**
+   * The description of the issue, if provided. Can be null if not available.
+   */
   description: string | null;
+
+  /**
+   * The priority of the issue.
+   */
   priority: Priority;
+
+  /**
+   * The story points assigned to the issue, if applicable. Can be null if not estimated.
+   */
   storyPoints: number | null;
 
+  /**
+   * An array of label IDs associated with the issue.
+   */
+  labelIds: string[];
+
+  /**
+   * Constructs a new instance of the IssueInput class.
+   * @param {IssueInput} data - The data object containing properties to initialize the issue input.
+   */
   constructor(data: IssueInput) {
     this.providerIssueId = data.providerIssueId;
     this.authorId = data.authorId;
@@ -92,6 +145,7 @@ export class IssueInput {
     this.description = data.description;
     this.priority = data.priority;
     this.storyPoints = data.storyPoints;
+    this.labelIds = data.labelIds;
   }
 }
 
@@ -331,7 +385,7 @@ export class IssueViewDTO {
   priority: Priority;
   storyPoints: number | null;
   isBlocked: boolean;
-  labels: LabelDTO[];
+  labels: ProjectLabelDTO[];
   isTracking: boolean;
 
   constructor(issueView: IssueViewDTO) {
@@ -378,7 +432,7 @@ export class IssueDetailsDTO {
   isBlocked: boolean;
 
   /** The labels associated with the issue. */
-  labels: LabelDTO[];
+  labels: ProjectLabelDTO[];
 
   /**
    * Constructs a new instance of the IssueDetailsDTO class.

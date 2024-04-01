@@ -1,4 +1,4 @@
-import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
@@ -118,6 +118,20 @@ export const mockProjectDTO: ProjectDTO = {
   image: null,
   createdAt: new Date('2024-03-12T09:00:00Z'),
   deletedAt: null,
+};
+
+export const mockIssueInput: IssueInput = {
+  providerIssueId: 'issue789',
+  authorId: null,
+  assigneeId: 'user123',
+  projectId: 'project123',
+  projectStageId: 'stage456',
+  name: 'TRI-001',
+  title: 'Fake issue',
+  description: 'Fake issue description',
+  priority: 'MEDIUM_PRIORITY',
+  storyPoints: 1,
+  labelIds: [],
 };
 
 export const mockIssueViewDTO: IssueViewDTO = {

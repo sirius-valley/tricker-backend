@@ -56,7 +56,7 @@ model Issue {
   project                    Project                     @relation(fields: [projectId], references: [id])
   author                     User?                       @relation(name: "created", fields: [authorId], references: [id])
   assignee                   User?                       @relation(name: "assigned", fields: [assigneeId], references: [id])
-  labels                     IssueLabel[]
+  labels                     ProjectLabel[]
   stage                      ProjectStage?               @relation(fields: [projectStageId], references: [id])
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
@@ -65,14 +65,14 @@ model Issue {
   manualTimeModifications    ManualTimeModification[]
 }
 
-model IssueLabel {
-  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  labelId String @db.Uuid
-  issueId String @db.Uuid
-
-  label Label @relation(fields: [labelId], references: [id])
-  issue Issue @relation(fields: [issueId], references: [id])
-}
+// model IssueLabel {
+//   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   labelId String @db.Uuid
+//   issueId String @db.Uuid
+//
+//   label Label @relation(fields: [labelId], references: [id])
+//   issue Issue @relation(fields: [issueId], references: [id])
+// }
 
 model IssueCustomFields {
   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -151,13 +151,13 @@ model UserProjectRole {
   role        Role    @relation(fields: [roleId], references: [id])
 }
 
-model Label {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
-
-  issues        IssueLabel[]
-  projectLabels ProjectLabel[]
-}
+// model Label {
+//   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   name String
+//
+//   issues        IssueLabel[]
+//   projectLabels ProjectLabel[]
+// }
 
 model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -215,13 +215,16 @@ model ProjectStage {
 
 model ProjectLabel {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
   projectId String    @db.Uuid
-  labelId   String    @db.Uuid
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
   project Project @relation(fields: [projectId], references: [id])
-  label   Label   @relation(fields: [labelId], references: [id])
+  // label   Label   @relation(fields: [labelId], references: [id])
+  issues  Issue[]
+
+  @@unique([projectId, name])
 }
 
 enum BlockType {
