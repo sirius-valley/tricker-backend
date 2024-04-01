@@ -3,7 +3,20 @@ import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO, type IssueUpdateInput, type IssueInput } from '@domains/issue/dto';
+import {
+  type DevIssueFilterParameters,
+  type IssueAndAssignee,
+  type IssueDetailsDTO,
+  type IssueDTO,
+  type ManualTimeModificationEventInput,
+  type IssueExtendedDTO,
+  type IssueViewDTO,
+  type PMIssueFilterParameters,
+  type WorkedTimeDTO,
+  type IssueUpdateInput,
+  type IssueInput,
+  type IssueUpdateWebhookInput,
+} from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -283,13 +296,9 @@ export class IssueServiceImpl implements IssueService {
    * Updates an issue by its unique identifier.
    * @param data An object containing the data necessary to update the issue.
    * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
-   * @throws ConflictException if the issue id is not provided.
    * @throws NotFoundException if the issue with the provided id is not found or is deleted.
    */
   async updateIssueById(data: IssueUpdateInput): Promise<IssueViewDTO> {
-    if (data.issueId === undefined) {
-      throw new ConflictException('Issue id must be provided');
-    }
     const issue: IssueDTO | null = await this.issueRepository.getById(data.issueId);
     if (issue === null || issue.deletedAt !== null) {
       throw new NotFoundException('Issue');
@@ -303,21 +312,16 @@ export class IssueServiceImpl implements IssueService {
    * Updates an issue by its provider-specific identifier.
    * @param data An object containing the data necessary to update the issue.
    * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
-   * @throws ConflictException if the issue provider id is not provided.
    * @throws NotFoundException if the issue with the provided provider id is not found or is deleted.
    */
-  async updateIssueByProviderId(data: IssueUpdateInput): Promise<IssueViewDTO> {
-    if (data.providerIssueId === undefined) {
-      throw new ConflictException('Issue provider id must me provided');
-    }
+  async updateIssueByProviderId(data: IssueUpdateWebhookInput): Promise<IssueViewDTO> {
     const issue: IssueDTO | null = await this.issueRepository.getByProviderId(data.providerIssueId);
     if (issue === null || issue.deletedAt !== null) {
       throw new NotFoundException('Issue');
     }
-    data.issueId = issue.id;
     data.projectId = issue.projectId;
 
-    return await this.issueRepository.updateById(data);
+    return await this.issueRepository.updateById({ ...data, issueId: issue.id });
   }
 
   /**

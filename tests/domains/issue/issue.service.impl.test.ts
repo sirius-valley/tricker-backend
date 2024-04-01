@@ -552,14 +552,6 @@ describe('issue service tests', () => {
       // then
       await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(NotFoundException);
     });
-
-    it('should throw ConflictException if issue id is not provided', async () => {
-      // given - when
-      const issueId = undefined;
-      // then
-      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(ConflictException);
-      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow('Issue id must be provided');
-    });
   });
 
   describe('updateIssueByProviderId method', () => {
@@ -592,14 +584,6 @@ describe('issue service tests', () => {
       issueRepositoryMock.getByProviderId.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
       // then
       await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw ConflictException if issue provider id is not provided', async () => {
-      // given - when
-      const providerIssueId = undefined;
-      // then
-      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(ConflictException);
-      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow('Issue provider id must me provided');
     });
   });
 });

@@ -1,5 +1,5 @@
 import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, type IssueAddBlockerInput, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueExtendedDTO, type IssueUpdateInput, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueExtendedDTO, type IssueUpdateInput, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type PMIssueFilterParameters, type WorkedTimeDTO, type IssueUpdateWebhookInput } from '@domains/issue/dto';
 
 export interface IssueService {
   pauseTimer: (issueId: string) => Promise<TimeTrackingDTO>;
@@ -15,5 +15,5 @@ export interface IssueService {
   getIssueChronology: (issueId: string) => Promise<EventHistoryLogDTO[]>;
   createIssue: (input: IssueInput) => Promise<IssueViewDTO>;
   updateIssueById: (data: IssueUpdateInput) => Promise<IssueViewDTO>;
-  updateIssueByProviderId: (data: IssueUpdateInput) => Promise<IssueViewDTO>;
+  updateIssueByProviderId: (data: IssueUpdateWebhookInput) => Promise<IssueViewDTO>;
 }
