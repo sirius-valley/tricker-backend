@@ -287,14 +287,6 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issue = await this.db.issue.update({
       where: {
         id: data.issueId,
-        assignee: {
-          projectsRoleAssigned: {
-            every: {
-              projectId: data.projectId,
-              isAccepted: true,
-            },
-          },
-        },
       },
       data: {
         assigneeId: data.assigneeId,
@@ -307,15 +299,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         priority: data.priority,
       },
       include: {
-        assignee: {
-          where: {
-            projectsRoleAssigned: {
-              every: {
-                isAccepted: true,
-              },
-            },
-          },
-        },
+        assignee: true,
         labels: true,
         stage: {
           where: {
