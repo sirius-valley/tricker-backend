@@ -27,6 +27,8 @@ import {
   mockAssigneeIssueChangeLogDTO,
   mockIssueExtendedDTO,
   mockIssueInput,
+  mockUpdatedIssueViewDTO,
+  mockIssueUpdateInput,
 } from './mockData';
 import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
@@ -221,7 +223,7 @@ describe('issue service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerBlockEventDTO);
-      issueRepositoryMock.updateIsBlocked.mockResolvedValue(mockIssueDetailsDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
 
       const expected: BlockerStatusModificationDTO = mockTrickerBlockEventDTO;
       // when
@@ -301,7 +303,7 @@ describe('issue service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, isBlocked: true });
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerUnBlockEventDTO);
-      issueRepositoryMock.updateIsBlocked.mockResolvedValue({ ...mockIssueDetailsDTO, isBlocked: false });
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
       // when
       const received: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput);
       // then
@@ -517,6 +519,71 @@ describe('issue service tests', () => {
 
       const result = await issueService.createIssue(mockIssueInput);
       expect(result).toEqual(mockIssueViewDTO);
+    });
+  });
+
+  describe('updateIssueById method', () => {
+    it('should successfully update an Issue', async (): Promise<void> => {
+      // given
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockUpdatedIssueViewDTO);
+      const expected: IssueViewDTO = mockUpdatedIssueViewDTO;
+      // when
+      const received: IssueViewDTO = await issueService.updateIssueById({ ...mockIssueUpdateInput, issueId: 'issue789' });
+      // then
+      expect.assertions(3);
+      expect(received.labels.length).toEqual(expected.labels.length);
+      expect(received.stage?.id).toEqual(expected.stage?.id);
+      expect(received.assignee?.name).toEqual(expected.assignee?.name);
+    });
+
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given - when
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getById.mockResolvedValue(null);
+      // then
+      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if issue has been logically deleted', async () => {
+      // given - when
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
+      // then
+      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateIssueByProviderId method', () => {
+    it('should successfully update an Issue', async (): Promise<void> => {
+      // given
+      const providerIssueId = 'providerId555';
+      issueRepositoryMock.getByProviderId.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockUpdatedIssueViewDTO);
+      const expected: IssueViewDTO = mockUpdatedIssueViewDTO;
+      // when
+      const received: IssueViewDTO = await issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId });
+      // then
+      expect.assertions(3);
+      expect(received.labels.length).toEqual(expected.labels.length);
+      expect(received.stage?.name).toEqual(expected.stage?.name);
+      expect(received.assignee?.id).toEqual(expected.assignee?.id);
+    });
+
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given - when
+      const providerIssueId = 'nonexistentIssueId';
+      issueRepositoryMock.getByProviderId.mockResolvedValue(null);
+      // then
+      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if issue has been logically deleted', async () => {
+      // given - when
+      const providerIssueId = 'nonexistentIssueId';
+      issueRepositoryMock.getByProviderId.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
+      // then
+      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
     });
   });
 });
