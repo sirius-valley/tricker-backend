@@ -2,6 +2,7 @@ import { type Priority } from '@domains/issue';
 import { IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 
 export class ProjectDTO {
   id: string;
@@ -71,4 +72,17 @@ export class PMProjectFiltersDTO extends DevProjectFiltersDTO {
     super(filters);
     this.assignees = filters.assignees;
   }
+}
+
+export interface ProjectCreationInput {
+  authorizedUsers: string[];
+  users: UserRole[];
+  project: ProjectDataDTO;
+  organizationId: string;
+  integratorEmail: string;
+}
+
+export enum ProjectRole {
+  PROJECT_MANAGER = 'Project Manager',
+  DEVELOPER = 'Developer',
 }

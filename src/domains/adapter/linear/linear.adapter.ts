@@ -1,5 +1,5 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
-import { type EventInput } from '@domains/event/dto';
+import { BlockEventInput, ChangeScalarEventInput, type EventInput } from '@domains/event/dto';
 import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory, type WorkflowState } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
@@ -113,6 +113,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           priority = 'NO_PRIORITY';
       }
 
+      const events = await this.adaptIssueEventsData(issue, providerProjectId);
+
       integratedIssuesData.push(
         new IssueDataDTO({
           providerIssueId: issue.id,
@@ -126,7 +128,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           storyPoints: issue.estimate ?? null,
           stage: issueData.stage != null ? issueData.stage.name : null,
           labels: issueData.labels.map((label) => label.name),
-          events: await this.adaptIssueEventsData(issue, providerProjectId),
+          blockingEvents: events.filter((event) => event instanceof BlockEventInput) as BlockEventInput[],
+          issueChangeLogEvents: events.filter((event) => event instanceof ChangeScalarEventInput) as ChangeScalarEventInput[],
         })
       );
     }

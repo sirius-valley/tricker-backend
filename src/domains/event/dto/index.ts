@@ -1,8 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export type BlockEventType = 'NO_STATUS' | 'BLOCKED_BY' | 'BLOCKING_TO';
-export type EventInputArray<T extends EventInput> = T[];
-
 export enum TrickerBlockEventType {
   NO_STATUS = 'NO_STATUS',
   BLOCKED_BY = 'BLOCKED_BY',
@@ -20,10 +18,10 @@ export enum LinearActionTypeConvention {
 }
 
 export class EventInput {
-  readonly providerEventId: string | null;
+  providerEventId: string | null;
   issueId: string;
-  readonly userEmitterEmail?: string;
-  readonly createdAt: Date;
+  userEmitterEmail?: string;
+  createdAt: Date;
   userEmitterId?: string | null;
 
   constructor(input: EventInput) {
@@ -35,9 +33,9 @@ export class EventInput {
 }
 
 export class ChangeScalarEventInput extends EventInput {
-  readonly field: string;
-  readonly from?: number | string;
-  readonly to?: number | string;
+  field: string;
+  from?: number | string;
+  to?: number | string;
 
   constructor(input: ChangeScalarEventInput) {
     super(input);
@@ -48,9 +46,9 @@ export class ChangeScalarEventInput extends EventInput {
 }
 
 export class BlockEventInput extends EventInput {
-  readonly type: BlockEventType;
-  readonly reason: string;
-  readonly comment: string;
+  type: BlockEventType;
+  reason: string;
+  comment: string;
 
   constructor(input: BlockEventInput) {
     super(input);
@@ -62,7 +60,7 @@ export class BlockEventInput extends EventInput {
 
 export class IssueChangeLogDTO {
   id: string;
-  providerEventId: string;
+  providerEventId: string | null;
   userEmitterId: string | null;
   issueId: string;
   field: string;

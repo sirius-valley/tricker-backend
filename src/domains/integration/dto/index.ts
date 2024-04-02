@@ -46,7 +46,7 @@ export class UserRole {
   /**
    * The role of the user.
    */
-  role: string;
+  roleName: string;
 
   /**
    * Constructs a new instance of the UserRole class.
@@ -55,7 +55,7 @@ export class UserRole {
   constructor(userRole: UserRole) {
     this.email = userRole.email;
     this.name = userRole.name;
-    this.role = userRole.role;
+    this.roleName = userRole.roleName;
   }
 }
 
