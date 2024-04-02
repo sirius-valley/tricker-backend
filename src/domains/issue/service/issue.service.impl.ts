@@ -13,9 +13,9 @@ import {
   type IssueViewDTO,
   type PMIssueFilterParameters,
   type WorkedTimeDTO,
-  type IssueUpdateInput,
   type IssueInput,
   type IssueUpdateWebhookInput,
+  type IssueUpdateTrickerInput,
 } from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
@@ -298,7 +298,7 @@ export class IssueServiceImpl implements IssueService {
    * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
    * @throws NotFoundException if the issue with the provided id is not found or is deleted.
    */
-  async updateIssueById(data: IssueUpdateInput): Promise<IssueViewDTO> {
+  async updateIssueById(data: IssueUpdateTrickerInput): Promise<IssueViewDTO> {
     const issue: IssueDTO | null = await this.issueRepository.getById(data.issueId);
     if (issue === null || issue.deletedAt !== null) {
       throw new NotFoundException('Issue');

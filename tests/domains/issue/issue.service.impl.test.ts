@@ -529,7 +529,7 @@ describe('issue service tests', () => {
       issueRepositoryMock.updateById.mockResolvedValue(mockUpdatedIssueViewDTO);
       const expected: IssueViewDTO = mockUpdatedIssueViewDTO;
       // when
-      const received: IssueViewDTO = await issueService.updateIssueById(mockIssueUpdateInput);
+      const received: IssueViewDTO = await issueService.updateIssueById({ ...mockIssueUpdateInput, issueId: 'issue789' });
       // then
       expect.assertions(3);
       expect(received.labels.length).toEqual(expected.labels.length);

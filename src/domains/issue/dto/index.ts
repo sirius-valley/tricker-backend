@@ -156,17 +156,16 @@ export interface IssueUpdateInput {
   /**
    * The unique identifier of the issue.
    */
-  issueId: string;
-
-  /**
-   * The unique identifier of the project associated with the issue.
-   */
-  projectId?: string;
+  issueId?: string;
 
   /**
    * The provider-specific identifier of the issue.
    */
   providerIssueId?: string;
+  /**
+   * The unique identifier of the project associated with the issue.
+   */
+  projectId?: string;
 
   /**
    * The unique identifier of the assignee assigned to the issue.
@@ -212,61 +211,21 @@ export interface IssueUpdateInput {
 /**
  * Represents the input data for updating an issue from a webhook.
  */
-export interface IssueUpdateWebhookInput {
-  /**
-   * The unique identifier of the issue.
-   */
-  issueId?: string;
-
-  /**
-   * The unique identifier of the project associated with the issue.
-   */
-  projectId?: string;
-
+export interface IssueUpdateWebhookInput extends IssueUpdateInput {
   /**
    * The provider-specific identifier of the issue.
    */
   providerIssueId: string;
+}
 
+/**
+ * Represents the input data for updating an issue from Tricker.
+ */
+export interface IssueUpdateTrickerInput extends IssueUpdateInput {
   /**
-   * The unique identifier of the assignee assigned to the issue.
+   * The unique identifier of the issue.
    */
-  assigneeId?: string | null;
-
-  /**
-   * The unique identifier of the project stage associated with the issue.
-   */
-  projectStageId?: string | null;
-
-  /**
-   * The name of the issue.
-   */
-  name?: string;
-
-  /**
-   * The title of the issue.
-   */
-  title?: string;
-
-  /**
-   * The description of the issue.
-   */
-  description?: string | null;
-
-  /**
-   * The priority of the issue.
-   */
-  priority?: Priority;
-
-  /**
-   * The story points assigned to the issue.
-   */
-  storyPoints?: number | null;
-
-  /**
-   * Indicates whether the issue is blocked.
-   */
-  isBlocked?: boolean;
+  issueId: string;
 }
 
 /**

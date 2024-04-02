@@ -1,5 +1,5 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
-import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, IssueDetailsDTO, type UserProject, type IssueUpdateInput } from '@domains/issue/dto';
+import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, IssueDetailsDTO, type UserProject, type IssueUpdateTrickerInput } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
 import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ProjectLabelDTO } from '@domains/projectLabel/dto';
@@ -283,7 +283,7 @@ export class IssueRepositoryImpl implements IssueRepository {
    * @param data An object containing the data necessary to update the issue.
    * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
    */
-  async updateById(data: IssueUpdateInput): Promise<IssueViewDTO> {
+  async updateById(data: IssueUpdateTrickerInput): Promise<IssueViewDTO> {
     const issue = await this.db.issue.update({
       where: {
         id: data.issueId,
