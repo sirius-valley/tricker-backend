@@ -7,6 +7,17 @@ import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 export class IssueRepositoryImpl implements IssueRepository {
   constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
 
+  async getByProjectIdAndName(input: { projectId: string; name: string | undefined }): Promise<IssueDTO | null> {
+    const issue = await this.db.issue.findFirst({
+      where: {
+        projectId: input.projectId,
+        name: input.name,
+      },
+    });
+
+    return issue === null ? null : new IssueDTO(issue);
+  }
+
   /**
    * Creates an issue based on the provided input data.
    * @param data The input data for creating the issue.

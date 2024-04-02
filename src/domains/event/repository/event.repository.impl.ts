@@ -70,7 +70,8 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.blockerStatusModification.create({
       data: {
         providerEventId: input.providerEventId,
-        issueId: input.issueId,
+        blockedIssueId: input.issueId,
+        blockingIssueId: input.relatedIssueId,
         userEmitterId: input.userEmitterId,
         eventRegisteredAt: input.createdAt,
         status: input.type,
@@ -124,7 +125,14 @@ export class EventRepositoryImpl implements EventRepository {
   async getIssueBlockEvents(issueId: string): Promise<BlockerStatusModificationDTO[]> {
     const blockerEvents: BlockerStatusModification[] = await this.db.blockerStatusModification.findMany({
       where: {
-        issueId,
+        OR: [
+          {
+            blockedIssueId: issueId,
+          },
+          {
+            blockingIssueId: issueId,
+          },
+        ],
       },
     });
 
@@ -171,5 +179,16 @@ export class EventRepositoryImpl implements EventRepository {
     });
 
     return new ManualTimeModificationDTO({ ...event });
+  }
+
+  async getIssueBlockEventByIssueIds(input: { blockedIssueId: string; blockingIssueId: string }): Promise<BlockerStatusModificationDTO | null> {
+    const event = await this.db.blockerStatusModification.findFirst({
+      where: {
+        blockingIssueId: input.blockingIssueId,
+        blockedIssueId: input.blockedIssueId,
+      },
+    });
+
+    return event === null ? null : new BlockerStatusModificationDTO({ ...event, eventRegisteredAt: event.eventRegisteredAt ?? undefined });
   }
 }

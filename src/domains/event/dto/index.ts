@@ -15,7 +15,8 @@ export enum LinearBlockTypeConvention {
 }
 
 export enum LinearActionTypeConvention {
-  ADD = 'a',
+  ADD_EXPLICIT = 'a',
+  ADD_IMPLICIT = 'o',
   REMOVE = 'r',
 }
 
@@ -51,12 +52,17 @@ export class BlockEventInput extends EventInput {
   readonly type: BlockEventType;
   readonly reason: string;
   readonly comment: string;
+  deletedAt?: Date | null;
+  relatedIssueName?: string;
+  relatedIssueId?: string;
 
   constructor(input: BlockEventInput) {
     super(input);
     this.type = input.type;
     this.reason = input.reason;
     this.comment = input.comment;
+    this.relatedIssueName = input.relatedIssueName;
+    this.relatedIssueId = input.relatedIssueId;
   }
 }
 
@@ -94,8 +100,10 @@ export class BlockerStatusModificationDTO {
   providerEventId: string | null;
   /** Identifier of the user who emitted the modification. */
   userEmitterId: string | null;
-  /** Identifier of the issue that is being modified. */
-  issueId: string;
+  /** Identifier of the issue that is being blocked. */
+  blockedIssueId: string;
+  /** Identifier of the issue that is being blocked. */
+  blockingIssueId: string | null;
   /** New status of the blocker. */
   status: string;
   /** Date and time when the event was registered. */
@@ -115,7 +123,8 @@ export class BlockerStatusModificationDTO {
     this.id = input.id;
     this.providerEventId = input.providerEventId;
     this.userEmitterId = input.userEmitterId;
-    this.issueId = input.issueId;
+    this.blockingIssueId = input.blockingIssueId;
+    this.blockedIssueId = input.blockedIssueId;
     this.status = input.status;
     this.eventRegisteredAt = input.eventRegisteredAt;
     this.createdAt = input.createdAt;

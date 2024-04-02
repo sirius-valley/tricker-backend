@@ -41,6 +41,7 @@ import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
 import { type ProjectStageDTO } from '@domains/projectStage/dto';
+import { type IssueDTO } from '@domains/issue';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -124,6 +125,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const issueRepository = new IssueRepositoryImpl(input.db);
     const userRepository = new UserRepositoryImpl(input.db);
     const labelRepository = new ProjectLabelRepositoryImpl(input.db);
+    const eventRepository = new EventRepositoryImpl(input.db);
     // const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
     const projectStageRepository = new ProjectStageRepositoryImpl(input.db);
     for (const issueData of input.issues) {
@@ -155,6 +157,21 @@ export class IntegrationServiceImpl implements IntegrationService {
       await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
       Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
     }
+
+    for (const issueData of input.issues) {
+      const events = issueData.events.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      for (const eventData of events) {
+        if (eventData instanceof BlockEventInput) {
+          const relatedIssue: IssueDTO | null = await issueRepository.getByProjectIdAndName({ projectId: input.projectId, name: eventData.relatedIssueName });
+          let relatedIssueId: string | undefined;
+          if (relatedIssue !== null) {
+            relatedIssueId = relatedIssue.id;
+          }
+
+          await eventRepository.createIssueBlockEvent({ ...eventData, relatedIssueId });
+        }
+      }
+    }
   }
 
   /**
@@ -173,10 +190,6 @@ export class IntegrationServiceImpl implements IntegrationService {
       eventData.userEmitterId = userEmitter != null ? userEmitter.id : null;
       if (eventData instanceof ChangeScalarEventInput) {
         await eventRepository.createIssueChangeLog(eventData);
-      }
-
-      if (eventData instanceof BlockEventInput) {
-        await eventRepository.createIssueBlockEvent(eventData);
       }
     }
   }

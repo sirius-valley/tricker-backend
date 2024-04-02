@@ -12,4 +12,5 @@ export interface EventRepository {
   createManualTimeModification: (input: ManualTimeModificationEventInput) => Promise<ManualTimeModificationDTO>;
   getIssueBlockEvents: (issueId: string) => Promise<BlockerStatusModificationDTO[]>;
   getIssueChangeLogs: (issueId: string) => Promise<IssueChangeLogDTO[]>;
+  getIssueBlockEventByIssueIds: (input: { blockedIssueId: string; blockingIssueId: string }) => Promise<BlockerStatusModificationDTO | null>;
 }
