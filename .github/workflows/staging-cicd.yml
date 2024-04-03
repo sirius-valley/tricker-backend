@@ -28,19 +28,19 @@ jobs:
       - name: Build server
         run: npm run build
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          role-to-assume: arn:aws:iam::916062039779:role/rds-github-backend
+          aws-region: us-east-1
+
+
       - name: Migrate DB
         run: npm run db:migrate
         env:
           DATABASE_URL: ${{secrets.DATABASE_URL}}
 
         # TODO USE OIDC PROVIDER
-      - name: Setup AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
       - name: Serverless Deploy
         run: serverless deploy
         env:
