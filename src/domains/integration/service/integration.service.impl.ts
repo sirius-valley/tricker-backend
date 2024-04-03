@@ -1,6 +1,6 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
-import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type UserData, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { ConflictException, db, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
@@ -41,6 +41,7 @@ import { EventRepositoryImpl } from '@domains/event/repository';
 import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
 import { type ProjectStageDTO } from '@domains/projectStage/dto';
+import { type AdministratorDTO } from '@domains/administrator/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -304,12 +305,18 @@ export class IntegrationServiceImpl implements IntegrationService {
    * Gets basic members info that belong to a specific project
    * @param {string} projectId - The Project ID to which members belong
    * @param {string} apiKey - The API key for authentication.
-   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrival is done and contains an array of basic data about project users
+   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrieval is done and contains an array of basic data about project users
    */
   async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId, apiKey);
+    return (await this.adapter.getMembersByProjectId(projectId, apiKey)).sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  /**
+   * Declines a project integration request.
+   * @param providerProjectId - The ID of the project in the provider.
+   * @param mailToken - The token used for email verification.
+   * @returns A Promise that resolves once the project integration request is declined.
+   */
   async declineProject(providerProjectId: string, mailToken: string): Promise<void> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(providerProjectId, mailToken);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
@@ -323,7 +330,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const adminId: string = verifyToken(mailToken);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
     const admins = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
-    if (admins.find((admin) => admin.id === adminId) === null) {
+    if (!admins.some((admin) => admin.id === adminId)) {
       throw new NotFoundException('Administrator');
     }
 
@@ -340,6 +347,12 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
+  /**
+   * Retrieves a pending project for authorization based on its provider ID.
+   * @param projectProviderId The ID of the project provider.
+   * @returns A promise that resolves with the found pending project.
+   * @throws {NotFoundException} If no pending project is found with the provided ID.
+   */
   private async getPendingProject(projectProviderId: string): Promise<PendingProjectAuthorizationDTO> {
     const pendingProject = await this.pendingAuthProjectRepository.getByProjectId(projectProviderId);
     if (pendingProject === null) {
@@ -376,22 +389,29 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Creates a pending project authorization for later admin approval
    * @param {AuthorizationRequestDTO} authReq - Already validated input data to create the pending authorization
-   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
+   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization was created, containing info about the latter
    */
   async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
     const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
     if (existingPendingAuth != null) {
       throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
     }
+    await this.verifyProjectDuplication(authReq.projectId);
 
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
-    for (const admin of admins) {
-      const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
-      const variables = this.createEmailVariables(token, project, integrator);
-      await this.emailService.sendAuthorizationMail(admin.email, variables);
+    const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
+    if (adminIntegrator !== undefined) {
+      const token = jwt.sign({ adminId: adminIntegrator.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
+      await this.integrateProject(pendingAuth.providerProjectId, token);
+    } else {
+      for (const admin of admins) {
+        const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
+        const variables = this.createEmailVariables(token, project, integrator);
+        await this.emailService.sendAuthorizationMail(admin.email, variables);
+      }
     }
 
     return pendingAuth;
@@ -400,7 +420,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Method that encapsulates logic for creating the email variables that will be used to send the email
    * */
-  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
+  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserData): AuthorizationEmailVariables {
     return {
       acceptanceToken: token,
       denialToken: token,

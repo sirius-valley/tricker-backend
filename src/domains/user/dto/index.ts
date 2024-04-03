@@ -59,9 +59,15 @@ export interface UserUpdateInputDTO {
   email?: string;
 }
 
-// todo: replace this with something more useful in the future
-export interface UserDataDTO {
+/**
+ * Represents user data retrieved from Linear.
+ */
+export interface UserData {
+  /** The name of the user. */
   name: string;
+
+  /** The email address of the user. */
+  email: string;
 }
 
 export class UserIssueDTO {
