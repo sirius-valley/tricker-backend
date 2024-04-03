@@ -289,7 +289,7 @@ export class IssueServiceImpl implements IssueService {
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return parsedEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
   /**
