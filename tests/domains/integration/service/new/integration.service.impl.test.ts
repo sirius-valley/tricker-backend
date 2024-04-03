@@ -31,7 +31,6 @@ import {
   mockProjectMember1,
   mockProjectMember3,
   mockProjectMember2,
-  mockedAdminId,
 } from './mockData';
 import { AuthorizationRequestDTO, AuthorizedMemberDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
@@ -62,20 +61,16 @@ describe('integration service tests', () => {
   describe('declineProject method', () => {
     it('should send a decline email when the integration request is denied', async () => {
       // given
-      jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId + '1');
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      administratorRepositoryMock.getByOrganizationId.mockResolvedValue(mocksAdministratorDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
       adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
       userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
       adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       pendingAuthProjectRepositoryMock.delete.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
-      emailServiceMock.sendDenialMail.mockImplementation(async () => {
-        
-      });
+      emailServiceMock.sendDenialMail.mockImplementation(async () => {});
 
       // when
-      await testedService.declineProject(mockedProviderProjectId, mockedToken);
+      await testedService.declineProject(mockedProviderProjectId);
 
       // then
       expect.assertions(3);
@@ -86,37 +81,23 @@ describe('integration service tests', () => {
 
     it('should throw a NotFoundException if integrator is not correct', async () => {
       // given
-      jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId + '2');
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      administratorRepositoryMock.getByOrganizationId.mockResolvedValue(mocksAdministratorDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
       adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
       userRepositoryMock.getByEmail.mockResolvedValue(null);
       // when - then
       expect.assertions(2);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow(NotFoundException);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow("Not found. Couldn't find User");
+      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
+      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow("Not found. Couldn't find User");
     });
 
     it('should throw a NotFoundException if pending project is null', async () => {
       // given
-      jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId + '2');
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
       // when - then
       expect.assertions(2);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow(NotFoundException);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow("Not found. Couldn't find PendingAuthProject");
-    });
-
-    it('should throw a NotFoundException if admin is not correct', async () => {
-      // given
-      jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId);
-      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      administratorRepositoryMock.getByOrganizationId.mockResolvedValue(mocksAdministratorDTO);
-      // when - then
-      expect.assertions(2);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow(NotFoundException);
-      await expect(testedService.declineProject(mockedProviderProjectId, mockedToken)).rejects.toThrow("Not found. Couldn't find Administrator");
+      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
+      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow("Not found. Couldn't find PendingAuthProject");
     });
   });
 
