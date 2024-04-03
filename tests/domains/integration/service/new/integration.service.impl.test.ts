@@ -121,7 +121,7 @@ describe('integration service tests', () => {
       emailServiceMock.sendAuthorizationMail.mockResolvedValue();
 
       // WHEN
-      const actualPendingAuthorization = await testedService.createPendingAuthorization(pendingAuthRequest);
+      const { pendingProject: actualPendingAuthorization } = await testedService.createPendingAuthorization(pendingAuthRequest);
 
       // THEN
       const expectedAuthRequest: PendingProjectAuthorizationDTO = {
