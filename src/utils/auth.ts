@@ -57,7 +57,6 @@ export const decryptData = (encryptedData: string): string => {
 };
 
 export const verifyToken = (mailToken: string): string => {
-  console.log('entra');
   if ((mailToken ?? '') === '') throw new UnauthorizedException('MISSING_TOKEN');
   try {
     const { adminId } = jwt.verify(mailToken, process.env.AUTHORIZATION_SECRET!) as MailPayload;
