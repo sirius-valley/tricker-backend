@@ -1,13 +1,11 @@
-import type { PrismaClient } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
 import { Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
-import type { EventInput } from '@domains/event/dto';
 
 import { type StageType } from '@domains/projectStage/dto';
+import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 
 export class ProjectDataDTO {
   projectId: string;
@@ -46,7 +44,7 @@ export class UserRole {
   /**
    * The role of the user.
    */
-  role: string;
+  roleName: string;
 
   /**
    * Constructs a new instance of the UserRole class.
@@ -55,33 +53,9 @@ export class UserRole {
   constructor(userRole: UserRole) {
     this.email = userRole.email;
     this.name = userRole.name;
-    this.role = userRole.role;
+    this.roleName = userRole.roleName;
   }
 }
-
-export interface MembersIntegrationInputDTO {
-  memberRoles: UserRole[];
-  projectId: string;
-  emitterId: string;
-  acceptedUsers: string[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-/**
- * Interface representing input data for stage integration.
- */
-export interface StageIntegrationInput {
-  projectId: string;
-  stages: StageData[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-export interface LabelIntegrationInputDTO {
-  projectId: string;
-  labels: string[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
 /**
  * Represents the provider project id pending to be integrated
  * */
@@ -123,19 +97,6 @@ export class ProjectMemberDataDTO {
     this.email = input.email;
   }
 }
-
-export interface IssueIntegrationInputDTO {
-  projectId: string;
-  issues: IssueDataDTO[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-export interface EventIntegrationInputDTO {
-  issueId: string;
-  events: EventInput[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
 /**
  * Class only exists with validation purposes
  * Represents the URL Params of the HTTP request for retrieving project members
@@ -277,4 +238,15 @@ export interface MailPayload {
 export interface StageData {
   name: string;
   type: StageType;
+}
+
+/**
+ * Function parameters that are supplied to integrate method to make the project integration
+ * */
+export interface IntegrationParams {
+  projectId: string;
+  integratorEmail: string;
+  pendingProject: PendingProjectAuthorizationDTO;
+  authorizedMemberMails: string[];
+  organizationId: string;
 }

@@ -1,11 +1,10 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
 import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, IssueDetailsDTO, type UserProject, type IssueUpdateTrickerInput } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 
 export class IssueRepositoryImpl implements IssueRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   /**
    * Creates an issue based on the provided input data.

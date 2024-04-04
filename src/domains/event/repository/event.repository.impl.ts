@@ -1,12 +1,11 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
+import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
 import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
 
 export class EventRepositoryImpl implements EventRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   /**
    * Updates a time tracking event with the provided data.
@@ -48,12 +47,23 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.issueChangeLog.create({
       data: {
         providerEventId: input.providerEventId!,
-        userEmitterId: input.userEmitterId,
-        issueId: input.issueId,
+        issue: {
+          connect: {
+            id: input.issueId,
+          },
+        },
         eventRegisteredAt: input.createdAt,
         field: input.field,
         from: input.from?.toString(),
         to: input.to?.toString(),
+        userEmitter:
+          input.userEmitterEmail == null
+            ? undefined
+            : {
+                connect: {
+                  email: input.userEmitterEmail,
+                },
+              },
       },
     });
 
@@ -70,12 +80,23 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.blockerStatusModification.create({
       data: {
         providerEventId: input.providerEventId,
-        issueId: input.issueId,
-        userEmitterId: input.userEmitterId,
+        issue: {
+          connect: {
+            id: input.issueId,
+          },
+        },
         eventRegisteredAt: input.createdAt,
         status: input.type,
         reason: input.reason,
         comment: input.comment,
+        userEmitter:
+          input.userEmitterEmail == null
+            ? undefined
+            : {
+                connect: {
+                  email: input.userEmitterEmail,
+                },
+              },
       },
     });
 

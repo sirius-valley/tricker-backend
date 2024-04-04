@@ -5,4 +5,5 @@ export interface EmailService {
   sendConfirmationMail: (emailAddress: string, variables: IntegrationConfirmationEmailVariables) => Promise<void>;
   sendDenialMail: (emailAddress: string, variables: IntegrationRequestEmailVariables) => Promise<void>;
   sendAcceptanceMail: (emailAddress: string, variables: IntegrationRequestEmailVariables) => Promise<void>;
+  sendIntegrationErrorEmail: (emailAddress: string) => Promise<void>;
 }

@@ -69,7 +69,6 @@ integrationRouter.post('/linear/authorization', withAwsAuth, validateRequest(Aut
   if (pmIsAdmin) {
     res.status(HttpStatus.CREATED).json(pmIsAdmin);
     await service.integrateProject(authorizationReq.projectId);
-    
   } else {
     return res.status(HttpStatus.CREATED).json(pmIsAdmin);
   }
