@@ -27,18 +27,22 @@
  *               stages:
  *                 - id: "1"
  *                   name: "Backlog"
- *                   type: "UNSTARTED"
+ *                   type: "BACKLOG"
+ *                   color: "#bec2c8"
+ *                   position: 0
  *                 - id: "2"
  *                   name: "In Progress"
  *                   type: "STARTED"
+ *                   color: "#0f783c"
+ *                   position: -6.3
  *               priorities:
- *                 - "HIGH_PRIORITY"
- *                 - "MEDIUM_PRIORITY"
+ *                 - "Medium Priority"
+ *                 - "High Priority"
  *               assignees:
  *                 - id: "1"
- *                   name: "John Doe"
- *                 - id: "2"
  *                   name: "Jane Smith"
+ *                 - id: "2"
+ *                   name: "Jon Doe"
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':
@@ -73,12 +77,16 @@
  *                 - id: "1"
  *                   name: "Backlog"
  *                   type: "BACKLOG"
+ *                   color: "#bec2c8"
+ *                   position: 0
  *                 - id: "2"
  *                   name: "In Progress"
- *                   type: "IN_PROGRESS"
+ *                   type: "STARTED"
+ *                   color: "#0f783c"
+ *                   position: -6.3
  *               priorities:
- *                 - "HIGH_PRIORITY"
- *                 - "MEDIUM_PRIORITY"
+ *                 - "Medium Priority"
+ *                 - "High Priority"
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':

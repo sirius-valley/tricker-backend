@@ -5,12 +5,19 @@ import type { PrismaClient, ProjectStage } from '@prisma/client';
 export class ProjectStageRepositoryImpl implements ProjectStageRepository {
   constructor(private readonly db: PrismaClient) {}
 
+  /**
+   * Creates a new project stage asynchronously.
+   * @param input The input data for creating the project stage.
+   * @returns A promise resolving to a ProjectStageDTO representing the created project stage.
+   */
   async create(input: ProjectStageCreationInput): Promise<ProjectStageDTO> {
     const projectStage: ProjectStage = await this.db.projectStage.create({
       data: {
         projectId: input.projectId,
         type: input.type,
         name: input.name,
+        position: input.position,
+        color: input.color,
       },
     });
 

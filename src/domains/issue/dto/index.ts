@@ -262,6 +262,14 @@ const PriorityType: {
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
 
+export const priorityOrder = {
+  NO_PRIORITY: 0,
+  LOW_PRIORITY: 1,
+  MEDIUM_PRIORITY: 2,
+  HIGH_PRIORITY: 3,
+  URGENT: 4,
+};
+
 /**
  * Data Transfer Object (DTO) for representing worked time.
  * This object is send to frontend when worked time of an issue is requested.

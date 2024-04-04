@@ -1,10 +1,10 @@
 import { type ProjectService } from '@domains/project/service/project.service';
 import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectDTO } from '@domains/project/dto';
-import { type IssueRepository, type IssueViewDTO, type Priority, type UserProject } from '@domains/issue';
+import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { NotFoundException } from '@utils';
-import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
@@ -86,7 +86,23 @@ export class ProjectServiceImpl implements ProjectService {
       return acum;
     }, filteredAssignees);
 
-    return { stages: filteredStages.sort((a, b) => a.position - b.position), assignees: filteredAssignees.sort((a, b) => a.name.localeCompare(b.name)), priorities: filteredPriorities };
+    return {
+      stages: filteredStages.sort((a, b) => {
+        if (a.type !== b.type) {
+          return StageTypeOrder[a.type] - StageTypeOrder[b.type];
+        }
+        return a.position - b.position;
+      }),
+      assignees: filteredAssignees.sort((a, b) => a.name.localeCompare(b.name)),
+      priorities: filteredPriorities
+        .sort((a, b) => priorityOrder[a] - priorityOrder[b])
+        .map((priority) =>
+          priority
+            .split('_')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ')
+        ),
+    };
   }
 
   /**

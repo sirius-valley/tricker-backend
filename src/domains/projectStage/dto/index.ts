@@ -10,6 +10,15 @@ export class StageDTO {
 
 export type StageType = 'BACKLOG' | 'UNSTARTED' | 'STARTED' | 'COMPLETED' | 'CANCELED' | 'OTHER';
 
+export const StageTypeOrder = {
+  BACKLOG: 1,
+  UNSTARTED: 2,
+  STARTED: 3,
+  COMPLETED: 4,
+  CANCELED: 5,
+  OTHER: 6,
+};
+
 /**
  * Represents a data transfer object (DTO) for an extended stage.
  * This DTO contains information about a stage, including its ID, name, and type. It adds StageType to StageDTO
@@ -55,4 +64,6 @@ export interface ProjectStageCreationInput {
   projectId: string;
   name: string;
   type: StageType;
+  position: number;
+  color: string | null;
 }
