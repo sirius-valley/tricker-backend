@@ -1,5 +1,5 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateRequest, withAwsAuth } from '@utils';
+import { db, validateAdminIdentity, validateRequest, withAwsAuth } from '@utils';
 import { type ProjectDTO } from '@domains/project/dto';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
@@ -35,13 +35,13 @@ const administratorRepository: AdministratorRepository = new AdministratorReposi
 const integrationRepository: IntegrationRepository = new IntegrationRepositoryImpl(db);
 const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService);
 
-integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'body'), async (req: Request, res: Response): Promise<void> => {
+integrationRouter.post('/linear/projects', withAwsAuth, validateRequest(ProviderKeyDTO, 'body'), async (req: Request, res: Response) => {
   const { key, provider } = req.body as unknown as ProviderKeyDTO;
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
 
   const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: provider, apyKey: key, pmProviderId: sub });
 
-  res.status(HttpStatus.OK).json(projects);
+  return res.status(HttpStatus.OK).json(projects);
 });
 
 integrationRouter.post('/linear/project/:id/members', withAwsAuth, validateRequest(LinearMembersPreIntegrationParams, 'params'), validateRequest(LinearMembersPreIntegrationBody, 'body'), async (req: Request, res: Response) => {
@@ -53,29 +53,31 @@ integrationRouter.post('/linear/project/:id/members', withAwsAuth, validateReque
   return res.status(HttpStatus.OK).json(members);
 });
 
-integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), async (req: Request, res: Response): Promise<void> => {
-  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
-  const { token } = req.query as unknown as MailToken;
+integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+  const { projectId } = req.params;
 
-  await service.acceptProject(projectId, token);
-  const project: ProjectDTO = await service.integrateProject(projectId, token);
+  await service.acceptProject(projectId);
+  const project: ProjectDTO = await service.integrateProject(projectId);
 
-  res.status(HttpStatus.CREATED).json(project);
+  return res.status(HttpStatus.CREATED).json(project);
 });
 
 integrationRouter.post('/linear/authorization', withAwsAuth, validateRequest(AuthorizationRequestDTO, 'body'), async (_req: Request<any, any, AuthorizationRequestDTO>, res: Response) => {
   const authorizationReq = _req.body;
 
-  await service.createPendingAuthorization(authorizationReq);
-
-  return res.status(HttpStatus.CREATED).send();
+  const { pmIsAdmin } = await service.createPendingAuthorization(authorizationReq);
+  if (pmIsAdmin) {
+    res.status(HttpStatus.CREATED).json(pmIsAdmin);
+    await service.integrateProject(authorizationReq.projectId);
+  } else {
+    return res.status(HttpStatus.CREATED).json(pmIsAdmin);
+  }
 });
 
-integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), async (req: Request, res: Response): Promise<void> => {
-  const { projectId } = req.params as unknown as ProjectIdIntegrationInputDTO;
-  const { token } = req.query as unknown as MailToken;
+integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+  const { projectId } = req.params;
 
-  await service.declineProject(projectId, token);
+  await service.declineProject(projectId);
 
-  res.sendStatus(HttpStatus.NO_CONTENT);
+  return res.sendStatus(HttpStatus.NO_CONTENT);
 });

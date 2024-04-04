@@ -1,11 +1,10 @@
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 import { UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
 import { type PrismaClient, type UserProjectRole } from '@prisma/client';
-import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 import { type UserProject } from '@domains/issue/dto';
 
 export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   async create(input: UserProjectRoleInputDTO): Promise<UserProjectRoleDTO> {
     const userProjectRole = await this.db.userProjectRole.create({

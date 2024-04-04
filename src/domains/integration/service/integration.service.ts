@@ -3,12 +3,11 @@ import { type AuthorizationRequestDTO, type ProjectMemberDataDTO, type ProjectPr
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 
 export interface IntegrationService {
-  integrateProject: (projectId: string, mailToken: string) => Promise<ProjectDTO>;
+  integrateProject: (projectId: string) => Promise<ProjectDTO>;
   getMembers: (projectId: string, apiToken: string) => Promise<ProjectMemberDataDTO[]>;
-  createPendingAuthorization: (authorizationReq: AuthorizationRequestDTO) => Promise<PendingProjectAuthorizationDTO>;
+  createPendingAuthorization: (authorizationReq: AuthorizationRequestDTO) => Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }>;
   retrieveProjectsFromProvider: (input: ProjectsPreIntegratedInputDTO) => Promise<ProjectPreIntegratedDTO[]>;
   validateIntegratorIdentity: (apiKey: string, pmEmail: string | undefined) => Promise<void>;
-  declineProject: (projectId: string, mailToken: string) => Promise<void>;
-  acceptProject: (projectId: string, mailToken: string) => Promise<void>;
-  verifyAdminIdentity: (providerProjectId: string, mailToken: string) => Promise<PendingProjectAuthorizationDTO>;
+  declineProject: (projectId: string) => Promise<void>;
+  acceptProject: (projectId: string) => Promise<void>;
 }

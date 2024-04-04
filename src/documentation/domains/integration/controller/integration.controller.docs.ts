@@ -437,4 +437,10 @@
  *       responses:
  *         '201':
  *           description: Authorization request created successfully.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: boolean
+ *                 name: pmIsAdmin
+ *                 description: This boolean informs if the Project manager is also an Organization Administrator
  */

@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
-import { type UserDataDTO, type UserDTO, type UserRepository } from '@domains/user';
-import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
+import { type UserData, type UserDTO, type UserRepository } from '@domains/user';
+import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -9,7 +9,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
@@ -18,14 +18,7 @@ import { type IntegrationRepository } from '@domains/integration/repository';
 import process from 'process';
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
 import { retry } from '@utils/retry';
-
-interface IntegrationParams {
-  projectId: string;
-  integratorEmail: string;
-  pendingProject: PendingProjectAuthorizationDTO;
-  authorizedMemberMails: string[];
-  organizationId: string;
-}
+import { type AdministratorDTO } from '@domains/administrator/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -43,17 +36,16 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Integrate a project into Tricker platform.
    * @param projectId {string} The ID of the project to integrate.
-   * @param mailToken {string} Token provided in mail
    * @returns {ProjectDTO} The integrated project.
    * @throws {ConflictException} If the project has already been integrated or is inactive.
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
-  async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
+  async integrateProject(projectId: string): Promise<ProjectDTO> {
     Logger.time('Verifications');
     // verify if project has not been integrated
     await this.verifyProjectDuplication(projectId);
-    // verify admin identity and get pending authorization
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
+
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
     const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
@@ -165,14 +157,19 @@ export class IntegrationServiceImpl implements IntegrationService {
    * Gets basic members info that belong to a specific project
    * @param {string} projectId - The Project ID to which members belong
    * @param {string} apiKey - The API key for authentication.
-   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrival is done and contains an array of basic data about project users
+   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrieval is done and contains an array of basic data about project users
    */
   async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId, apiKey);
+    return (await this.adapter.getMembersByProjectId(projectId, apiKey)).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async declineProject(providerProjectId: string, mailToken: string): Promise<void> {
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(providerProjectId, mailToken);
+  /**
+   * Declines a project integration request.
+   * @param providerProjectId - The ID of the project in the provider.
+   * @returns A Promise that resolves once the project integration request is declined.
+   */
+  async declineProject(providerProjectId: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
@@ -180,17 +177,12 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
   }
 
-  async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
-    const adminId: string = verifyToken(mailToken);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    const admins = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
-    if (admins.find((admin) => admin.id === adminId) === null) {
-      throw new NotFoundException('Administrator');
-    }
-
-    return pendingProject;
-  }
-
+  /**
+   * Verifies if there is any duplication of the project based on its provider ID.
+   * @param projectProviderId The ID of the project in the provider.
+   * @returns A Promise that resolves if there is no duplication of the project.
+   * @throws {ConflictException} If a project with the same provider ID is found and is either active or inactive.
+   */
   private async verifyProjectDuplication(projectProviderId: string): Promise<void> {
     const previousProject: ProjectDTO | null = await this.projectRepository.getByProviderId(projectProviderId);
     if (previousProject != null) {
@@ -201,6 +193,12 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
+  /**
+   * Retrieves a pending project for authorization based on its provider ID.
+   * @param projectProviderId The ID of the project provider.
+   * @returns A promise that resolves with the found pending project.
+   * @throws {NotFoundException} If no pending project is found with the provided ID.
+   */
   private async getPendingProject(projectProviderId: string): Promise<PendingProjectAuthorizationDTO> {
     const pendingProject = await this.pendingAuthProjectRepository.getByProjectId(projectProviderId);
     if (pendingProject === null) {
@@ -209,6 +207,12 @@ export class IntegrationServiceImpl implements IntegrationService {
     return pendingProject;
   }
 
+  /**
+   * Retrieves the integrator of the project using the provided API key.
+   * @param apikey The API key used for authentication.
+   * @returns A promise that resolves with the user who is the integrator of the project.
+   * @throws {NotFoundException} If the user is not found.
+   */
   private async getProjectIntegrator(apikey: string): Promise<UserDTO> {
     const userEmail: string = await this.adapter.getMyEmail(decryptData(apikey));
     const user: UserDTO | null = await this.userRepository.getByEmail(userEmail);
@@ -237,31 +241,35 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Creates a pending project authorization for later admin approval
    * @param {AuthorizationRequestDTO} authReq - Already validated input data to create the pending authorization
-   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
+   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization was created, containing info about the latter
    */
-  async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
+  async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }> {
     const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
     if (existingPendingAuth != null) {
       throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
     }
+    await this.verifyProjectDuplication(authReq.projectId);
 
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
-    for (const admin of admins) {
-      const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
-      const variables = this.createEmailVariables(token, project, integrator);
-      await this.emailService.sendAuthorizationMail(admin.email, variables);
+    const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
+    if (adminIntegrator === undefined) {
+      for (const admin of admins) {
+        const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
+        const variables = this.createEmailVariables(token, project, integrator);
+        await this.emailService.sendAuthorizationMail(admin.email, variables);
+      }
     }
 
-    return pendingAuth;
+    return { pendingProject: pendingAuth, pmIsAdmin: adminIntegrator !== undefined };
   }
 
   /**
    * Method that encapsulates logic for creating the email variables that will be used to send the email
    * */
-  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
+  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserData): AuthorizationEmailVariables {
     return {
       acceptanceToken: token,
       denialToken: token,
@@ -274,8 +282,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     };
   }
 
-  async acceptProject(projectId: string, mailToken: string): Promise<void> {
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
+  async acceptProject(projectId: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     const apiKey: string = decryptData(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
     const email: string = await this.adapter.getMyEmail(apiKey);

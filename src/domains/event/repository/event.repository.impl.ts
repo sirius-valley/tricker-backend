@@ -1,12 +1,11 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
 import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
 import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
 
 export class EventRepositoryImpl implements EventRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   /**
    * Updates a time tracking event with the provided data.

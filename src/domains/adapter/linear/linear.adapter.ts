@@ -7,7 +7,7 @@ import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { type AdaptProjectDataInput, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
-import { type UserDataDTO } from '@domains/user';
+import { type UserData } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 
 import { type StageType } from '@domains/projectStage/dto';
@@ -200,11 +200,11 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     return await this.dataRetriever.getMyMail();
   }
 
-  async getMemberById(memberId: string, apiKey: string): Promise<UserDataDTO> {
+  async getMemberById(memberId: string, apiKey: string): Promise<UserData> {
     this.dataRetriever.configureRetriever(apiKey);
     const user = await this.dataRetriever.getUser(memberId);
 
-    return { name: user.name };
+    return { name: user.name, email: user.email };
   }
 
   async getProjectById(projectId: string, apiKey: string): Promise<BasicProjectDataDTO> {
