@@ -17,27 +17,24 @@ export enum LinearActionTypeConvention {
   REMOVE = 'r',
 }
 
-export class EventInput {
+export class EventData {
   providerEventId: string | null;
-  issueId: string;
-  userEmitterEmail?: string;
+  userEmitterEmail: string | null;
   createdAt: Date;
-  userEmitterId?: string | null;
 
-  constructor(input: EventInput) {
+  constructor(input: EventData) {
     this.providerEventId = input.providerEventId;
     this.userEmitterEmail = input.userEmitterEmail;
-    this.issueId = input.issueId;
     this.createdAt = input.createdAt;
   }
 }
 
-export class ChangeScalarEventInput extends EventInput {
+export class ChangeScalarEventData extends EventData {
   field: string;
   from?: number | string;
   to?: number | string;
 
-  constructor(input: ChangeScalarEventInput) {
+  constructor(input: ChangeScalarEventData) {
     super(input);
     this.field = input.field;
     this.from = input.from;
@@ -45,16 +42,33 @@ export class ChangeScalarEventInput extends EventInput {
   }
 }
 
-export class BlockEventInput extends EventInput {
+export class BlockEventData extends EventData {
   type: BlockEventType;
   reason: string;
   comment: string;
 
-  constructor(input: BlockEventInput) {
+  constructor(input: BlockEventData) {
     super(input);
     this.type = input.type;
     this.reason = input.reason;
     this.comment = input.comment;
+  }
+}
+
+export class BlockEventInput extends BlockEventData {
+  issueId: string;
+
+  constructor(input: BlockEventInput) {
+    super(input);
+    this.issueId = input.issueId;
+  }
+}
+
+export class ChangeScalarEventInput extends ChangeScalarEventData {
+  issueId: string;
+  constructor(input: ChangeScalarEventInput) {
+    super(input);
+    this.issueId = input.issueId;
   }
 }
 

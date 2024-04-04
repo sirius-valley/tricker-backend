@@ -16,6 +16,16 @@ import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import { type AdministratorRepository } from '@domains/administrator/repository';
 import { type IntegrationRepository } from '@domains/integration/repository';
 import process from 'process';
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+import { retry } from '@utils/retry';
+
+interface IntegrationParams {
+  projectId: string;
+  integratorEmail: string;
+  pendingProject: PendingProjectAuthorizationDTO;
+  authorizedMemberMails: string[];
+  organizationId: string;
+}
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -45,16 +55,42 @@ export class IntegrationServiceImpl implements IntegrationService {
     // verify admin identity and get pending authorization
     const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
     const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
-    const authorizedMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
+    const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
     Logger.timeEnd(`Verifications`);
-    Logger.time('Provider project data adaptation adaptation');
-    const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integratorEmail, token: pendingProject.token });
-    Logger.timeEnd(`Provider project data adaptation adaptation`);
-    await this.verifyPmExistence(projectData.members, integratorEmail);
-    const users = await this.assignRoles(projectData.members, integratorEmail);
 
-    const newProject = await this.integrationRepository.createIntegratedProject({
+    try {
+      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
+        ConflictException,
+        PrismaClientKnownRequestError,
+        PrismaClientUnknownRequestError,
+      ]);
+      await this.pendingAuthProjectRepository.delete(pendingProject.id);
+      await this.emailService.sendConfirmationMail(integratorEmail, {
+        projectName: newProject.name,
+        projectId: newProject.id,
+        url: process.env.FRONTEND_URL!,
+      });
+      return newProject;
+    } catch (e) {
+      await this.emailService.sendIntegrationErrorEmail(integratorEmail);
+      throw e;
+    }
+  }
+
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail }: IntegrationParams): Promise<ProjectDTO> {
+    Logger.time('Provider project data adaptation');
+    const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({
+      providerProjectId: projectId,
+      pmEmail: integratorEmail,
+      token: pendingProject.token,
+    });
+    Logger.timeEnd(`Provider project data adaptation`);
+
+    await this.verifyPmExistence(projectData.members, integratorEmail);
+    const users: UserRole[] = await this.assignRoles(projectData.members, integratorEmail);
+
+    const newProject: ProjectDTO = await this.integrationRepository.createIntegratedProject({
       authorizedUsers: authorizedMemberMails,
       users,
       project: projectData,
@@ -62,15 +98,14 @@ export class IntegrationServiceImpl implements IntegrationService {
       integratorEmail,
     });
 
-    await this.pendingAuthProjectRepository.delete(pendingProject.id);
-
-    Logger.info('Sending integration confirmation mail');
-    await this.emailService.sendConfirmationMail(integratorEmail, { projectName: newProject.name, projectId: newProject.id, url: process.env.FRONTEND_URL! });
-    Logger.info('Sending done');
-
     Logger.complete(`Integration finished`);
 
     return newProject;
+  }
+
+  private async getAuthorizedMemberMails(pendingProjectId: string): Promise<string[]> {
+    const memberEmails = await this.pendingMemberMailsRepository.getByProjectId(pendingProjectId);
+    return memberEmails.map((memberMail) => memberMail.email);
   }
 
   /**

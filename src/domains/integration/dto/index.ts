@@ -5,7 +5,7 @@ import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils
 import { Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
-import type { EventInput } from '@domains/event/dto';
+import type { EventData } from '@domains/event/dto';
 
 import { type StageType } from '@domains/projectStage/dto';
 
@@ -132,7 +132,7 @@ export interface IssueIntegrationInputDTO {
 
 export interface EventIntegrationInputDTO {
   issueId: string;
-  events: EventInput[];
+  events: EventData[];
   db: Omit<PrismaClient, ITXClientDenyList>;
 }
 

@@ -1,4 +1,4 @@
-import { type BlockEventInput, type ChangeScalarEventInput, type EventHistoryLogDTO } from '@domains/event/dto';
+import { type BlockEventData, type ChangeScalarEventData, type EventHistoryLogDTO } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
 import { type UserIssueDTO } from '@domains/user';
@@ -51,8 +51,8 @@ export class IssueDataDTO {
   storyPoints: number | null;
   stage: string | null;
   labels: string[];
-  blockingEvents: BlockEventInput[];
-  issueChangeLogEvents: ChangeScalarEventInput[];
+  blockingEvents: BlockEventData[];
+  issueChangeLogEvents: ChangeScalarEventData[];
 
   constructor(data: IssueDataDTO) {
     this.providerIssueId = data.providerIssueId;

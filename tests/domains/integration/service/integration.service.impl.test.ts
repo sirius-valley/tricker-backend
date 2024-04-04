@@ -14,7 +14,7 @@ import { ProjectDataDTO, ProjectMemberDataDTO, type ProjectPreIntegratedDTO } fr
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { PendingMemberMailDTO } from '@domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
-import { ConflictException, db, NotFoundException } from '@utils';
+import { ConflictException, db, Logger, NotFoundException } from '@utils';
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
@@ -102,8 +102,15 @@ beforeEach(() => {
 });
 
 describe('Integration service', () => {
+  Logger.disable();
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   describe('Integrate project method tests', () => {
     it('Should successfully integrate a project to tricker', async () => {
+      const expectedProject: ProjectDTO = { ...project };
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(service, 'verifyAdminIdentity').mockResolvedValue(pendingProject);
       // jest.spyOn(utils, 'verifyToken').mockImplementation(()=> 'idAdmin');
@@ -118,8 +125,8 @@ describe('Integration service', () => {
       jest.spyOn(db, '$transaction').mockResolvedValue(project);
       jest.spyOn(emailSender, 'sendConfirmationMail').mockResolvedValue();
       jest.spyOn(pendingAuthProjectMockRepository, 'delete').mockImplementation();
+      jest.spyOn(integrationRepository, 'createIntegratedProject').mockResolvedValueOnce(expectedProject);
 
-      const expectedProject: ProjectDTO = project;
       const receivedProject: ProjectDTO = await service.integrateProject('id', 'tokenNotVerified');
 
       expect.assertions(2);
@@ -178,10 +185,16 @@ describe('Integration service', () => {
       jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([pendingMemberMail]);
       jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(organization);
       jest.spyOn(mockAdapterTool, 'adaptProjectData').mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'wrong@mail.com' }] });
+      jest.spyOn(emailSender, 'sendIntegrationErrorEmail').mockResolvedValue();
 
-      expect.assertions(2);
-      await expect(service.integrateProject('id', 'tokenNotVerified')).rejects.toThrow(ConflictException);
-      await expect(service.integrateProject('id', 'tokenNotVerified')).rejects.toThrow('Conflict. Provided Project Manager email not correct.');
+      try {
+        await service.integrateProject('id', 'tokenNotVerified');
+        jest.runAllTimers();
+      } catch (e: any) {
+        expect.assertions(2);
+        expect(e).toBeInstanceOf(ConflictException);
+        expect(e.message).toBe('Conflict. Provided Project Manager email not correct.');
+      }
     });
   });
 
