@@ -10,10 +10,17 @@ import { type RoleRepository, RoleRepositoryImpl } from '@domains/role/repositor
 import { type UserProjectParamsDTO } from '@domains/issue/dto';
 import type { CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type MailToken, type ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import { verifyToken } from '@utils/auth';
+import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
+import { type AdministratorRepository, AdministratorRepositoryImpl } from '@domains/administrator/repository';
+import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 
 export const userProjectRoleRepository: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
 export const roleRepository: RoleRepository = new RoleRepositoryImpl(db);
 export const userRepository: UserRepository = new UserRepositoryImpl(db);
+export const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
+export const pendingProjectRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);
 
 export type ClassType<T> = new (...args: any[]) => T;
 
@@ -57,7 +64,10 @@ export function validateUserIsProjectManager() {
     if (user === null || user.deletedAt !== null) {
       throw new NotFoundException('User');
     }
-    const userProjectRole: UserProjectRoleDTO | null = await userProjectRoleRepository.getByProjectIdAndUserId({ userId: user.id, projectId });
+    const userProjectRole: UserProjectRoleDTO | null = await userProjectRoleRepository.getByProjectIdAndUserId({
+      userId: user.id,
+      projectId,
+    });
     if (userProjectRole === null || userProjectRole.deletedAt !== null) {
       throw new NotFoundException('UserProjectRole');
     }
@@ -68,6 +78,33 @@ export function validateUserIsProjectManager() {
 
     if (role.name.toLowerCase() !== 'project manager') {
       throw new ForbiddenException();
+    }
+
+    next();
+  };
+}
+
+/**
+ * Middleware function to validate the identity of the administrator.
+ * This middleware is used to ensure that the request is made by an authorized administrator.
+ * It verifies the identity of the administrator based on the provided token and checks if
+ * the administrator is associated with the pending project specified in the request parameters.
+ * @returns An Express middleware function that validates the identity of the administrator.
+ * @throws {NotFoundException} If the pending project or administrator is not found.
+ */
+export function validateAdminIdentity() {
+  return async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken, any>, res: Response, next: NextFunction) => {
+    const { projectId } = req.params;
+    const { token } = req.query;
+
+    const adminId: string = verifyToken(token);
+    const pendingProject: PendingProjectAuthorizationDTO | null = await pendingProjectRepository.getByProjectId(projectId);
+    if (pendingProject === null) {
+      throw new NotFoundException('PendingAuthProject');
+    }
+    const admins = await administratorRepository.getByOrganizationId(pendingProject.organizationId);
+    if (!admins.some((admin) => admin.id === adminId)) {
+      throw new NotFoundException('Administrator');
     }
 
     next();
