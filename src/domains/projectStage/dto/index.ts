@@ -19,10 +19,14 @@ export class StageExtendedDTO extends StageDTO {
    * The type of the stage.
    */
   type: StageType;
+  position: number;
+  color: string | null;
 
   constructor(stage: StageExtendedDTO) {
     super(stage);
     this.type = stage.type;
+    this.position = stage.position;
+    this.color = stage.color;
   }
 }
 

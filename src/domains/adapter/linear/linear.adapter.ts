@@ -177,7 +177,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           type = 'OTHER';
       }
 
-      return { type, name: stage.name };
+      return { type, name: stage.name, position: stage.position, color: stage.color };
     });
   }
 

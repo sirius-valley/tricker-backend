@@ -238,6 +238,8 @@ export interface MailPayload {
 export interface StageData {
   name: string;
   type: StageType;
+  position: number;
+  color: string;
 }
 
 /**

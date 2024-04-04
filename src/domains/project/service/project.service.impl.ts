@@ -86,7 +86,7 @@ export class ProjectServiceImpl implements ProjectService {
       return acum;
     }, filteredAssignees);
 
-    return { stages: filteredStages, assignees: filteredAssignees, priorities: filteredPriorities };
+    return { stages: filteredStages.sort((a, b) => a.position - b.position), assignees: filteredAssignees.sort((a, b) => a.name.localeCompare(b.name)), priorities: filteredPriorities };
   }
 
   /**
