@@ -8,13 +8,17 @@ import { HTML_TEMPLATES } from '@domains/email/service/templates';
 export class MailgunEmailService implements EmailService {
   constructor(private readonly client: IMailgunClient) {}
 
+  /**
+   * Sends an email to inform that a project has not been integrated due to an error during integration process, to the specified email address.
+   * @param {string} emailAddress - The email address to which the authorization email will be sent.
+   * @returns {Promise<void>} A Promise that resolves when the email is successfully sent.
+   */
   async sendIntegrationErrorEmail(emailAddress: string): Promise<void> {
     await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
       from: 'Tricker <no-reply@tricker.com>',
       to: emailAddress,
       subject: 'Project Integration Error',
-      // html: await prepareHtmlTemplate(path.join(__dirname, 'email-templates/project_integration_finished.html'), variables),
-      html: `<h1>An error has occured with </h1>`,
+      html: HTML_TEMPLATES.HTML_INTEGRATION_ERROR,
     });
   }
 
