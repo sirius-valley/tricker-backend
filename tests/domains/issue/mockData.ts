@@ -1,4 +1,4 @@
-import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
+import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueUpdateInput, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
@@ -156,6 +156,42 @@ export const mockIssueViewDTO: IssueViewDTO = {
   isTracking: false,
 };
 
+export const mockUpdatedIssueViewDTO: IssueViewDTO = {
+  id: 'issue789',
+  assignee: {
+    id: 'user124',
+    name: 'John Smith',
+    profileUrl: null,
+  },
+  stage: {
+    id: 'stage457',
+    name: 'In Progress',
+    type: StageType.STARTED,
+  },
+  name: 'TRI-001',
+  title: 'Fake issue',
+  priority: 'MEDIUM_PRIORITY',
+  description: 'Fake issue description',
+  storyPoints: 1,
+  isBlocked: false,
+  labels: [],
+  isTracking: false,
+};
+
+export const mockIssueUpdateInput: IssueUpdateInput = {
+  assigneeId: 'user124',
+  name: undefined,
+  description: undefined,
+  title: undefined,
+  storyPoints: undefined,
+  isBlocked: undefined,
+  priority: undefined,
+  projectStageId: 'stage457',
+  projectId: undefined,
+  issueId: 'issue789',
+  providerIssueId: undefined,
+};
+
 export const mockDevIssueFilterParameters = {
   userId: 'user124',
   projectId: 'Project777',
@@ -301,15 +337,22 @@ export const mockIssueExtendedDTO: IssueExtendedDTO = {
   chronology: [
     {
       isBlocker: false,
-      eventId: 'issueChangeLog887',
-      date: new Date('2024-03-11T09:00:00Z'),
+      eventId: 'issueChangeLog888',
+      date: new Date('2024-03-14T09:00:00Z'),
       comment: undefined,
-      message: 'Issue stage has changed to TODO',
+      message: 'Issue has been assigned to John Doe',
+    },
+    {
+      isBlocker: false,
+      eventId: '2bdcfe9c-80ff-43af-9f4d-438019c94e4d',
+      date: new Date('2024-03-13T09:00:00Z'),
+      comment: undefined,
+      message: 'modification for tests only',
     },
     {
       isBlocker: false,
       eventId: 'b09f23b5-7e1d-4e50-bd33-cac9cc53fccd',
-      date: new Date('2024-03-12T09:00:00Z'),
+      date: new Date('2024-03-12T10:00:00Z'),
       comment: undefined,
       message: 'Time tracking has started',
     },
@@ -323,23 +366,16 @@ export const mockIssueExtendedDTO: IssueExtendedDTO = {
     {
       isBlocker: false,
       eventId: 'b09f23b5-7e1d-4e50-bd33-cac9cc53fccd',
-      date: new Date('2024-03-12T10:00:00Z'),
+      date: new Date('2024-03-12T09:00:00Z'),
       comment: undefined,
       message: 'Time tracking has started',
     },
     {
       isBlocker: false,
-      eventId: '2bdcfe9c-80ff-43af-9f4d-438019c94e4d',
-      date: new Date('2024-03-13T09:00:00Z'),
+      eventId: 'issueChangeLog887',
+      date: new Date('2024-03-11T09:00:00Z'),
       comment: undefined,
-      message: 'modification for tests only',
-    },
-    {
-      isBlocker: false,
-      eventId: 'issueChangeLog888',
-      date: new Date('2024-03-14T09:00:00Z'),
-      comment: undefined,
-      message: 'Issue has been assigned to John Doe',
+      message: 'Issue stage has changed to TODO',
     },
   ],
 };
