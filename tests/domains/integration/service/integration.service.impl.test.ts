@@ -14,7 +14,7 @@ import { ProjectDataDTO, ProjectMemberDataDTO, type ProjectPreIntegratedDTO } fr
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { PendingMemberMailDTO } from '@domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
-import { ConflictException, db, Logger, NotFoundException } from '@utils';
+import { ConflictException, Logger, NotFoundException } from '@utils';
 import { LinearAdapterMock } from '../../adapter/mockLinearAdapter/linearAdapter.mock';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import type { AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
@@ -119,7 +119,6 @@ describe('Integration service', () => {
       jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([{ ...pendingMemberMail, email: 'mail@mail.com' }]);
       jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(organization);
       jest.spyOn(mockAdapterTool, 'adaptProjectData').mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'mail@mail.com' }] });
-      jest.spyOn(db, '$transaction').mockResolvedValue(project);
       jest.spyOn(emailSender, 'sendConfirmationMail').mockResolvedValue();
       jest.spyOn(pendingAuthProjectMockRepository, 'delete').mockImplementation();
       jest.spyOn(integrationRepository, 'createIntegratedProject').mockResolvedValueOnce(expectedProject);

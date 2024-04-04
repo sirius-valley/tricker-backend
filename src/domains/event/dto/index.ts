@@ -17,11 +17,29 @@ export enum LinearActionTypeConvention {
   REMOVE = 'r',
 }
 
+/**
+ * Represents common data shared across different event types during provider event adaptation.
+ */
 export class EventData {
+  /**
+   * Unique identifier of the event in the provider system, if any.
+   */
   providerEventId: string | null;
+
+  /**
+   * Email of the user who triggered the event, if any.
+   */
   userEmitterEmail: string | null;
+
+  /**
+   * Date object specifying when the event occurred.
+   */
   createdAt: Date;
 
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {EventData} input - Object containing event data.
+   */
   constructor(input: EventData) {
     this.providerEventId = input.providerEventId;
     this.userEmitterEmail = input.userEmitterEmail;
@@ -29,11 +47,30 @@ export class EventData {
   }
 }
 
+/**
+ * Represents an event related to changing a scalar value.
+ * Extends the base EventData class.
+ */
 export class ChangeScalarEventData extends EventData {
+  /**
+   * Name of the field that was changed.
+   */
   field: string;
+
+  /**
+   * Optional. Previous value of the field.
+   */
   from?: number | string;
+
+  /**
+   * Optional. New value of the field.
+   */
   to?: number | string;
 
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {ChangeScalarEventData} input - Object containing change scalar event data.
+   */
   constructor(input: ChangeScalarEventData) {
     super(input);
     this.field = input.field;
@@ -42,11 +79,30 @@ export class ChangeScalarEventData extends EventData {
   }
 }
 
+/**
+ * Represents an event related to blocking an issue or being blocked by an issue.
+ * Extends the base EventData class.
+ */
 export class BlockEventData extends EventData {
+  /**
+   * Type of block.
+   */
   type: BlockEventType;
+
+  /**
+   * Reason for the block.
+   */
   reason: string;
+
+  /**
+   * Additional context about the block.
+   */
   comment: string;
 
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {BlockEventData} input - Object containing block event data.
+   */
   constructor(input: BlockEventData) {
     super(input);
     this.type = input.type;
@@ -55,17 +111,40 @@ export class BlockEventData extends EventData {
   }
 }
 
+/**
+ * Used for representing input data for blocking events, when persisting event in database.
+ * Extends the BlockEventData class.
+ */
 export class BlockEventInput extends BlockEventData {
+  /**
+   * Issue identifier associated with the block event.
+   */
   issueId: string;
 
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {BlockEventInput} input - Object containing block event input data.
+   */
   constructor(input: BlockEventInput) {
     super(input);
     this.issueId = input.issueId;
   }
 }
 
+/**
+ * Used for representing input data for change scalar events, when persisting event in database.
+ * Extends the ChangeScalarEventData class.
+ */
 export class ChangeScalarEventInput extends ChangeScalarEventData {
+  /**
+   * Issue identifier associated with the block event.
+   */
   issueId: string;
+
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {ChangeScalarEventInput} input - Object containing change scalar event input data.
+   */
   constructor(input: ChangeScalarEventInput) {
     super(input);
     this.issueId = input.issueId;
