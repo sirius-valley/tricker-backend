@@ -4,7 +4,7 @@ import { type Organization, type User, type LinearError, type Team, type Issue, 
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
-import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
+import { type AdaptProjectDataInput, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type UserDataDTO } from '@domains/user';
@@ -67,11 +67,11 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   /**
    * Adapts project data using input parameters, decrypts token for authentication,
    * retrieves team details, filters members, and returns essential project information.
-   * @param {AdaptProjectDataInputDTO} input - Input data including token, project ID, project manager email, and member emails.
+   * @param {AdaptProjectDataInput} input - Input data including token, project ID, project manager email, and member emails.
    * @returns {Promise<ProjectDataDTO>} A promise resolving with project-related data.
    * @throws {LinearIntegrationException} If there is an issue with authentication or retrieving project details.
    */
-  async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
+  async adaptProjectData(input: AdaptProjectDataInput): Promise<ProjectDataDTO> {
     const key: string = decryptData(input.token);
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);

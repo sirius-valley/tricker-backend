@@ -1,11 +1,11 @@
 import { type IssueDataDTO } from '@domains/issue/dto';
-import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
+import { type AdaptProjectDataInput } from '@domains/adapter/dto';
 import { type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 import { type UserDataDTO } from '@domains/user';
 
 export interface ProjectManagementToolAdapter {
-  adaptProjectData: (input: AdaptProjectDataInputDTO) => Promise<ProjectDataDTO>;
+  adaptProjectData: (input: AdaptProjectDataInput) => Promise<ProjectDataDTO>;
   adaptAllProjectIssuesData: (providerProjectId: string) => Promise<IssueDataDTO[]>;
   getMemberById: (memberId: string, apiKey: string) => Promise<UserDataDTO>;
   getProjectById: (projectId: string, apiKey: string) => Promise<BasicProjectDataDTO>;

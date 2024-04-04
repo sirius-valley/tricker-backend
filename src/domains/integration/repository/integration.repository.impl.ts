@@ -48,6 +48,12 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
     return new PendingProjectAuthorizationDTO(result);
   }
 
+  /**
+   * Creates a new integrated project in the database.
+   *
+   * @param {ProjectCreationInput} input - The input data for creating the project.
+   * @returns {Promise<ProjectDTO>} - A promise that resolves to a ProjectDTO object representing the created project.
+   */
   async createIntegratedProject(input: ProjectCreationInput): Promise<ProjectDTO> {
     Logger.time('Project Integration TX');
     const newProject = await this.db.$transaction(async (tx) => {
@@ -183,7 +189,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
                         },
                       }
                     : undefined,
-                eventRegisteredAt: event.userEmitterEmail,
+                eventRegisteredAt: event.createdAt,
                 from: event.from?.toString(),
                 to: event.to?.toString(),
                 field: event.field,

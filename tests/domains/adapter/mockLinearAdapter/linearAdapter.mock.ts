@@ -2,7 +2,7 @@ import { type IssueDataDTO } from '@domains/issue/dto';
 import { type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type EventData } from '@domains/event/dto';
-import { type AdaptProjectDataInputDTO } from '@domains/adapter/dto';
+import { type AdaptProjectDataInput } from '@domains/adapter/dto';
 import { type UserDataDTO } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 
@@ -15,7 +15,7 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
     return [];
   }
 
-  async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
+  async adaptProjectData(input: AdaptProjectDataInput): Promise<ProjectDataDTO> {
     return {
       projectId: 'idP',
       members: [{ email: 'mockUser@mock.com', name: 'John Doe', providerId: 'pId' }],

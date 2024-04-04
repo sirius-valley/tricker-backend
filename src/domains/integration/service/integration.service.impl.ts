@@ -72,7 +72,10 @@ export class IntegrationServiceImpl implements IntegrationService {
         url: process.env.FRONTEND_URL!,
       });
       return newProject;
-    } catch (e) {
+    } catch (e: any) {
+      Logger.error(e.message);
+      Logger.error(e.cause);
+      Logger.error(e.stack);
       await this.emailService.sendIntegrationErrorEmail(integratorEmail);
       throw e;
     }
