@@ -36,6 +36,9 @@ export class StageDTO {
 
 export type StageType = 'BACKLOG' | 'UNSTARTED' | 'STARTED' | 'COMPLETED' | 'CANCELED' | 'OTHER';
 
+/**
+ * Represents the order of stage types.
+ */
 export const StageTypeOrder = {
   BACKLOG: 1,
   UNSTARTED: 2,
