@@ -262,6 +262,9 @@ const PriorityType: {
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
 
+/**
+ * Represents the order of priorities.
+ */
 export const priorityOrder = {
   NO_PRIORITY: 0,
   LOW_PRIORITY: 1,
