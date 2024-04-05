@@ -74,8 +74,7 @@ export class LinearIntegrationException extends InternalServerErrorException {
 }
 
 export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!error) next(error);
+  if (error === null || error === undefined) next(error);
   Logger.error(error.stack);
   if (error instanceof HttpException) {
     if (error.code === HttpStatus.INTERNAL_SERVER_ERROR) {
