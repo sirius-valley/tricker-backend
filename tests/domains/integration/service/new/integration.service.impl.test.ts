@@ -35,7 +35,7 @@ import {
 import { AuthorizationRequestDTO, AuthorizedMemberDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type NextFunction, type Request, type Response } from 'express';
-import { IsValidIssueProviderConstraint, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
+import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
 import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
 import { mockUserDTO } from '../../../issue/mockData';
@@ -47,7 +47,6 @@ describe('integration service tests', () => {
   const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
   const pendingMemberMailsRepositoryMock: MockProxy<PendingMemberMailsRepository> = mock<PendingMemberMailsRepository>();
   const organizationRepositoryMock: MockProxy<OrganizationRepository> = mock<OrganizationRepository>();
-  // const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
   const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
   const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
   const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
@@ -131,6 +130,7 @@ describe('integration service tests', () => {
         issueProviderId: mockedIssueProviderId,
         integratorId: mockedIntegratorId,
         organizationId: mockedOrganizationId,
+        isIntegrating: false,
       };
 
       expect(emailServiceMock.sendAuthorizationMail).toHaveBeenCalledTimes(2);
@@ -214,6 +214,35 @@ describe('integration service tests', () => {
       expect(received[0].name).toEqual(expected[0].name);
       expect(received[1].name).toEqual(expected[1].name);
       expect(received[2].email).toEqual(expected[2].email);
+    });
+  });
+
+  describe('acceptProject method', () => {
+    it('should send an acceptance email when the integration request is approved', async () => {
+      // given
+      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
+      jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
+      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
+      emailServiceMock.sendAcceptanceMail.mockImplementation(async () => {});
+
+      // when
+      await testedService.acceptProject(mockedProviderProjectId);
+
+      // then
+      expect.assertions(3);
+      expect(emailServiceMock.sendAcceptanceMail).toHaveBeenCalledTimes(1);
+      expect(adapterMock.getProjectById).toHaveBeenCalledTimes(1);
+      expect(adapterMock.getMyEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw a ConflictException if pending is already integrating', async () => {
+      // given
+      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue({ ...mockPendingProjectAuthorizationDTO, isIntegrating: true });
+      // when - then
+      expect.assertions(2);
+      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow(ConflictException);
+      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow('Project already being integrated');
     });
   });
 });
