@@ -61,8 +61,7 @@ model Issue {
   timeTrackings              TimeTracking[]
   issueChangeLogs            IssueChangeLog[]
   customFields               IssueCustomFields[]
-  blockedBy                  BlockerStatusModification[] @relation(name: "blocked")
-  blockingTo                 BlockerStatusModification[] @relation(name: "blocking")
+  blockerStatusModifications BlockerStatusModification[]
   manualTimeModifications    ManualTimeModification[]
 }
 
@@ -164,21 +163,16 @@ model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerEventId   String?
   userEmitterId     String?   @db.Uuid
-  blockedIssueId    String    @db.Uuid
-  blockingIssueId   String?    @db.Uuid
+  issueId           String    @db.Uuid
   status            BlockType
   eventRegisteredAt DateTime?
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @default(now())
-  deletedAt         DateTime?
   reason            String
   comment           String
 
-  blockedIssue      Issue  @relation(name: "blocked", fields: [blockedIssueId], references: [id])
-  blockingIssue     Issue? @relation(name: "blocking", fields: [blockingIssueId], references: [id])
+  issue       Issue  @relation(fields: [issueId], references: [id])
   userEmitter User? @relation(fields: [userEmitterId], references: [id])
 
-  @@unique([blockedIssueId, blockingIssueId])
 }
 
 model ManualTimeModification {
