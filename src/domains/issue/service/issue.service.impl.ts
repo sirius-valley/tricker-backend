@@ -192,6 +192,10 @@ export class IssueServiceImpl implements IssueService {
    * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
    */
   async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    if (filters.cursor !== undefined) {
+      await this.validateCursor(filters.cursor);
+    }
+
     return this.issueRepository.getWithFilters(filters);
   }
 
@@ -241,7 +245,7 @@ export class IssueServiceImpl implements IssueService {
       comment: `Issue ${issue.name} unblocked.`,
       createdAt: new Date(),
       providerEventId: null,
-      type: TrickerBlockEventType.BLOCKED_BY,
+      type: TrickerBlockEventType.NO_STATUS,
     });
 
     await this.issueRepository.updateById({ issueId: input.issueId, isBlocked: false });
@@ -289,7 +293,13 @@ export class IssueServiceImpl implements IssueService {
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    return parsedEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return parsedEvents.sort((a, b) => {
+      if (b.date.getTime() !== a.date.getTime()) {
+        return b.date.getTime() - a.date.getTime();
+      }
+
+      return (b.isBlocker ? 1 : 0) - (a.isBlocker ? 1 : 0);
+    });
   }
 
   /**
@@ -322,6 +332,21 @@ export class IssueServiceImpl implements IssueService {
     data.projectId = issue.projectId;
 
     return await this.issueRepository.updateById({ ...data, issueId: issue.id });
+  }
+
+  /**
+   * Validates the cursor provided for pagination.
+   * @param cursor The cursor string to be validated.
+   * @throws ConflictException if the cursor provided is not valid.
+   */
+  private async validateCursor(cursor: string): Promise<void> {
+    // Retrieve the issue using the provided cursor
+    const issue: IssueDTO | null = await this.issueRepository.getById(cursor);
+
+    // If the issue is null, throw a ConflictException indicating that the cursor is not valid
+    if (issue === null) {
+      throw new ConflictException('The cursor provided for the pagination is not valid');
+    }
   }
 
   /**

@@ -69,7 +69,7 @@ export const createBlockEvent = async (change: IssueRelationHistoryPayload, even
 
   const reason = action === LinearActionTypeConvention.ADD_EXPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by other ticket` : 'Blocking other ticket') : `-`;
 
-  const dbType = action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
+  const dbType = action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_EXPLICIT ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
 
   return new BlockEventData({
     reason,
