@@ -102,6 +102,8 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
             create: input.project.stages.map((stage) => ({
               name: stage.name,
               type: stage.type,
+              color: stage.color,
+              position: stage.position,
             })),
           },
           labels: {

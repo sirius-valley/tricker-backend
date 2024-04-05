@@ -1,7 +1,6 @@
-import { type Priority } from '@domains/issue';
 import { IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
-import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 
 /**
@@ -72,9 +71,9 @@ export class ProjectIdParamDTO {
  */
 export class DevProjectFiltersDTO {
   /** The stages available in the project. */
-  stages: StageExtendedDTO[];
+  stages: StageDTO[];
   /** The priorities available in the project. */
-  priorities: Priority[];
+  priorities: string[];
 
   /**
    * Constructs a new instance of the DevProjectFiltersDTO class.

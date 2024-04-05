@@ -38,7 +38,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     return new IssueViewDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
       name: issue.name,
       title: issue.title,
       description: issue.description,
@@ -111,7 +111,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         },
         {
           stage: {
-            name: 'asc',
+            position: 'asc',
           },
         },
       ],
@@ -121,7 +121,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -212,7 +212,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -264,7 +264,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -316,7 +316,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     return new IssueViewDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
       name: issue.name,
       title: issue.title,
       description: issue.description,

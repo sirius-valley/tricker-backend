@@ -67,6 +67,11 @@
  *           items:
  *             type: string
  *             format: uuid
+ *         assigneeIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
  *         priorities:
  *           type: array
  *           items:
@@ -86,6 +91,9 @@
  *         stageIds:
  *           - "123e4567-e89b-12d3-a456-426614174005"
  *           - "123e4567-e89b-12d3-a456-426614174006"
+ *         assigneeIds:
+ *           - "8683912a-0822-429d-83f3-fdc87de49225"
+ *           - "8f9c33c7-59ab-4bda-bf3c-dcc58f0df02b"
  *         priorities:
  *           - "HIGH_PRIORITY"
  *           - "MEDIUM_PRIORITY"
@@ -190,10 +198,18 @@
  *         type:
  *           $ref: '#/components/schemas/StageType'
  *           description: The type of the stage.
+ *         position:
+ *           type: number
+ *           description: The position of the issue in the project flow
+ *         color:
+ *           type: string
+ *           description: The hex of the color assigned in the project
  *       example:
  *         id: "123e4567-e89b-12d3-a456-426614174015"
  *         name: "In Progress"
  *         type: "STARTED"
+ *         position: 11.1
+ *         color: "#FF0000"
  *
  *     Priority:
  *       type: string

@@ -8,7 +8,7 @@
  *         stages:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/StageExtendedDTO'
+ *             $ref: '#/components/schemas/StageDTO'
  *         priorities:
  *           type: array
  *           items:
@@ -18,12 +18,16 @@
  *           - id: "1"
  *             name: "Backlog"
  *             type: "BACKLOG"
+ *             color: "#bec2c8"
+ *             position: 0
  *           - id: "2"
  *             name: "In Progress"
- *             type: "IN_PROGRESS"
+ *             type: "STARTED"
+ *             color: "#0f783c"
+ *             position: -6.3
  *         priorities:
- *           - "HIGH_PRIORITY"
- *           - "MEDIUM_PRIORITY"
+ *           - "Medium Priority"
+ *           - "High Priority"
  *
  *     PMProjectFiltersDTO:
  *       allOf:
@@ -35,20 +39,24 @@
  *             $ref: '#/components/schemas/AssigneeFilterDataDTO'
  *       example:
  *         stages:
- *           - id: "123e4567-e89b-12d3-a456-426614174000"
+ *           - id: "1"
  *             name: "Backlog"
  *             type: "BACKLOG"
- *           - id: "123e4567-e89b-12d3-a456-426614174103"
+ *             color: "#bec2c8"
+ *             position: 0
+ *           - id: "2"
  *             name: "In Progress"
- *             type: "IN_PROGRESS"
+ *             type: "STARTED"
+ *             color: "#0f783c"
+ *             position: -6.3
  *         priorities:
- *           - "HIGH_PRIORITY"
- *           - "MEDIUM_PRIORITY"
+ *           - "Medium Priority"
+ *           - "High Priority"
  *         assignees:
  *           - id: "123e4567-e89b-12d3-a456-426614174000"
- *             name: "John Doe"
- *           - id: "123e4567-e89b-12d3-a456-426614174306"
  *             name: "Jane Smith"
+ *           - id: "123e4567-e89b-12d3-a456-426614174306"
+ *             name: "John Doe"
  *
  *     AssigneeFilterDataDTO:
  *       type: object
@@ -61,4 +69,23 @@
  *       example:
  *         id: "123e4567-e89b-12d3-a456-426614174000"
  *         name: "John Doe"
+ *
+ *     StageDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         name:
+ *           type: string
+ *         type:
+ *           $ref: '#/components/schemas/StageType'
+ *         color:
+ *           type: string
+ *           nullable: true
+ *       example:
+ *         id: "123e4567-e89b-12d3-a456-426614174000"
+ *         name: "Backlog"
+ *         type: "BACKLOG"
+ *         color: "#bec2c8"
  */

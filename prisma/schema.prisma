@@ -204,6 +204,8 @@ model ProjectStage {
   projectId String    @db.Uuid
   name      String
   type      StageType
+  position  Float
+  color     String?
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
