@@ -15,7 +15,7 @@ model User {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   cognitoId    String?   @unique @db.Uuid
   profileImage String?
-  email        String
+  email        String    @unique
   name         String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime?
@@ -32,7 +32,7 @@ model User {
 
 model Role {
   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
+  name String @unique
 
   users UserProjectRole[]
 }
@@ -193,7 +193,7 @@ model ManualTimeModification {
 
 model IssueChangeLog {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  providerEventId   String
+  providerEventId   String?
   userEmitterId     String?   @db.Uuid
   issueId           String    @db.Uuid
   field             String
@@ -211,6 +211,8 @@ model ProjectStage {
   projectId String    @db.Uuid
   name      String
   type      StageType
+  position  Float
+  color     String?
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
@@ -273,6 +275,7 @@ model PendingProjectAuthorization {
   integratorId      String
   issueProviderId   String @db.Uuid
   organizationId    String @db.Uuid
+  isIntegrating     Boolean @default(false)
 
   issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
   organization  Organization  @relation(fields: [organizationId], references: [id])

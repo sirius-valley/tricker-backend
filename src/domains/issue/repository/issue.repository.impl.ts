@@ -1,11 +1,10 @@
 import { type IssueRepository } from '@domains/issue/repository/issue.repository';
 import { type IssueInput, IssueDTO, IssueViewDTO, type PMIssueFilterParameters, IssueDetailsDTO, type UserProject, type IssueUpdateTrickerInput } from '@domains/issue/dto';
 import { type Issue, type PrismaClient } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 
 export class IssueRepositoryImpl implements IssueRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   async getByProjectIdAndName(input: { projectId: string; name: string | undefined }): Promise<IssueDTO | null> {
     const issue = await this.db.issue.findFirst({
@@ -50,7 +49,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     return new IssueViewDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
       name: issue.name,
       title: issue.title,
       description: issue.description,
@@ -123,7 +122,7 @@ export class IssueRepositoryImpl implements IssueRepository {
         },
         {
           stage: {
-            name: 'asc',
+            position: 'asc',
           },
         },
       ],
@@ -133,7 +132,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -224,7 +223,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -276,7 +275,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       return new IssueViewDTO({
         id: issue.id,
         assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+        stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
         name: issue.name,
         title: issue.title,
         description: issue.description,
@@ -328,7 +327,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     return new IssueViewDTO({
       id: issue.id,
       assignee: issue.assignee !== null ? { name: issue.assignee.name, id: issue.assigneeId!, profileUrl: issue.assignee.profileImage } : null,
-      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type } : null,
+      stage: issue.stage !== null ? { id: issue.stage.id, name: issue.stage.name, type: issue.stage.type, color: issue.stage.color, position: issue.stage.position } : null,
       name: issue.name,
       title: issue.title,
       description: issue.description,

@@ -1,13 +1,13 @@
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
-import { type EventInput } from '@domains/event/dto';
+import { BlockEventData, ChangeScalarEventData, type EventData } from '@domains/event/dto';
 import { type Organization, type User, type LinearError, type Team, type Issue, type IssueHistory, type WorkflowState } from '@linear/sdk';
 import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
-import { type AdaptProjectDataInputDTO, type LinearIssueData } from '@domains/adapter/dto';
+import { type AdaptProjectDataInput, type LinearIssueData } from '@domains/adapter/dto';
 import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
-import { type UserDataDTO } from '@domains/user';
+import { type UserData } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 
 import { type StageType } from '@domains/projectStage/dto';
@@ -44,18 +44,20 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * Adapt Linear issue events for a given Linear issue ID to Tricker issue events.
    * @param issue - Issue from Linear
    * @param projectId - The ID of the Linear project
-   * @returns {Promise<EventInput[]>} A promise that resolves with an array of EventInput objects representing the issue events.
+   * @returns {Promise<EventData[]>} A promise that resolves with an array of EventInput objects representing the issue events.
    * @throws {LinearIntegrationException} If there is an error while interacting with the Linear API.
    */
   // Retriever not configured because it has been already configured in the flow
-  private async adaptIssueEventsData(issue: Issue, projectId: string): Promise<EventInput[]> {
+  private async adaptIssueEventsData(issue: Issue, projectId: string): Promise<EventData[]> {
     try {
       const history: IssueHistory[] = await this.dataRetriever.getIssueHistory(issue);
       const project: Team = await this.dataRetriever.getTeam(projectId);
       const stages: WorkflowState[] = await this.dataRetriever.getStages(project);
       const members: User[] = await this.dataRetriever.getMembers(projectId);
       Logger.info(`Event nodes retrieved from issue ${issue.id}: ${history.length} -- ${new Date().toString()}`);
-      return await processIssueEvents({ linearIssueId: issue.id, history, stages, members });
+      const eventData = await processIssueEvents({ linearIssueId: issue.id, history, stages, members });
+      Logger.complete(`Events from linear issue ${issue.id} have been adapted -- ${new Date().toString()}`);
+      return eventData;
     } catch (err: any) {
       const linearError = err as LinearError;
       throw new LinearIntegrationException(linearError.message, linearError.errors);
@@ -65,11 +67,11 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   /**
    * Adapts project data using input parameters, decrypts token for authentication,
    * retrieves team details, filters members, and returns essential project information.
-   * @param {AdaptProjectDataInputDTO} input - Input data including token, project ID, project manager email, and member emails.
+   * @param {AdaptProjectDataInput} input - Input data including token, project ID, project manager email, and member emails.
    * @returns {Promise<ProjectDataDTO>} A promise resolving with project-related data.
    * @throws {LinearIntegrationException} If there is an issue with authentication or retrieving project details.
    */
-  async adaptProjectData(input: AdaptProjectDataInputDTO): Promise<ProjectDataDTO> {
+  async adaptProjectData(input: AdaptProjectDataInput): Promise<ProjectDataDTO> {
     const key: string = decryptData(input.token);
     this.dataRetriever.configureRetriever(key);
     const team: Team = await this.dataRetriever.getTeam(input.providerProjectId);
@@ -113,6 +115,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           priority = 'NO_PRIORITY';
       }
 
+      const events = await this.adaptIssueEventsData(issue, providerProjectId);
+
       integratedIssuesData.push(
         new IssueDataDTO({
           providerIssueId: issue.id,
@@ -126,7 +130,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           storyPoints: issue.estimate ?? null,
           stage: issueData.stage != null ? issueData.stage.name : null,
           labels: issueData.labels.map((label) => label.name),
-          events: await this.adaptIssueEventsData(issue, providerProjectId),
+          blockingEvents: events.filter((event) => event instanceof BlockEventData) as BlockEventData[],
+          issueChangeLogEvents: events.filter((event) => event instanceof ChangeScalarEventData) as ChangeScalarEventData[],
         })
       );
     }
@@ -172,7 +177,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
           type = 'OTHER';
       }
 
-      return { type, name: stage.name };
+      return { type, name: stage.name, position: stage.position, color: stage.color };
     });
   }
 
@@ -195,11 +200,11 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     return await this.dataRetriever.getMyMail();
   }
 
-  async getMemberById(memberId: string, apiKey: string): Promise<UserDataDTO> {
+  async getMemberById(memberId: string, apiKey: string): Promise<UserData> {
     this.dataRetriever.configureRetriever(apiKey);
     const user = await this.dataRetriever.getUser(memberId);
 
-    return { name: user.name };
+    return { name: user.name, email: user.email };
   }
 
   async getProjectById(projectId: string, apiKey: string): Promise<BasicProjectDataDTO> {

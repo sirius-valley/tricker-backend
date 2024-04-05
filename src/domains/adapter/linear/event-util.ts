@@ -1,7 +1,6 @@
-import type { IssueHistory, IssueRelationHistoryPayload } from '@linear/sdk';
-import { BlockEventInput, ChangeScalarEventInput, type EventInput, LinearActionTypeConvention, LinearBlockTypeConvention } from '@domains/event/dto';
+import type { IssueHistory, IssueRelationHistoryPayload, User } from '@linear/sdk';
+import { BlockEventData, ChangeScalarEventData, type EventData, LinearActionTypeConvention, LinearBlockTypeConvention } from '@domains/event/dto';
 import { reverseEnumMap } from '@utils/enums';
-import { Logger } from '@utils';
 import { type processIssueEventsInput } from '@domains/adapter/dto';
 
 /**
@@ -9,52 +8,50 @@ import { type processIssueEventsInput } from '@domains/adapter/dto';
  * @param input The input containing issue history and related data.
  * @returns An array of processed event inputs.
  */
-export const processIssueEvents = async (input: processIssueEventsInput): Promise<EventInput[]> => {
-  const events: EventInput[] = [];
+export const processIssueEvents = async (input: processIssueEventsInput): Promise<EventData[]> => {
+  const events: EventData[] = [];
   for (const event of input.history) {
+    const actor = await event.actor;
+
     if (event.relationChanges !== undefined) {
       const filteredRelationChanges = filterRelationChanges(event.relationChanges);
       for (const change of filteredRelationChanges) {
-        const blockEvent = createBlockEvent(change, event, input.linearIssueId);
-        events.push(await blockEvent);
+        const blockEvent = await createBlockEvent(change, event, actor);
+        events.push(blockEvent);
       }
     }
 
     if (event.toStateId !== undefined || event.fromStateId !== undefined) {
-      const changeEvent = new ChangeScalarEventInput({
+      const changeEvent = new ChangeScalarEventData({
         createdAt: event.createdAt,
         field: 'state',
         from: input.stages.find((stage) => event.fromStateId === stage.id)?.name,
         to: input.stages.find((stage) => event.toStateId === stage.id)?.name,
-        issueId: input.linearIssueId,
         providerEventId: event.id,
-        // userEmitterEmail: event.actorId! ?? event.botActor?.id, // always going to be one of those
-        userEmitterEmail: (await event.actor)?.email,
+        userEmitterEmail: actor !== undefined ? actor.email : null,
       });
       events.push(changeEvent);
     }
 
     if (event.toAssigneeId !== undefined || event.fromAssigneeId !== undefined) {
-      const changeEvent = new ChangeScalarEventInput({
+      const changeEvent = new ChangeScalarEventData({
         createdAt: event.createdAt,
         field: 'assignee',
         from: input.members.find((member) => event.fromAssigneeId === member.id)?.name,
         to: input.members.find((member) => event.toAssigneeId === member.id)?.name,
-        issueId: input.linearIssueId,
         providerEventId: event.id,
-        userEmitterEmail: (await event.actor)?.email, // always going to be one of those
+        userEmitterEmail: actor !== undefined ? actor.email : null,
       });
       events.push(changeEvent);
     }
   }
-  Logger.complete(`Events from linear issue ${input.linearIssueId} have been adapted -- ${new Date().toString()}`);
   return events;
 };
 
 export const filterRelationChanges = (changes: IssueRelationHistoryPayload[]): IssueRelationHistoryPayload[] => {
   return changes.filter((change) => {
     const blockType = change.type;
-    return blockType.includes(LinearBlockTypeConvention.BLOCKED_BY);
+    return blockType.includes(LinearBlockTypeConvention.BLOCKED_BY) || blockType.includes(LinearBlockTypeConvention.BLOCKING_TO);
   });
 };
 
@@ -66,7 +63,7 @@ export const getCommentForBlockEvent = (action: string, blockType: string, ident
   }
 };
 
-export const createBlockEvent = async (change: IssueRelationHistoryPayload, event: IssueHistory, issueId: string): Promise<BlockEventInput> => {
+export const createBlockEvent = async (change: IssueRelationHistoryPayload, event: IssueHistory, actor: User | undefined): Promise<BlockEventData> => {
   const { type, identifier } = change;
   const [action, blockType] = type.startsWith(LinearBlockTypeConvention.BLOCKING_TO) || type.startsWith(LinearBlockTypeConvention.BLOCKED_BY) ? type.split('').reduce((reversed, char) => char + reversed, '') : type;
 
@@ -74,14 +71,12 @@ export const createBlockEvent = async (change: IssueRelationHistoryPayload, even
 
   const dbType = action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
 
-  return new BlockEventInput({
+  return new BlockEventData({
     reason,
     comment: getCommentForBlockEvent(action, blockType, identifier),
     createdAt: event.createdAt,
-    issueId,
     providerEventId: event.id,
-    type: dbType, // do not know how to get rid of ! op
-    userEmitterEmail: (await event.actor)?.email, // always going to be one of those
-    relatedIssueName: identifier,
+    type: dbType,
+    userEmitterEmail: actor !== undefined ? actor.email : null,
   });
 };

@@ -1,10 +1,9 @@
 import { type RoleRepository } from '@domains/role/repository/role.repository';
 import { RoleDTO } from '@domains/role/dto';
 import { type PrismaClient, type Role } from '@prisma/client';
-import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class RoleRepositoryImpl implements RoleRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   async create(name: string): Promise<RoleDTO> {
     const role: Role = await this.db.role.create({

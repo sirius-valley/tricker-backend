@@ -1,4 +1,4 @@
-import { type BlockerStatusModificationDTO, type BlockEventInput, type IssueChangeLogDTO, type ChangeScalarEventInput, type TimeTrackingDTO, type UpdateTimeTracking, type ManualTimeModificationDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, type UpdateTimeTracking } from '@domains/event/dto';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
 
 export interface EventRepository {
@@ -12,5 +12,4 @@ export interface EventRepository {
   createManualTimeModification: (input: ManualTimeModificationEventInput) => Promise<ManualTimeModificationDTO>;
   getIssueBlockEvents: (issueId: string) => Promise<BlockerStatusModificationDTO[]>;
   getIssueChangeLogs: (issueId: string) => Promise<IssueChangeLogDTO[]>;
-  getIssueBlockEventByIssueIds: (input: { blockedIssueId: string; blockingIssueId: string }) => Promise<BlockerStatusModificationDTO | null>;
 }

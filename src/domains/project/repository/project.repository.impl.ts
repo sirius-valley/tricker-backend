@@ -1,10 +1,9 @@
 import { type ProjectRepository } from '@domains/project/repository/project.repository';
 import { ProjectDTO } from '@domains/project/dto';
 import { type PrismaClient, type Project } from '@prisma/client';
-import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class ProjectRepositoryImpl implements ProjectRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   async getById(projectId: string): Promise<null | ProjectDTO> {
     const project: Project | null = await this.db.project.findUnique({

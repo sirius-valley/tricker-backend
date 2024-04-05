@@ -1,17 +1,46 @@
-import { type Priority } from '@domains/issue';
 import { IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
-import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { type StageDTO } from '@domains/projectStage/dto';
+import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 
+/**
+ * Data Transfer Object representing a partial view of the project, only principal data.
+ */
 export class ProjectDTO {
+  /**
+   * Unique identifier of the project.
+   */
   id: string;
+  /**
+   * Name of the project.
+   */
   name: string;
+  /**
+   * ID of the project in the external provider system (if applicable).
+   */
   providerId: string;
+  /**
+   * ID of the organization the project belongs to.
+   */
   organizationId: string;
+  /**
+   * URL of the project image (if available).
+   */
   image: string | null;
+  /**
+   * Date and time the project was created.
+   */
   createdAt: Date;
+  /**
+   * Date and time the project was deleted (null if not deleted).
+   */
   deletedAt: Date | null;
 
+  /**
+   * Constructor for ProjectDTO class.
+   *
+   * @param {ProjectDTO} project - Project data used to populate the DTO.
+   */
   constructor(project: ProjectDTO) {
     this.id = project.id;
     this.name = project.name;
@@ -42,9 +71,9 @@ export class ProjectIdParamDTO {
  */
 export class DevProjectFiltersDTO {
   /** The stages available in the project. */
-  stages: StageExtendedDTO[];
+  stages: StageDTO[];
   /** The priorities available in the project. */
-  priorities: Priority[];
+  priorities: string[];
 
   /**
    * Constructs a new instance of the DevProjectFiltersDTO class.
@@ -71,4 +100,40 @@ export class PMProjectFiltersDTO extends DevProjectFiltersDTO {
     super(filters);
     this.assignees = filters.assignees;
   }
+}
+
+/**
+ * Interface defining the structure of the input data for creating a project.
+ *
+ * @interface ProjectCreationInput
+ */
+export interface ProjectCreationInput {
+  /**
+   * Array of email addresses of authorized users for the project.
+   */
+  authorizedUsers: string[];
+  /**
+   * Array of user objects containing email and role information.
+   */
+  users: UserRole[];
+  /**
+   * Object containing project details like name, providerId, image, stages, and labels.
+   */
+  project: ProjectDataDTO;
+  /**
+   * ID of the organization the project belongs to.
+   */
+  organizationId: string;
+  /**
+   * Email address of the project integrator/pm.
+   */
+  integratorEmail: string;
+}
+
+/**
+ * Enumeration representing the different project roles.
+ */
+export enum ProjectRole {
+  PROJECT_MANAGER = 'Project Manager',
+  DEVELOPER = 'Developer',
 }

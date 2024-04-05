@@ -209,7 +209,7 @@ export class IssueServiceImpl implements IssueService {
 
     const blockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
-      userEmitterId: user.id,
+      userEmitterEmail: user.email,
       reason: input.reason,
       comment: input.comment,
       createdAt: new Date(),
@@ -236,7 +236,7 @@ export class IssueServiceImpl implements IssueService {
     }
     const unblockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
-      userEmitterId: user.id,
+      userEmitterEmail: user.email,
       reason: `Unblocked by user ${user.name}.`,
       comment: `Issue ${issue.name} unblocked.`,
       createdAt: new Date(),
@@ -289,7 +289,7 @@ export class IssueServiceImpl implements IssueService {
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return parsedEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
   /**

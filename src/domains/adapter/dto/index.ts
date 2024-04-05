@@ -1,10 +1,9 @@
 import { type IssueHistory, type IssueLabel, type User, type WorkflowState } from '@linear/sdk';
 
-export interface AdaptProjectDataInputDTO {
+export interface AdaptProjectDataInput {
   providerProjectId: string;
   pmEmail: string;
   token: string;
-  memberMails: string[];
 }
 
 export interface LinearIssueData {

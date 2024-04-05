@@ -437,4 +437,16 @@
  *       responses:
  *         '201':
  *           description: Authorization request created successfully.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: boolean
+ *                 name: pmIsAdmin
+ *                 description: This boolean informs if the Project manager is also an Organization Administrator
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  */

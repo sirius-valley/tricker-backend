@@ -13,6 +13,8 @@ export const mockIssueViewDTO1: IssueViewDTO = {
     id: 'stage456',
     name: 'TODO',
     type: StageType.UNSTARTED,
+    position: 1,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -35,6 +37,8 @@ export const mockIssueViewDTO2: IssueViewDTO = {
     id: 'stage457',
     name: 'In progress',
     type: StageType.STARTED,
+    position: 2,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -57,6 +61,8 @@ export const mockIssueViewDTO3: IssueViewDTO = {
     id: 'stage456',
     name: 'TODO',
     type: StageType.UNSTARTED,
+    position: 3,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -74,14 +80,16 @@ export const mockDevProjectFilterDTO: DevProjectFiltersDTO = {
       id: 'stage456',
       name: 'TODO',
       type: StageType.UNSTARTED,
+      color: '#FF0000',
     },
     {
       id: 'stage457',
       name: 'In progress',
       type: StageType.STARTED,
+      color: '#FF0000',
     },
   ],
-  priorities: ['MEDIUM_PRIORITY'],
+  priorities: ['Medium Priority'],
 };
 
 export const mockPMProjectFilterDTO: PMProjectFiltersDTO = {
@@ -90,22 +98,24 @@ export const mockPMProjectFilterDTO: PMProjectFiltersDTO = {
       id: 'stage456',
       name: 'TODO',
       type: StageType.UNSTARTED,
+      color: '#FF0000',
     },
     {
       id: 'stage457',
       name: 'In progress',
       type: StageType.STARTED,
+      color: '#FF0000',
     },
   ],
-  priorities: ['MEDIUM_PRIORITY', 'LOW_PRIORITY'],
+  priorities: ['Low Priority', 'Medium Priority'],
   assignees: [
-    {
-      id: 'user123',
-      name: 'John Doe',
-    },
     {
       id: 'user124',
       name: 'Bruce Wayne',
+    },
+    {
+      id: 'user123',
+      name: 'John Doe',
     },
   ],
 };

@@ -1,8 +1,9 @@
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
-import { type UserDataDTO } from '@domains/user';
+import { type UserData } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
+import type { ProjectMemberDataDTO } from '@domains/integration/dto';
 
 export const mockedAdminId = 'mockedAdminId';
 export const mockedAdminEmail = 'admin@example.com';
@@ -28,10 +29,12 @@ export const mockPendingProjectAuthorizationDTO: PendingProjectAuthorizationDTO 
   organizationId: mockedOrganizationId,
   providerProjectId: mockedProviderProjectId,
   token: mockedEncryptedToken,
+  isIntegrating: false,
 };
 
-export const mockUserDataDTO: UserDataDTO = {
+export const mockUserDataDTO: UserData = {
   name: mockedMemberName,
+  email: 'mockedEmail@mail.com',
 };
 
 export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
@@ -59,3 +62,23 @@ export const mocksAuthorizationEmailVariables: AuthorizationEmailVariables = {
   denialUrl: mockedUrl,
   acceptanceUrl: mockedUrl,
 };
+
+export const mockProjectMember1: ProjectMemberDataDTO = {
+  email: 'firstEmail@mail.com',
+  name: 'First Person',
+  providerId: 'user111',
+};
+
+export const mockProjectMember2: ProjectMemberDataDTO = {
+  email: 'secondEmail@mail.com',
+  name: 'Second Person',
+  providerId: 'user222',
+};
+
+export const mockProjectMember3: ProjectMemberDataDTO = {
+  email: 'thirdEmail@mail.com',
+  name: 'Third Person',
+  providerId: 'user111',
+};
+
+export const mockProjectMembers: ProjectMemberDataDTO[] = [mockProjectMember3, mockProjectMember1, mockProjectMember2];

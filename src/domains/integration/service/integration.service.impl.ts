@@ -1,47 +1,24 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
-import { type BasicProjectDataDTO, type ProjectDTO } from '@domains/project/dto';
-import { type UserDataDTO, type UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { ConflictException, db, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException, verifyToken } from '@utils';
+import { type BasicProjectDataDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
+import { type UserData, type UserDTO, type UserRepository } from '@domains/user';
+import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
-import type { PrismaClient } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
-import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
-import { RoleRepositoryImpl } from '@domains/role/repository';
-import { type RoleDTO } from '@domains/role/dto';
-import { UserProjectRoleServiceImpl } from '@domains/userProjectRole/service';
-import { UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
-import { ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { ProjectLabelRepositoryImpl } from '@domains/projectLabel/repository';
-import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
+import { type ProjectRepository } from '@domains/project/repository';
 import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import {
-  type AuthorizationRequestDTO,
-  type EventIntegrationInputDTO,
-  type IssueIntegrationInputDTO,
-  type LabelIntegrationInputDTO,
-  type MembersIntegrationInputDTO,
-  type ProjectDataDTO,
-  type ProjectMemberDataDTO,
-  type ProjectPreIntegratedDTO,
-  type ProjectsPreIntegratedInputDTO,
-  type StageIntegrationInput,
-  UserRole,
-} from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import { type AdministratorRepository } from '@domains/administrator/repository';
 import { type IntegrationRepository } from '@domains/integration/repository';
-import { IssueRepositoryImpl } from '@domains/issue/repository';
-import { EventRepositoryImpl } from '@domains/event/repository';
-import { BlockEventInput, ChangeScalarEventInput } from '@domains/event/dto';
 import process from 'process';
-import { type ProjectStageDTO } from '@domains/projectStage/dto';
-import { type IssueDTO } from '@domains/issue';
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+import { retry } from '@utils/retry';
+import { type AdministratorDTO } from '@domains/administrator/dto';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -59,139 +36,72 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Integrate a project into Tricker platform.
    * @param projectId {string} The ID of the project to integrate.
-   * @param mailToken {string} Token provided in mail
    * @returns {ProjectDTO} The integrated project.
    * @throws {ConflictException} If the project has already been integrated or is inactive.
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
-  async integrateProject(projectId: string, mailToken: string): Promise<ProjectDTO> {
+  async integrateProject(projectId: string): Promise<ProjectDTO> {
     Logger.time('Verifications');
+    // verify if project has not been integrated
     await this.verifyProjectDuplication(projectId);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
-    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
-    const pendingMemberMails: string[] = (await this.pendingMemberMailsRepository.getByProjectId(pendingProject.id)).map((memberMail) => memberMail.email);
-    const organization: OrganizationDTO = await this.getOrganization(pendingProject.organizationId);
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: true });
+    const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
+    const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
+    const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
     Logger.timeEnd(`Verifications`);
-    Logger.time('Members, Stages, Labels adaptation');
-    const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({ providerProjectId: projectId, pmEmail: integrator.email, token: pendingProject.token, memberMails: pendingMemberMails });
-    Logger.timeEnd(`Members, Stages, Labels adaptation`);
-    await this.verifyPmExistence(projectData.members, integrator.email);
-    const memberRoles: UserRole[] = await this.assignRoles(projectData.members, integrator.email);
 
-    const project: ProjectDTO = await db.$transaction(
-      async (db: Omit<PrismaClient, ITXClientDenyList>): Promise<ProjectDTO> => {
-        const projRep: ProjectRepositoryImpl = new ProjectRepositoryImpl(db);
-        const newProject: ProjectDTO = await projRep.create(projectData.projectName, projectId, organization.id, projectData.image ?? null);
-        Logger.time('Members integration');
-        await this.integrateMembers({
-          memberRoles,
-          projectId: newProject.id,
-          emitterId: integrator.id,
-          acceptedUsers: pendingMemberMails,
-          db,
-        });
-        Logger.timeEnd(`Members integration`);
-        Logger.time('Stages Integration');
-        await this.integrateStages({ projectId: newProject.id, stages: projectData.stages, db });
-        Logger.timeEnd(`Stages Integration`);
-        Logger.time('Labels integration');
-        await this.integrateLabels({ projectId: newProject.id, labels: projectData.labels, db });
-        Logger.timeEnd(`Labels integration`);
-        Logger.time('Issues integration');
-        await this.integrateIssues({ projectId: newProject.id, issues: projectData.issues, db });
-        Logger.timeEnd(`Issues integration`);
-
-        return newProject;
-      },
-      {
-        maxWait: 1000, // default: 2000
-        timeout: 20000, // default: 5000
-      }
-    );
-
-    await this.pendingAuthProjectRepository.delete(pendingProject.id);
-    Logger.complete(`Integration finished`);
-    await this.emailService.sendConfirmationMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.FRONTEND_URL! });
-
-    return project;
-  }
-
-  /**
-   * Integrates issues using the provided input data.
-   * @param input The input data for integrating issues.
-   * @returns A Promise that resolves once the integration process is complete.
-   */
-  async integrateIssues(input: IssueIntegrationInputDTO): Promise<void> {
-    const issueRepository = new IssueRepositoryImpl(input.db);
-    const userRepository = new UserRepositoryImpl(input.db);
-    const labelRepository = new ProjectLabelRepositoryImpl(input.db);
-    const eventRepository = new EventRepositoryImpl(input.db);
-    // const issueLabelRepository = new IssueLabelRepositoryImpl(input.db);
-    const projectStageRepository = new ProjectStageRepositoryImpl(input.db);
-    for (const issueData of input.issues) {
-      const author = issueData.authorEmail !== null ? await userRepository.getByEmail(issueData.authorEmail) : null;
-      const assignee = issueData.assigneeEmail !== null ? await userRepository.getByEmail(issueData.assigneeEmail) : null;
-      let projectStage: ProjectStageDTO | null = null;
-      if (issueData.stage !== null) {
-        projectStage = await projectStageRepository.getByProjectIdAndName({ name: issueData.stage, projectId: input.projectId });
-      }
-      const labelIds: string[] = [];
-      for (const labelName of issueData.labels) {
-        const dto: ProjectLabelDTO | null = await labelRepository.getByNameAndProjectId({ name: labelName, projectId: input.projectId });
-        if (dto != null) labelIds.push(dto.id);
-      }
-      const newIssue = await issueRepository.create({
-        providerIssueId: issueData.providerIssueId,
-        authorId: author != null ? author.id : null,
-        assigneeId: assignee != null ? assignee.id : null,
-        projectId: input.projectId,
-        projectStageId: projectStage !== null ? projectStage.id : null,
-        name: issueData.name,
-        title: issueData.title,
-        description: issueData.description,
-        priority: issueData.priority,
-        storyPoints: issueData.storyPoints,
-        labelIds,
+    try {
+      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
+        ConflictException,
+        PrismaClientKnownRequestError,
+        PrismaClientUnknownRequestError,
+      ]);
+      await this.pendingAuthProjectRepository.delete(pendingProject.id);
+      await this.emailService.sendConfirmationMail(integratorEmail, {
+        projectName: newProject.name,
+        projectId: newProject.id,
+        url: process.env.FRONTEND_URL!,
       });
-
-      await this.integrateEvents({ issueId: newIssue.id, events: issueData.events, db: input.db });
-      Logger.complete(`Issue ${newIssue.id} integrated -- ${new Date().toString()}`);
-    }
-
-    for (const issueData of input.issues) {
-      const events = issueData.events.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-      for (const eventData of events) {
-        if (eventData instanceof BlockEventInput) {
-          const relatedIssue: IssueDTO | null = await issueRepository.getByProjectIdAndName({ projectId: input.projectId, name: eventData.relatedIssueName });
-          let relatedIssueId: string | undefined;
-          if (relatedIssue !== null) {
-            relatedIssueId = relatedIssue.id;
-          }
-
-          await eventRepository.createIssueBlockEvent({ ...eventData, relatedIssueId });
-        }
-      }
+      return newProject;
+    } catch (e: any) {
+      Logger.error(e.message);
+      Logger.error(e.cause);
+      Logger.error(e.stack);
+      await this.emailService.sendIntegrationErrorEmail(integratorEmail);
+      await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
+      throw e;
     }
   }
 
-  /**
-   * Integrates events into the system.
-   * This function processes a list of events and integrates them into the system, creating appropriate logs and entries
-   * in the database for each event type.
-   * @param {EventIntegrationInputDTO} input - The input data containing the events to integrate and the database connection.
-   * @returns {Promise<void>} A promise that resolves once all events have been integrated successfully.
-   */
-  async integrateEvents(input: EventIntegrationInputDTO): Promise<void> {
-    const eventRepository = new EventRepositoryImpl(input.db);
-    const userRepository = new UserRepositoryImpl(input.db);
-    for (const eventData of input.events) {
-      eventData.issueId = input.issueId;
-      const userEmitter = eventData.userEmitterEmail !== undefined ? await userRepository.getByEmail(eventData.userEmitterEmail) : null;
-      eventData.userEmitterId = userEmitter != null ? userEmitter.id : null;
-      if (eventData instanceof ChangeScalarEventInput) {
-        await eventRepository.createIssueChangeLog(eventData);
-      }
-    }
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail }: IntegrationParams): Promise<ProjectDTO> {
+    Logger.time('Provider project data adaptation');
+    const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({
+      providerProjectId: projectId,
+      pmEmail: integratorEmail,
+      token: pendingProject.token,
+    });
+    Logger.timeEnd(`Provider project data adaptation`);
+
+    await this.verifyPmExistence(projectData.members, integratorEmail);
+    const users: UserRole[] = await this.assignRoles(projectData.members, integratorEmail);
+
+    const newProject: ProjectDTO = await this.integrationRepository.createIntegratedProject({
+      authorizedUsers: authorizedMemberMails,
+      users,
+      project: projectData,
+      organizationId,
+      integratorEmail,
+    });
+
+    Logger.complete(`Integration finished`);
+
+    return newProject;
+  }
+
+  private async getAuthorizedMemberMails(pendingProjectId: string): Promise<string[]> {
+    const memberEmails = await this.pendingMemberMailsRepository.getByProjectId(pendingProjectId);
+    return memberEmails.map((memberMail) => memberMail.email);
   }
 
   /**
@@ -205,89 +115,21 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
-    // retrieve only not integrated projects
+    // retrieve only not integrated and not pending authorization projects
     for (const project of unfilteredProjects) {
       const integratedProject: ProjectDTO | null = await this.projectRepository.getByProviderId(project.providerProjectId);
-      if (integratedProject === null) {
+      const pendingAuthorizationProject: PendingProjectAuthorizationDTO | null = await this.pendingAuthProjectRepository.getByProjectId(project.providerProjectId);
+      if (integratedProject === null && pendingAuthorizationProject === null) {
         filteredProjects.push(project);
       }
     }
     return filteredProjects;
   }
 
-  /**
-   * Integrates project members using the provided input data,
-   * creates or retrieves users and roles, assigns roles to users,
-   * and establishes user-project associations.
-   * @param {MembersIntegrationInputDTO} input - Input data including acceptedUsers, memberRoles, project ID, and emitter ID.
-   * @returns {Promise<void>} A promise that resolves once the integration is complete.
-   * @throws {NotFoundException} If a user or role cannot be found.
-   */
-  async integrateMembers(input: MembersIntegrationInputDTO): Promise<void> {
-    const userRepository: UserRepositoryImpl = new UserRepositoryImpl(input.db);
-    const roleRepository: RoleRepositoryImpl = new RoleRepositoryImpl(input.db);
-    const integratedUsers = [];
-    for (const member of input.memberRoles) {
-      let user: UserDTO | null = await userRepository.getByEmail(member.email);
-      let role: RoleDTO | null = await roleRepository.getByName(member.role);
-      if (role === null) {
-        role = await roleRepository.create(member.role);
-      }
-      if (user === null) {
-        user = await userRepository.createWithoutCognitoId(member.email, member.name);
-      }
-      integratedUsers.push({ ...user, role: role.id });
-    }
-    const userProjectRoleService: UserProjectRoleServiceImpl = new UserProjectRoleServiceImpl(new UserProjectRoleRepositoryImpl(input.db), userRepository, new ProjectRepositoryImpl(input.db), roleRepository);
-    for (const user of integratedUsers) {
-      const isAccepted: boolean = input.acceptedUsers.some((email) => email === user.email);
-      await userProjectRoleService.create({
-        userId: user.id,
-        projectId: input.projectId,
-        roleId: user.role,
-        userEmitterId: input.emitterId,
-        isAccepted,
-      });
-    }
-  }
-
-  /**
-   * Integrates project stages using the provided input data,
-   * creates or retrieves stages, and associates them with the project.
-   * @param {StageIntegrationInput} input - Input data including project stages and project ID.
-   * @returns {Promise<void>} A promise that resolves once the integration is complete.
-   */
-  async integrateStages(input: StageIntegrationInput): Promise<void> {
-    const projectStageRepository: ProjectStageRepositoryImpl = new ProjectStageRepositoryImpl(input.db);
-    for (const stageData of input.stages) {
-      const projectStage: ProjectStageDTO | null = await projectStageRepository.getByProjectIdAndName({ name: stageData.name, projectId: input.projectId });
-      if (projectStage === null) {
-        await projectStageRepository.create({ name: stageData.name, type: stageData.type, projectId: input.projectId });
-      }
-    }
-  }
-
-  /**
-   * Integrates project labels using the provided input data,
-   * creates or retrieves labels, and associates them with the project.
-   * @param {LabelIntegrationInputDTO} input - Input data including project labels and project ID.
-   * @returns {Promise<void>} A promise that resolves once the integration is complete.
-   * @throws {NotFoundException} If a label cannot be found.
-   */
-  async integrateLabels(input: LabelIntegrationInputDTO): Promise<void> {
-    const projectLabelRepository: ProjectLabelRepositoryImpl = new ProjectLabelRepositoryImpl(input.db);
-    for (const name of input.labels) {
-      const label: ProjectLabelDTO | null = await projectLabelRepository.getByNameAndProjectId({ name, projectId: input.projectId });
-      if (label === null) {
-        await projectLabelRepository.create({ name, projectId: input.projectId });
-      }
-    }
-  }
-
   private async assignRoles(members: ProjectMemberDataDTO[], pmEmail: string): Promise<UserRole[]> {
     return members.map((member: ProjectMemberDataDTO) => {
-      const role: string = member.email === pmEmail ? 'Project Manager' : 'Developer';
-      return new UserRole({ email: member.email, name: member.name, role });
+      const role: string = member.email === pmEmail ? ProjectRole.PROJECT_MANAGER : ProjectRole.DEVELOPER;
+      return new UserRole({ email: member.email, name: member.name, roleName: role });
     });
   }
 
@@ -317,14 +159,19 @@ export class IntegrationServiceImpl implements IntegrationService {
    * Gets basic members info that belong to a specific project
    * @param {string} projectId - The Project ID to which members belong
    * @param {string} apiKey - The API key for authentication.
-   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrival is done and contains an array of basic data about project users
+   * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrieval is done and contains an array of basic data about project users
    */
   async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
-    return await this.adapter.getMembersByProjectId(projectId, apiKey);
+    return (await this.adapter.getMembersByProjectId(projectId, apiKey)).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async declineProject(providerProjectId: string, mailToken: string): Promise<void> {
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(providerProjectId, mailToken);
+  /**
+   * Declines a project integration request.
+   * @param providerProjectId - The ID of the project in the provider.
+   * @returns A Promise that resolves once the project integration request is declined.
+   */
+  async declineProject(providerProjectId: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
@@ -332,27 +179,28 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
   }
 
-  async verifyAdminIdentity(providerProjectId: string, mailToken: string): Promise<PendingProjectAuthorizationDTO> {
-    const adminId: string = verifyToken(mailToken);
-    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    const admins = await this.administratorRepository.getByOrganizationId(pendingProject.organizationId);
-    if (admins.find((admin) => admin.id === adminId) === null) {
-      throw new NotFoundException('Administrator');
-    }
-
-    return pendingProject;
-  }
-
+  /**
+   * Verifies if there is any duplication of the project based on its provider ID.
+   * @param projectProviderId The ID of the project in the provider.
+   * @returns A Promise that resolves if there is no duplication of the project.
+   * @throws {ConflictException} If a project with the same provider ID is found and is either active or inactive.
+   */
   private async verifyProjectDuplication(projectProviderId: string): Promise<void> {
     const previousProject: ProjectDTO | null = await this.projectRepository.getByProviderId(projectProviderId);
     if (previousProject != null) {
       if (previousProject.deletedAt === null) {
         throw new ConflictException('Project has been already integrated');
       }
-      throw new ConflictException('Project is currently inactive. Please, re-active it if you need');
+      throw new ConflictException('Project is currently inactive. Please, re-active it if you need it');
     }
   }
 
+  /**
+   * Retrieves a pending project for authorization based on its provider ID.
+   * @param projectProviderId The ID of the project provider.
+   * @returns A promise that resolves with the found pending project.
+   * @throws {NotFoundException} If no pending project is found with the provided ID.
+   */
   private async getPendingProject(projectProviderId: string): Promise<PendingProjectAuthorizationDTO> {
     const pendingProject = await this.pendingAuthProjectRepository.getByProjectId(projectProviderId);
     if (pendingProject === null) {
@@ -361,6 +209,12 @@ export class IntegrationServiceImpl implements IntegrationService {
     return pendingProject;
   }
 
+  /**
+   * Retrieves the integrator of the project using the provided API key.
+   * @param apikey The API key used for authentication.
+   * @returns A promise that resolves with the user who is the integrator of the project.
+   * @throws {NotFoundException} If the user is not found.
+   */
   private async getProjectIntegrator(apikey: string): Promise<UserDTO> {
     const userEmail: string = await this.adapter.getMyEmail(decryptData(apikey));
     const user: UserDTO | null = await this.userRepository.getByEmail(userEmail);
@@ -389,31 +243,38 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Creates a pending project authorization for later admin approval
    * @param {AuthorizationRequestDTO} authReq - Already validated input data to create the pending authorization
-   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization waas created, containg info about the latter
+   * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization was created, containing info about the latter
    */
-  async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
+  async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }> {
     const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
     if (existingPendingAuth != null) {
       throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
     }
+    await this.verifyProjectDuplication(authReq.projectId);
 
     const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
-    for (const admin of admins) {
-      const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
-      const variables = this.createEmailVariables(token, project, integrator);
-      await this.emailService.sendAuthorizationMail(admin.email, variables);
+    if (admins.length === 0) {
+      throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
+    }
+    const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
+    if (adminIntegrator === undefined) {
+      for (const admin of admins) {
+        const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
+        const variables = this.createEmailVariables(token, project, integrator);
+        await this.emailService.sendAuthorizationMail(admin.email, variables);
+      }
     }
 
-    return pendingAuth;
+    return { pendingProject: pendingAuth, pmIsAdmin: adminIntegrator !== undefined };
   }
 
   /**
    * Method that encapsulates logic for creating the email variables that will be used to send the email
    * */
-  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserDataDTO): AuthorizationEmailVariables {
+  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserData): AuthorizationEmailVariables {
     return {
       acceptanceToken: token,
       denialToken: token,
@@ -426,8 +287,17 @@ export class IntegrationServiceImpl implements IntegrationService {
     };
   }
 
-  async acceptProject(projectId: string, mailToken: string): Promise<void> {
-    const pendingProject: PendingProjectAuthorizationDTO = await this.verifyAdminIdentity(projectId, mailToken);
+  /**
+   * Accepts a project.
+   * @param projectId The unique identifier of the project.
+   * @returns A Promise that resolves when the project is accepted.
+   * @throws {ConflictException} If the project integration flow is currently in progress.
+   */
+  async acceptProject(projectId: string): Promise<void> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    if (pendingProject.isIntegrating) {
+      throw new ConflictException('Project already being integrated');
+    }
     const apiKey: string = decryptData(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
     const email: string = await this.adapter.getMyEmail(apiKey);
