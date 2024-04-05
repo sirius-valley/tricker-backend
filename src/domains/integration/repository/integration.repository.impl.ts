@@ -36,10 +36,10 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
           // same as above but with issue provider (linear, jira, etc.)
           connectOrCreate: {
             where: {
-              name: input.issueProviderName,
+              name: input.issueProviderName.trim().toUpperCase(),
             },
             create: {
-              name: input.issueProviderName,
+              name: input.issueProviderName.trim().toUpperCase(),
             },
           },
         },

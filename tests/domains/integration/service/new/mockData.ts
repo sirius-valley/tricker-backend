@@ -29,6 +29,7 @@ export const mockPendingProjectAuthorizationDTO: PendingProjectAuthorizationDTO 
   organizationId: mockedOrganizationId,
   providerProjectId: mockedProviderProjectId,
   token: mockedEncryptedToken,
+  isIntegrating: false,
 };
 
 export const mockUserDataDTO: UserData = {

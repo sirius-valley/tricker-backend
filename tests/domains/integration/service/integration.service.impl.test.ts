@@ -21,6 +21,8 @@ import type { AdministratorRepository } from '@domains/administrator/repository/
 import { type IntegrationRepository } from '@domains/integration/repository/integration.repository';
 import { IntegrationRepositoryImpl } from '@domains/integration/repository/integration.repository.impl';
 import * as utils from '@utils/auth';
+import { mockPendingProjectAuthorizationDTO } from './new/mockData';
+import { mockProjectDTO } from '../../issue/mockData';
 
 let userMockRepository: UserRepository;
 let projectMockRepository: ProjectRepository;
@@ -89,6 +91,7 @@ beforeEach(() => {
     issueProviderId: 'ipId',
     integratorId: 'iId',
     organizationId: 'oId',
+    isIntegrating: false,
   });
   pendingMemberMail = new PendingMemberMailDTO({
     id: 'pmmId',
@@ -113,6 +116,7 @@ describe('Integration service', () => {
       const expectedProject: ProjectDTO = { ...project };
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingAuthProjectMockRepository, 'update').mockResolvedValue({ ...pendingProject, isIntegrating: true });
       jest.spyOn(utils, 'decryptData').mockImplementation(() => 'token');
       jest.spyOn(mockAdapterTool, 'getMyEmail').mockResolvedValue('mail@mail.com');
       jest.spyOn(userMockRepository, 'getByEmail').mockResolvedValue(user);
@@ -133,6 +137,7 @@ describe('Integration service', () => {
     it('Should throw exception when user is null', async () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingAuthProjectMockRepository, 'update').mockResolvedValue({ ...pendingProject, isIntegrating: true });
       jest.spyOn(utils, 'decryptData').mockImplementation(() => 'token');
       jest.spyOn(mockAdapterTool, 'getMyEmail').mockResolvedValue('mail@mail.com');
       jest.spyOn(userMockRepository, 'getByEmail').mockResolvedValue(null);
@@ -161,6 +166,7 @@ describe('Integration service', () => {
     it('Should throw an exception if there is not an organization with the provided name', async () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingAuthProjectMockRepository, 'update').mockResolvedValue({ ...pendingProject, isIntegrating: true });
       jest.spyOn(utils, 'decryptData').mockImplementation(() => 'token');
       jest.spyOn(mockAdapterTool, 'getMyEmail').mockResolvedValue('mail@mail.com');
       jest.spyOn(userMockRepository, 'getByEmail').mockResolvedValue(user);
@@ -175,6 +181,7 @@ describe('Integration service', () => {
     it('Should throw an exception if project manager is not included in accepted users', async () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(pendingProject);
+      jest.spyOn(pendingAuthProjectMockRepository, 'update').mockResolvedValue({ ...pendingProject, isIntegrating: true });
       jest.spyOn(utils, 'decryptData').mockImplementation(() => 'token');
       jest.spyOn(mockAdapterTool, 'getMyEmail').mockResolvedValue('mail@mail.com');
       jest.spyOn(userMockRepository, 'getByEmail').mockResolvedValue(user);
@@ -200,6 +207,7 @@ describe('Integration service', () => {
       jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
       jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
 
       const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker' }];
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
@@ -207,6 +215,32 @@ describe('Integration service', () => {
       expect.assertions(2);
       expect(received[0].providerProjectId).toEqual(expected[0].providerProjectId);
       expect(received).toHaveLength(1);
+    });
+
+    it('should retrieve a an empty projects list if pendingAuthorizationProject has been already created', async () => {
+      jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
+      jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(mockPendingProjectAuthorizationDTO);
+
+      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
+
+      expect.assertions(1);
+      expect(received.length).toEqual(0);
+    });
+
+    it('should retrieve a an empty projects list if the project has been already created', async () => {
+      jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
+      jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(mockProjectDTO);
+      jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
+
+      const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
+
+      expect.assertions(1);
+      expect(received.length).toEqual(0);
     });
   });
 

@@ -44,8 +44,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     Logger.time('Verifications');
     // verify if project has not been integrated
     await this.verifyProjectDuplication(projectId);
-
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: true });
     const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
     const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
@@ -69,6 +69,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       Logger.error(e.cause);
       Logger.error(e.stack);
       await this.emailService.sendIntegrationErrorEmail(integratorEmail);
+      await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
       throw e;
     }
   }
@@ -114,10 +115,11 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.validateIntegratorIdentity(input.apyKey, pm?.email);
     const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
-    // retrieve only not integrated projects
+    // retrieve only not integrated and not pending authorization projects
     for (const project of unfilteredProjects) {
       const integratedProject: ProjectDTO | null = await this.projectRepository.getByProviderId(project.providerProjectId);
-      if (integratedProject === null) {
+      const pendingAuthorizationProject: PendingProjectAuthorizationDTO | null = await this.pendingAuthProjectRepository.getByProjectId(project.providerProjectId);
+      if (integratedProject === null && pendingAuthorizationProject === null) {
         filteredProjects.push(project);
       }
     }
@@ -254,6 +256,9 @@ export class IntegrationServiceImpl implements IntegrationService {
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
+    if (admins.length === 0) {
+      throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
+    }
     const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
     if (adminIntegrator === undefined) {
       for (const admin of admins) {
@@ -282,8 +287,17 @@ export class IntegrationServiceImpl implements IntegrationService {
     };
   }
 
+  /**
+   * Accepts a project.
+   * @param projectId The unique identifier of the project.
+   * @returns A Promise that resolves when the project is accepted.
+   * @throws {ConflictException} If the project integration flow is currently in progress.
+   */
   async acceptProject(projectId: string): Promise<void> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    if (pendingProject.isIntegrating) {
+      throw new ConflictException('Project already being integrated');
+    }
     const apiKey: string = decryptData(pendingProject.token);
     const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
     const email: string = await this.adapter.getMyEmail(apiKey);
