@@ -4,7 +4,7 @@ import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, 
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { NotFoundException } from '@utils';
-import { type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
+import { StageDTO, type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
@@ -87,12 +87,14 @@ export class ProjectServiceImpl implements ProjectService {
     }, filteredAssignees);
 
     return {
-      stages: filteredStages.sort((a, b) => {
-        if (a.type !== b.type) {
-          return StageTypeOrder[a.type] - StageTypeOrder[b.type];
-        }
-        return a.position - b.position;
-      }),
+      stages: filteredStages
+        .sort((a, b) => {
+          if (a.type !== b.type) {
+            return StageTypeOrder[a.type] - StageTypeOrder[b.type];
+          }
+          return a.position - b.position;
+        })
+        .map((stage) => new StageDTO(stage)),
       assignees: filteredAssignees.sort((a, b) => a.name.localeCompare(b.name)),
       priorities: filteredPriorities
         .sort((a, b) => priorityOrder[a] - priorityOrder[b])

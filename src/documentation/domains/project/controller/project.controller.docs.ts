@@ -29,12 +29,10 @@
  *                   name: "Backlog"
  *                   type: "BACKLOG"
  *                   color: "#bec2c8"
- *                   position: 0
  *                 - id: "2"
  *                   name: "In Progress"
  *                   type: "STARTED"
  *                   color: "#0f783c"
- *                   position: -6.3
  *               priorities:
  *                 - "Medium Priority"
  *                 - "High Priority"
@@ -78,12 +76,10 @@
  *                   name: "Backlog"
  *                   type: "BACKLOG"
  *                   color: "#bec2c8"
- *                   position: 0
  *                 - id: "2"
  *                   name: "In Progress"
  *                   type: "STARTED"
  *                   color: "#0f783c"
- *                   position: -6.3
  *               priorities:
  *                 - "Medium Priority"
  *                 - "High Priority"
