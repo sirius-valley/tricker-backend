@@ -8,7 +8,7 @@
  *         stages:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/StageExtendedDTO'
+ *             $ref: '#/components/schemas/StageDTO'
  *         priorities:
  *           type: array
  *           items:
@@ -69,4 +69,23 @@
  *       example:
  *         id: "123e4567-e89b-12d3-a456-426614174000"
  *         name: "John Doe"
+ *
+ *     StageDTO:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         name:
+ *           type: string
+ *         type:
+ *           $ref: '#/components/schemas/StageType'
+ *         color:
+ *           type: string
+ *           nullable: true
+ *       example:
+ *         id: "123e4567-e89b-12d3-a456-426614174000"
+ *         name: "Backlog"
+ *         type: "BACKLOG"
+ *         color: "#bec2c8"
  */

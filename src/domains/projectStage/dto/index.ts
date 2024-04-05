@@ -1,10 +1,36 @@
+/**
+ * Represents a stage within a project.
+ */
 export class StageDTO {
+  /**
+   * The unique identifier for the stage.
+   */
   id: string;
+
+  /**
+   * The name of the stage.
+   */
   name: string;
 
+  /**
+   * The type of the stage.
+   */
+  type: StageType;
+
+  /**
+   * The color associated with the stage.
+   */
+  color: string | null;
+
+  /**
+   * Constructs a new StageDTO object.
+   * @param stage - An object containing stage data.
+   */
   constructor(stage: StageDTO) {
     this.id = stage.id;
     this.name = stage.name;
+    this.color = stage.color;
+    this.type = stage.type;
   }
 }
 
@@ -24,18 +50,11 @@ export const StageTypeOrder = {
  * This DTO contains information about a stage, including its ID, name, and type. It adds StageType to StageDTO
  */
 export class StageExtendedDTO extends StageDTO {
-  /**
-   * The type of the stage.
-   */
-  type: StageType;
   position: number;
-  color: string | null;
 
   constructor(stage: StageExtendedDTO) {
     super(stage);
-    this.type = stage.type;
     this.position = stage.position;
-    this.color = stage.color;
   }
 }
 
