@@ -61,12 +61,12 @@ export class ChangeScalarEventData extends EventData {
   /**
    * Optional. Previous value of the field.
    */
-  from?: number | string;
+  from?: string;
 
   /**
    * Optional. New value of the field.
    */
-  to?: number | string;
+  to?: string;
 
   /**
    * Constructor to initialize properties from the input object.
@@ -149,6 +149,24 @@ export class ChangeScalarEventInput extends ChangeScalarEventData {
   constructor(input: ChangeScalarEventInput) {
     super(input);
     this.issueId = input.issueId;
+  }
+}
+
+/**
+ * Used for representing input data for change scalar events, when persisting event in database.
+ * Extends the ChangeScalarEventInput class.
+ */
+export class ChangeScalarEventInputExtended extends ChangeScalarEventInput {
+  /** Project ID */
+  projectId: string;
+
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {ChangeScalarEventInputExtended} input - Object containing change scalar event input data.
+   */
+  constructor(input: ChangeScalarEventInputExtended) {
+    super(input);
+    this.projectId = input.projectId;
   }
 }
 

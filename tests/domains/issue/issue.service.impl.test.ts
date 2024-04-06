@@ -29,9 +29,11 @@ import {
   mockIssueInput,
   mockUpdatedIssueViewDTO,
   mockIssueUpdateInput,
+  mockStageEventInputExtended,
+  mockAssigneeEventInputExtended,
 } from './mockData';
 import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
-import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type IssueChangeLogDTO, type TimeTrackingDTO } from '@domains/event/dto';
 
 describe('issue service tests', () => {
   let issueService: IssueService;
@@ -481,6 +483,7 @@ describe('issue service tests', () => {
       issueRepositoryMock.getIssueDetailsById.mockResolvedValue(mockIssueDetailsDTO);
       eventRepositoryMock.getIssueBlockEvents.mockResolvedValue([mockTrickerBlockEventDTO]);
       eventRepositoryMock.getIssueChangeLogs.mockResolvedValue([mockIssueChangeLogDTO, mockAssigneeIssueChangeLogDTO]);
+      userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
       eventRepositoryMock.getIssueManualTimeModification.mockResolvedValue([{ ...validMockManualTimeModification, modificationDate: new Date('2024-03-13T09:00:00Z') }]);
       eventRepositoryMock.getIssueTimeTrackingEvents.mockResolvedValue([stoppedMockTimeTrackingDTO]);
       const expected: IssueExtendedDTO = mockIssueExtendedDTO;
@@ -584,6 +587,64 @@ describe('issue service tests', () => {
       issueRepositoryMock.getByProviderId.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
       // then
       await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('createIssueChangeLog method', () => {
+    it('should successfully create an IssueChangeLog event of a assignee change', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      const expected: IssueChangeLogDTO = mockAssigneeIssueChangeLogDTO;
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog(mockAssigneeEventInputExtended);
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should throw ConflictException if "to" and "from" are undefined', async () => {
+      // given - when
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      // then
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, to: undefined })).rejects.toThrow(ConflictException);
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, to: undefined })).rejects.toThrow('Either "from" state or "to" state must be present.');
+    });
+
+    it('should successfully create an IssueChangeLog event of an assignee change to unassigned', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue({ ...mockAssigneeIssueChangeLogDTO, to: undefined, from: 'johnDoe@mail.com' });
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      const expected: IssueChangeLogDTO = { ...mockAssigneeIssueChangeLogDTO, to: undefined, from: 'johnDoe@mail.com' };
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, from: 'johnDoe@mail.com', to: undefined });
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should successfully create an IssueChangeLog event of a stage change', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockIssueChangeLogDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      const expected: IssueChangeLogDTO = mockIssueChangeLogDTO;
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog(mockStageEventInputExtended);
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
     });
   });
 });

@@ -37,8 +37,8 @@ export const processIssueEvents = async (input: processIssueEventsInput): Promis
       const changeEvent = new ChangeScalarEventData({
         createdAt: event.createdAt,
         field: 'assignee',
-        from: input.members.find((member) => event.fromAssigneeId === member.id)?.name,
-        to: input.members.find((member) => event.toAssigneeId === member.id)?.name,
+        from: input.members.find((member) => event.fromAssigneeId === member.id)?.email,
+        to: input.members.find((member) => event.toAssigneeId === member.id)?.email,
         providerEventId: event.id,
         userEmitterEmail: actor !== undefined ? actor.email : null,
       });
@@ -67,7 +67,7 @@ export const createBlockEvent = async (change: IssueRelationHistoryPayload, even
   const { type, identifier } = change;
   const [action, blockType] = type.startsWith(LinearBlockTypeConvention.BLOCKING_TO) || type.startsWith(LinearBlockTypeConvention.BLOCKED_BY) ? type.split('').reduce((reversed, char) => char + reversed, '') : type;
 
-  const reason = action === LinearActionTypeConvention.ADD_EXPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by other ticket` : 'Blocking other ticket') : `-`;
+  const reason = action === LinearActionTypeConvention.ADD_EXPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by other ticket` : 'Blocking other ticket') : `Blocking issue completed`;
 
   const dbType = action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_EXPLICIT ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
 

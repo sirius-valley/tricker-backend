@@ -1,7 +1,7 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
-import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type ChangeScalarEventInputExtended, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import {
   type DevIssueFilterParameters,
@@ -271,7 +271,6 @@ export class IssueServiceImpl implements IssueService {
 
   /**
    * Retrieves the chronology of events for a specific issue.
-   *
    * @param issueId The ID of the issue to retrieve the chronology for.
    * @returns A Promise that resolves to an array of EventHistoryLogDTO objects representing the chronology of events.
    * @throws NotFoundException if the issue with the given ID is not found.
@@ -289,7 +288,7 @@ export class IssueServiceImpl implements IssueService {
     const parsedEvents: EventHistoryLogDTO[] = [];
 
     this.parseBlockEvents(blockEvents, parsedEvents);
-    this.parseChangeLogEvents(changeLogEvents, parsedEvents);
+    await this.parseChangeLogEvents(changeLogEvents, parsedEvents);
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
@@ -297,7 +296,6 @@ export class IssueServiceImpl implements IssueService {
       if (b.date.getTime() !== a.date.getTime()) {
         return b.date.getTime() - a.date.getTime();
       }
-
       return (b.isBlocker ? 1 : 0) - (a.isBlocker ? 1 : 0);
     });
   }
@@ -332,6 +330,22 @@ export class IssueServiceImpl implements IssueService {
     data.projectId = issue.projectId;
 
     return await this.issueRepository.updateById({ ...data, issueId: issue.id });
+  }
+
+  /**
+   * Creates a change log entry for an issue based on the provided input.
+   * @param input An object containing the details of the change event, including the previous state ('from') and the new state ('to').
+   * @returns A DTO representing the created issue change log entry.
+   * @throws ConflictException if both 'from' and 'to' states are undefined.
+   */
+  async createIssueChangeLog(input: ChangeScalarEventInputExtended): Promise<IssueChangeLogDTO> {
+    if (input.from === undefined && input.to === undefined) {
+      throw new ConflictException('Either "from" state or "to" state must be present.');
+    }
+    const issueChangeLog: IssueChangeLogDTO = await this.eventRepository.createIssueChangeLog(input);
+    await this.handleIssueChangeLogByField(input);
+
+    return issueChangeLog;
   }
 
   /**
@@ -436,13 +450,18 @@ export class IssueServiceImpl implements IssueService {
    * @param changeLogEvents The list of change log events to parse.
    * @param parsedEvents The list of parsed events to update.
    */
-  private parseChangeLogEvents(changeLogEvents: IssueChangeLogDTO[], parsedEvents: EventHistoryLogDTO[]): void {
-    changeLogEvents.forEach((event) => {
+  private async parseChangeLogEvents(changeLogEvents: IssueChangeLogDTO[], parsedEvents: EventHistoryLogDTO[]): Promise<void> {
+    for (const event of changeLogEvents) {
       let message: string;
+      let newAssignee: UserDTO | null = null;
+      if (event.to !== undefined) {
+        newAssignee = await this.userRepository.getByEmail(event.to);
+      }
+
       if (event.field !== 'state') {
-        message = event.to === undefined ? 'Issue has been unassigned' : `Issue has been assigned to ${event.to}`;
+        message = newAssignee === null ? 'Issue has been unassigned' : `Issue has been assigned to ${newAssignee.name}`;
       } else {
-        message = event.to === undefined ? 'Issue has not any stage assigned' : `Issue stage has changed to ${event.to}`;
+        message = event.to === null ? 'Issue has not any stage assigned' : `Issue stage has changed to ${event.to}`;
       }
 
       parsedEvents.push(
@@ -454,7 +473,7 @@ export class IssueServiceImpl implements IssueService {
           comment: undefined,
         })
       );
-    });
+    }
   }
 
   /**
@@ -505,5 +524,29 @@ export class IssueServiceImpl implements IssueService {
         );
       }
     });
+  }
+
+  /**
+   * Handles the change log entry for an issue based on the provided input.
+   * If the 'to' state is defined, it updates the corresponding field of the issue.
+   * @param input An object containing the details of the change event, including the field to update, the issue ID, the project ID, and the new value (to).
+   * @returns A promise that resolves once the issue has been updated.
+   */
+  private async handleIssueChangeLogByField(input: ChangeScalarEventInputExtended): Promise<void> {
+    const toIsDefined: boolean = input.to !== null && input.to !== undefined;
+    if (input.field === 'assignee') {
+      let assigneeId: string | null = null;
+      if (toIsDefined) {
+        assigneeId = (await this.userRepository.getByEmail(input.to!))?.id ?? null;
+      }
+      await this.issueRepository.updateById({ issueId: input.issueId, assigneeId });
+    } else {
+      const project: ProjectDTO = await this.validateProjectExistence(input.projectId);
+      let projectStageId: string | null = null;
+      if (toIsDefined) {
+        projectStageId = (await this.projectStageRepository.getByProjectIdAndName({ projectId: project.id, name: input.to! }))?.id ?? null;
+      }
+      await this.issueRepository.updateById({ issueId: input.issueId, projectStageId });
+    }
   }
 }
