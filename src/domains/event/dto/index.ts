@@ -339,6 +339,10 @@ export class ManualTimeModificationDTO {
    * The reason provided for the manual time modification.
    */
   reason: string;
+  /**
+   * The creation date of the time modification register.
+   */
+  createdAt: Date;
 
   /**
    * Constructs a new instance of ManualTimeModificationDTO.
@@ -350,6 +354,7 @@ export class ManualTimeModificationDTO {
     this.timeAmount = timeModification.timeAmount;
     this.modificationDate = timeModification.modificationDate;
     this.reason = timeModification.reason;
+    this.createdAt = timeModification.createdAt;
   }
 }
 
@@ -434,7 +439,7 @@ export class EventHistoryLogDTO {
   /**
    * Additional comments about the event.
    */
-  comment: string | undefined;
+  comment?: string;
 
   /**
    * Indicates whether the event is a blocker.
@@ -447,6 +452,21 @@ export class EventHistoryLogDTO {
   date: Date;
 
   /**
+   * The date of the event.
+   */
+  modificationTimeAmount?: number;
+
+  /**
+   * The date of the event.
+   */
+  modificationDate?: Date;
+
+  /**
+   * The date of the event.
+   */
+  modificationReason?: string;
+
+  /**
    * Constructs an event history log object.
    */
   constructor(history: EventHistoryLogDTO) {
@@ -455,5 +475,8 @@ export class EventHistoryLogDTO {
     this.comment = history.comment;
     this.isBlocker = history.isBlocker;
     this.date = history.date;
+    this.modificationReason = history.modificationReason;
+    this.modificationTimeAmount = history.modificationTimeAmount;
+    this.modificationDate = history.modificationDate;
   }
 }

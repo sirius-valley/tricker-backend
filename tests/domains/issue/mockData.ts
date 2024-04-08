@@ -64,6 +64,7 @@ export const validMockManualTimeModification: ManualTimeModificationDTO = {
   timeAmount: 10,
   modificationDate: new Date(),
   reason: 'modification for tests only',
+  createdAt: new Date('2024-03-12T10:00:00Z'),
 };
 
 export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
@@ -72,6 +73,7 @@ export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
   timeAmount: -7300,
   modificationDate: new Date(),
   reason: 'modification for tests only',
+  createdAt: new Date('2024-03-12T10:00:00Z'),
 };
 
 export const mockUserDTO: UserDTO = {

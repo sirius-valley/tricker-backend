@@ -470,7 +470,6 @@ export class IssueServiceImpl implements IssueService {
           isBlocker: false,
           date: event.eventRegisteredAt ?? event.createdAt,
           eventId: event.id,
-          comment: undefined,
         })
       );
     }
@@ -487,9 +486,11 @@ export class IssueServiceImpl implements IssueService {
         new EventHistoryLogDTO({
           message: event.reason,
           isBlocker: false,
-          date: event.modificationDate,
+          date: event.createdAt,
           eventId: event.id,
-          comment: undefined,
+          modificationReason: event.reason,
+          modificationDate: event.modificationDate,
+          modificationTimeAmount: event.timeAmount,
         })
       )
     );
@@ -508,7 +509,6 @@ export class IssueServiceImpl implements IssueService {
           isBlocker: false,
           date: event.startTime,
           eventId: event.id,
-          comment: undefined,
         })
       );
 
