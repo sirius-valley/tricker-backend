@@ -597,6 +597,7 @@ describe('issue service tests', () => {
       projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
       projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
       issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
       const expected: IssueChangeLogDTO = mockAssigneeIssueChangeLogDTO;
       // when
       const received: IssueChangeLogDTO = await issueService.createIssueChangeLog(mockAssigneeEventInputExtended);
@@ -645,6 +646,14 @@ describe('issue service tests', () => {
       expect(received.to).toEqual(expected.to);
       expect(received.issueId).toEqual(expected.issueId);
       expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should throw ConflictException if "field" property is not valid', async () => {
+      // given - when
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      // then
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, field: 'notValid' })).rejects.toThrow(ConflictException);
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, field: 'notValid' })).rejects.toThrow('The provided IssueChangeLog property "field" is not valid.');
     });
   });
 });

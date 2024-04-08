@@ -484,7 +484,6 @@ export class IssueServiceImpl implements IssueService {
     manualModifications.forEach((event) =>
       parsedEvents.push(
         new EventHistoryLogDTO({
-          message: event.reason,
           isBlocker: false,
           date: event.createdAt,
           eventId: event.id,
@@ -533,20 +532,26 @@ export class IssueServiceImpl implements IssueService {
    * @returns A promise that resolves once the issue has been updated.
    */
   private async handleIssueChangeLogByField(input: ChangeScalarEventInputExtended): Promise<void> {
-    const toIsDefined: boolean = input.to !== null && input.to !== undefined;
-    if (input.field === 'assignee') {
-      let assigneeId: string | null = null;
-      if (toIsDefined) {
-        assigneeId = (await this.userRepository.getByEmail(input.to!))?.id ?? null;
+    switch (input.field) {
+      case 'assignee': {
+        let assignee: UserDTO | null = null;
+        if (input.to !== null && input.to !== undefined) {
+          assignee = await this.userRepository.getByEmail(input.to);
+        }
+        await this.issueRepository.updateById({ issueId: input.issueId, assigneeId: assignee !== null ? assignee.id : assignee });
+        break;
       }
-      await this.issueRepository.updateById({ issueId: input.issueId, assigneeId });
-    } else {
-      const project: ProjectDTO = await this.validateProjectExistence(input.projectId);
-      let projectStageId: string | null = null;
-      if (toIsDefined) {
-        projectStageId = (await this.projectStageRepository.getByProjectIdAndName({ projectId: project.id, name: input.to! }))?.id ?? null;
+      case 'state': {
+        const project: ProjectDTO = await this.validateProjectExistence(input.projectId);
+        let projectStage: ProjectStageDTO | null = null;
+        if (input.to !== null && input.to !== undefined) {
+          projectStage = await this.projectStageRepository.getByProjectIdAndName({ projectId: project.id, name: input.to });
+        }
+        await this.issueRepository.updateById({ issueId: input.issueId, projectStageId: projectStage !== null ? projectStage.id : null });
+        break;
       }
-      await this.issueRepository.updateById({ issueId: input.issueId, projectStageId });
+      default:
+        throw new ConflictException('The provided IssueChangeLog property "field" is not valid.');
     }
   }
 }

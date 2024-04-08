@@ -434,7 +434,7 @@ export class EventHistoryLogDTO {
   /**
    * The message associated with the event.
    */
-  message: string;
+  message?: string;
 
   /**
    * Additional comments about the event.
