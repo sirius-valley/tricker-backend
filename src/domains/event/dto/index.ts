@@ -61,12 +61,12 @@ export class ChangeScalarEventData extends EventData {
   /**
    * Optional. Previous value of the field.
    */
-  from?: number | string;
+  from?: string;
 
   /**
    * Optional. New value of the field.
    */
-  to?: number | string;
+  to?: string;
 
   /**
    * Constructor to initialize properties from the input object.
@@ -149,6 +149,24 @@ export class ChangeScalarEventInput extends ChangeScalarEventData {
   constructor(input: ChangeScalarEventInput) {
     super(input);
     this.issueId = input.issueId;
+  }
+}
+
+/**
+ * Used for representing input data for change scalar events, when persisting event in database.
+ * Extends the ChangeScalarEventInput class.
+ */
+export class ChangeScalarEventInputExtended extends ChangeScalarEventInput {
+  /** Project ID */
+  projectId: string;
+
+  /**
+   * Constructor to initialize properties from the input object.
+   * @param {ChangeScalarEventInputExtended} input - Object containing change scalar event input data.
+   */
+  constructor(input: ChangeScalarEventInputExtended) {
+    super(input);
+    this.projectId = input.projectId;
   }
 }
 
@@ -321,6 +339,10 @@ export class ManualTimeModificationDTO {
    * The reason provided for the manual time modification.
    */
   reason: string;
+  /**
+   * The creation date of the time modification register.
+   */
+  createdAt: Date;
 
   /**
    * Constructs a new instance of ManualTimeModificationDTO.
@@ -332,6 +354,7 @@ export class ManualTimeModificationDTO {
     this.timeAmount = timeModification.timeAmount;
     this.modificationDate = timeModification.modificationDate;
     this.reason = timeModification.reason;
+    this.createdAt = timeModification.createdAt;
   }
 }
 
@@ -411,12 +434,12 @@ export class EventHistoryLogDTO {
   /**
    * The message associated with the event.
    */
-  message: string;
+  message?: string;
 
   /**
    * Additional comments about the event.
    */
-  comment: string | undefined;
+  comment?: string;
 
   /**
    * Indicates whether the event is a blocker.
@@ -429,6 +452,21 @@ export class EventHistoryLogDTO {
   date: Date;
 
   /**
+   * The date of the event.
+   */
+  modificationTimeAmount?: number;
+
+  /**
+   * The date of the event.
+   */
+  modificationDate?: Date;
+
+  /**
+   * The date of the event.
+   */
+  modificationReason?: string;
+
+  /**
    * Constructs an event history log object.
    */
   constructor(history: EventHistoryLogDTO) {
@@ -437,5 +475,8 @@ export class EventHistoryLogDTO {
     this.comment = history.comment;
     this.isBlocker = history.isBlocker;
     this.date = history.date;
+    this.modificationReason = history.modificationReason;
+    this.modificationTimeAmount = history.modificationTimeAmount;
+    this.modificationDate = history.modificationDate;
   }
 }

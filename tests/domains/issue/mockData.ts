@@ -1,5 +1,5 @@
 import { type IssueDetailsDTO, type IssueDTO, type IssueExtendedDTO, type IssueUpdateInput, type IssueInput, type IssueViewDTO, type ManualTimeModificationEventInput, type Priority } from '@domains/issue/dto';
-import { type BlockerStatusModificationDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type ChangeScalarEventInputExtended, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type UserDTO } from '@domains/user';
 import { type ProjectDTO } from '@domains/project/dto';
 import { StageType } from '@prisma/client';
@@ -64,6 +64,7 @@ export const validMockManualTimeModification: ManualTimeModificationDTO = {
   timeAmount: 10,
   modificationDate: new Date(),
   reason: 'modification for tests only',
+  createdAt: new Date('2024-03-12T10:00:00Z'),
 };
 
 export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
@@ -72,6 +73,7 @@ export const negativeMockManualTimeModification: ManualTimeModificationDTO = {
   timeAmount: -7300,
   modificationDate: new Date(),
   reason: 'modification for tests only',
+  createdAt: new Date('2024-03-12T10:00:00Z'),
 };
 
 export const mockUserDTO: UserDTO = {
@@ -321,7 +323,7 @@ export const mockAssigneeIssueChangeLogDTO: IssueChangeLogDTO = {
   userEmitterId: 'user123',
   field: 'assignee',
   from: undefined,
-  to: 'John Doe',
+  to: 'johnDoe@mail.com',
 };
 
 export const mockIssueExtendedDTO: IssueExtendedDTO = {
@@ -382,4 +384,26 @@ export const mockIssueExtendedDTO: IssueExtendedDTO = {
       message: 'Issue stage has changed to TODO',
     },
   ],
+};
+
+export const mockStageEventInputExtended: ChangeScalarEventInputExtended = {
+  providerEventId: '',
+  userEmitterEmail: 'johnDoe@mail.com',
+  createdAt: new Date('2024-03-11T09:00:00Z'),
+  field: 'state',
+  from: undefined,
+  to: 'TODO',
+  issueId: 'issue789',
+  projectId: 'Project777',
+};
+
+export const mockAssigneeEventInputExtended: ChangeScalarEventInputExtended = {
+  providerEventId: '',
+  userEmitterEmail: 'johnDoe@mail.com',
+  createdAt: new Date('2024-03-11T09:00:00Z'),
+  field: 'assignee',
+  from: undefined,
+  to: 'johnDoe@mail.com',
+  issueId: 'issue789',
+  projectId: 'Project777',
 };

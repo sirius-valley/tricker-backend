@@ -303,6 +303,19 @@
  *           format: date-time
  *           example: "2024-03-10T08:15:30Z"
  *           description: Date and time when the event was registered.
+ *         modificationTimeAmount:
+ *           type: number
+ *           example: 360
+ *           description: The amount of seconds of the modification event
+ *         modificationReason:
+ *           type: string
+ *           example: I forgot to track time
+ *           description: modification reason
+ *         modificationDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-05T08:15:30Z"
+ *           description: Date and time when the modification was registered
  *
  *     IssueDetailsDTO:
  *       type: object

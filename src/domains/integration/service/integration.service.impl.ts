@@ -252,13 +252,13 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
     await this.verifyProjectDuplication(authReq.projectId);
 
-    const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
     const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
     }
+    const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
     if (adminIntegrator === undefined) {
       for (const admin of admins) {

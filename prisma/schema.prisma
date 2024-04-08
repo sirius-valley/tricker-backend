@@ -181,6 +181,7 @@ model ManualTimeModification {
   timeAmount       Int
   modificationDate DateTime
   reason           String
+  createdAt        DateTime @default(now())
 
   issue Issue @relation(fields: [issueId], references: [id])
 }
