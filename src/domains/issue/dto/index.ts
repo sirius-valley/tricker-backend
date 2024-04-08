@@ -347,51 +347,23 @@ export class PMOptionalIssueFiltersDTO {
   @IsOptional()
   @IsUUID()
   cursor?: string;
+
+  /**
+   * An optional key phrase which is used to filter by name.
+   */
+  @IsOptional()
+  @IsString()
+  name?: string;
 }
 
 /**
  * Interface used by issue service to retrieve and filter issues.
  */
-export interface PMIssueFilterParameters {
-  /**
-   * The user ID associated with the issue retrieved.
-   */
-  userId: string;
-
-  /**
-   * The project ID associated with the issue retrieved.
-   */
-  projectId: string;
-
-  /**
-   * An optional array of stage IDs to filter issues by stage.
-   */
-  stageIds?: string[];
-
-  /**
-   * An optional array of priorities to filter issues by priority level.
-   */
-  priorities?: Priority[];
-
+export interface PMIssueFilterParameters extends DevIssueFilterParameters {
   /**
    * An optional array of assignee IDs to filter issues by assignee.
    */
   assigneeIds?: string[];
-
-  /**
-   * An optional boolean which defines if issue have been defined or not.
-   */
-  isOutOfEstimation?: boolean;
-
-  /**
-   * An optional array of label IDs to filter issues by labels.
-   */
-  labelIds?: string[];
-
-  /**
-   * An optional issue id which defines the cursor in the pagination.
-   */
-  cursor?: string;
 }
 
 export class DevOptionalIssueFiltersDTO {
@@ -423,6 +395,13 @@ export class DevOptionalIssueFiltersDTO {
   @IsOptional()
   @IsUUID()
   cursor?: string;
+
+  /**
+   * An optional key phrase which is used to filter by name.
+   */
+  @IsOptional()
+  @IsString()
+  name?: string;
 }
 
 export interface DevIssueFilterParameters {
@@ -460,6 +439,11 @@ export interface DevIssueFilterParameters {
    * An optional issue id which defines the cursor in the pagination.
    */
   cursor?: string;
+
+  /**
+   * An optional string which defines the key name to filter.
+   */
+  name?: string;
 }
 
 /**

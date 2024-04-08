@@ -6,6 +6,17 @@ import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 export class IssueRepositoryImpl implements IssueRepository {
   constructor(private readonly db: PrismaClient) {}
 
+  async getByProjectIdAndName(input: { projectId: string; name: string | undefined }): Promise<IssueDTO | null> {
+    const issue = await this.db.issue.findFirst({
+      where: {
+        projectId: input.projectId,
+        name: input.name,
+      },
+    });
+
+    return issue === null ? null : new IssueDTO(issue);
+  }
+
   /**
    * Creates an issue based on the provided input data.
    * @param data The input data for creating the issue.
@@ -78,13 +89,17 @@ export class IssueRepositoryImpl implements IssueRepository {
   async getWithFilters(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     const issues = await this.db.issue.findMany({
       cursor: filters.cursor !== undefined ? { id: filters.cursor } : undefined,
-      take: 20,
+      take: 5,
       where: {
         projectId: filters.projectId,
         projectStageId: { in: filters.stageIds },
         assigneeId: filters.assigneeIds === undefined ? { not: null } : { in: filters.assigneeIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
         priority: { in: filters.priorities },
+        name: {
+          contains: filters.name ?? '',
+          mode: 'insensitive',
+        },
         assignee: {
           projectsRoleAssigned: {
             every: {
@@ -113,6 +128,9 @@ export class IssueRepositoryImpl implements IssueRepository {
           stage: {
             position: 'asc',
           },
+        },
+        {
+          priority: 'desc',
         },
       ],
     });
@@ -183,17 +201,16 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issues = await this.db.issue.findMany({
       where: {
         projectId,
-      },
-      include: {
         assignee: {
-          where: {
-            projectsRoleAssigned: {
-              every: {
-                isAccepted: true,
-              },
+          projectsRoleAssigned: {
+            every: {
+              isAccepted: true,
             },
           },
         },
+      },
+      include: {
+        assignee: true,
         labels: true,
         stage: {
           where: {
@@ -235,17 +252,16 @@ export class IssueRepositoryImpl implements IssueRepository {
       where: {
         projectId: input.projectId,
         assigneeId: input.userId,
-      },
-      include: {
         assignee: {
-          where: {
-            projectsRoleAssigned: {
-              every: {
-                isAccepted: true,
-              },
+          projectsRoleAssigned: {
+            every: {
+              isAccepted: true,
             },
           },
         },
+      },
+      include: {
+        assignee: true,
         labels: true,
         stage: {
           where: {

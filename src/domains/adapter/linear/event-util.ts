@@ -50,13 +50,13 @@ export const processIssueEvents = async (input: processIssueEventsInput): Promis
 
 export const filterRelationChanges = (changes: IssueRelationHistoryPayload[]): IssueRelationHistoryPayload[] => {
   return changes.filter((change) => {
-    const blockType = change.type[1];
-    return blockType === LinearBlockTypeConvention.BLOCKED_BY || blockType === LinearBlockTypeConvention.BLOCKING_TO;
+    const blockType = change.type;
+    return blockType.includes(LinearBlockTypeConvention.BLOCKED_BY) || blockType.includes(LinearBlockTypeConvention.BLOCKING_TO);
   });
 };
 
 export const getCommentForBlockEvent = (action: string, blockType: string, identifier: string): string => {
-  if (action === LinearActionTypeConvention.ADD) {
+  if (action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_EXPLICIT) {
     return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by ${identifier}` : `Blocking to ${identifier}`;
   } else {
     return blockType === LinearBlockTypeConvention.BLOCKED_BY ? `No longer blocked by ${identifier}` : `No longer blocking to ${identifier}`;
@@ -65,11 +65,11 @@ export const getCommentForBlockEvent = (action: string, blockType: string, ident
 
 export const createBlockEvent = async (change: IssueRelationHistoryPayload, event: IssueHistory, actor: User | undefined): Promise<BlockEventData> => {
   const { type, identifier } = change;
-  const [action, blockType] = type;
+  const [action, blockType] = type.startsWith(LinearBlockTypeConvention.BLOCKING_TO) || type.startsWith(LinearBlockTypeConvention.BLOCKED_BY) ? type.split('').reduce((reversed, char) => char + reversed, '') : type;
 
-  const reason = action === LinearActionTypeConvention.ADD ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Block by other ticket` : 'Blocking other ticket') : `-`;
+  const reason = action === LinearActionTypeConvention.ADD_EXPLICIT || action === LinearActionTypeConvention.ADD_IMPLICIT ? (blockType === LinearBlockTypeConvention.BLOCKED_BY ? `Blocked by other ticket` : 'Blocking other ticket') : `-`;
 
-  const dbType = action === LinearActionTypeConvention.ADD ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
+  const dbType = action === LinearActionTypeConvention.ADD_IMPLICIT || action === LinearActionTypeConvention.ADD_EXPLICIT ? reverseEnumMap(LinearBlockTypeConvention, blockType) : 'NO_STATUS';
 
   return new BlockEventData({
     reason,

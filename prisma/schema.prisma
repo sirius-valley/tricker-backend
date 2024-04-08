@@ -170,8 +170,9 @@ model BlockerStatusModification {
   reason            String
   comment           String
 
-  issue       Issue @relation(fields: [issueId], references: [id])
+  issue       Issue  @relation(fields: [issueId], references: [id])
   userEmitter User? @relation(fields: [userEmitterId], references: [id])
+
 }
 
 model ManualTimeModification {

@@ -23,18 +23,18 @@ const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, us
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, isOutOfEstimation, cursor } = req.body;
+  const { stageIds, priorities, isOutOfEstimation, cursor, name } = req.body;
 
-  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor });
+  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, name });
 
   return res.status(HttpStatus.OK).json(issues);
 });
 
 issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(PMOptionalIssueFiltersDTO, 'body'), validateUserIsProjectManager(), async (req: Request<UserProjectParamsDTO, any, PMOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor } = req.body;
+  const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor, name } = req.body;
 
-  const issues: IssueViewDTO[] = await issueService.getPMIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, assigneeIds });
+  const issues: IssueViewDTO[] = await issueService.getPMIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, assigneeIds, name });
 
   return res.status(HttpStatus.OK).json(issues);
 });

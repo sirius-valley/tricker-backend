@@ -22,25 +22,15 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
           },
         },
         organization: {
-          connectOrCreate: {
+          connect: {
             // if the org does not exist, then we create it. otherwise, we create a relation with the existing one
-            where: {
-              name: input.organizationName,
-            },
-            create: {
-              name: input.organizationName,
-            },
+            name: input.organizationName,
           },
         },
         issueProvider: {
           // same as above but with issue provider (linear, jira, etc.)
-          connectOrCreate: {
-            where: {
-              name: input.issueProviderName.trim().toUpperCase(),
-            },
-            create: {
-              name: input.issueProviderName.trim().toUpperCase(),
-            },
+          connect: {
+            name: input.issueProviderName.trim().toUpperCase(),
           },
         },
       },

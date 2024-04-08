@@ -9,4 +9,5 @@ export interface IssueRepository {
   getWithFilters: (filters: PMIssueFilterParameters) => Promise<IssueViewDTO[]>;
   getByProjectId: (projectId: string) => Promise<IssueViewDTO[]>;
   getByProjectIdAndUserId: (input: UserProject) => Promise<IssueViewDTO[]>;
+  getByProjectIdAndName: (input: { projectId: string; name: string | undefined }) => Promise<IssueDTO | null>;
 }

@@ -49,6 +49,9 @@
  *         cursor:
  *           type: string
  *           format: uuid
+ *         name:
+ *           type: string
+ *           description: key phrase used to filter issues
  *       example:
  *         stageIds:
  *           - "123e4567-e89b-12d3-a456-426614174002"
@@ -58,6 +61,7 @@
  *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: true
  *         cursor: "123e4567-e89b-12d3-a456-426614174004"
+ *         name: "TRI-121"
  *
  *     PMOptionalIssueFiltersDTO:
  *       type: object
@@ -87,6 +91,9 @@
  *         cursor:
  *           type: string
  *           format: uuid
+ *         name:
+ *           type: string
+ *           description: key phrase used to filter issues
  *       example:
  *         stageIds:
  *           - "123e4567-e89b-12d3-a456-426614174005"
@@ -99,6 +106,7 @@
  *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: false
  *         cursor: "123e4567-e89b-12d3-a456-426614174007"
+ *         name: "TRI-121"
  *
  *     UserProjectParamsDTO:
  *       type: object

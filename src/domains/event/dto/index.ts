@@ -13,7 +13,8 @@ export enum LinearBlockTypeConvention {
 }
 
 export enum LinearActionTypeConvention {
-  ADD = 'a',
+  ADD_EXPLICIT = 'a',
+  ADD_IMPLICIT = 'o',
   REMOVE = 'r',
 }
 
