@@ -1,5 +1,6 @@
 import { type RoleDTO } from '@domains/role/dto';
 import { type ProjectDTO } from '@domains/project/dto';
+import { type BasicUserDTO } from '@domains/user';
 
 /**
  * Data Transfer Object (DTO) representing a user's project role.
@@ -35,6 +36,39 @@ export class UserProjectRoleDTO {
     this.createdAt = userProjectRole.createdAt;
     this.deletedAt = userProjectRole.deletedAt;
     this.updatedAt = userProjectRole.updatedAt;
+  }
+}
+
+/**
+ * Class representing an Extended User Project Role Data Transfer Object.
+ *
+ * This class extends UserProjectRoleDTO and includes additional information about the user, project, and role.
+ *
+ */
+export class ExtendedUserProjectRoleDTO extends UserProjectRoleDTO {
+  /**
+   * DTO representing the user basic data associated with the project and the role.
+   */
+  user: BasicUserDTO;
+  /**
+   * DTO representing the project associated with the user and the role.
+   */
+  project: ProjectDTO;
+  /**
+   * DTO representing the user's role in the project.
+   */
+  role: RoleDTO;
+
+  /**
+   * Constructor for ExtendedUserProjectRoleDTO class.
+   *
+   * @param {ExtendedUserProjectRoleDTO} input - Data used to populate the DTO.
+   */
+  constructor(input: ExtendedUserProjectRoleDTO) {
+    super(input);
+    this.user = input.user;
+    this.project = input.project;
+    this.role = input.role;
   }
 }
 

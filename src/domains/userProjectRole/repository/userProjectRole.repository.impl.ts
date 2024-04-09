@@ -1,5 +1,5 @@
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
-import { UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
+import { ExtendedUserProjectRoleDTO, UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
 import { type PrismaClient, type UserProjectRole } from '@prisma/client';
 import { type UserProject } from '@domains/issue/dto';
 
@@ -34,5 +34,30 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     });
 
     return userProjectRole === null ? null : new UserProjectRoleDTO(userProjectRole);
+  }
+
+  /**
+   * Retrieves user project roles based on user ID or project ID (or both).
+   *
+   * @param {object} input - An object containing optional user ID and project ID properties.
+   * @param {string} [input.userId] - ID of the user to retrieve project roles for.
+   * @param {string} [input.projectId] - ID of the project to retrieve user roles for.
+   * @returns {Promise<ExtendedUserProjectRoleDTO[]>} - Promise resolving to an array of ExtendedUserProjectRoleDTO objects representing the user's project roles.
+   */
+  async getUserRolesByUserAndOrProject({ userId, projectId }: { userId?: string; projectId?: string }): Promise<ExtendedUserProjectRoleDTO[]> {
+    const res = await this.db.userProjectRole.findMany({
+      where: {
+        userId,
+        projectId,
+        isAccepted: true,
+      },
+      include: {
+        user: true,
+        role: true,
+        project: true,
+      },
+    });
+
+    return res.map((userProjectRole) => new ExtendedUserProjectRoleDTO(userProjectRole));
   }
 }

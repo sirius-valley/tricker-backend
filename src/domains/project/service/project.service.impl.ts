@@ -1,17 +1,60 @@
 import { type ProjectService } from '@domains/project/service/project.service';
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectDTO } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectDTO, ProjectRole, type ProjectUserViewDTO, type ProjectViewDTO } from '@domains/project/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { NotFoundException } from '@utils';
 import { StageDTO, type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
+import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
+import { type IssueProviderRepository } from '@domains/issueProvider/repository';
+import { type IssueProviderDTO } from '@domains/issueProvider/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly issueRepository: IssueRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly userProjectRoleRepository: UserProjectRoleRepository,
+    private readonly issueProviderRepository: IssueProviderRepository
   ) {}
+
+  /**
+   * Retrieves information about projects and its members, associated with a given user and its role.
+   *
+   * @param {string} userId - ID of the user to retrieve project information for.
+   * @returns {Promise<ProjectViewDTO[]>} - Promise resolving to an array of ProjectViewDTO objects representing the user's projects.
+   * @throws {NotFoundException} - Throws an error if the user is not found.
+   */
+  async getMyProjectInfo(userId: string): Promise<ProjectViewDTO[]> {
+    const user = await this.userRepository.getById(userId);
+    if (user == null) throw new NotFoundException('User');
+
+    const views: ProjectViewDTO[] = [];
+
+    const userProjectRoleByUser = await this.userProjectRoleRepository.getUserRolesByUserAndOrProject({ userId });
+    for (const upr of userProjectRoleByUser) {
+      const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getById(upr.project.issueProviderId);
+      const userProjectRoleByProject = await this.userProjectRoleRepository.getUserRolesByUserAndOrProject({ projectId: upr.project.id });
+      const userViews: ProjectUserViewDTO[] = userProjectRoleByProject.map((uprByProject) => ({
+        name: uprByProject.user.name,
+        email: uprByProject.user.email,
+        image: uprByProject.user.profileImage,
+        role: upr.role.name === ProjectRole.PROJECT_MANAGER ? uprByProject.role : undefined,
+      }));
+
+      views.push({
+        providerId: upr.project.providerId,
+        image: upr.project.image,
+        url: upr.project.url,
+        name: upr.project.name,
+        issueProviderName: issueProvider!.name,
+        updatedAt: upr.project.updatedAt,
+        users: userViews,
+      });
+    }
+
+    return views;
+  }
 
   /**
    * Retrieves development project filters based on the provided user and project IDs.

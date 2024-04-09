@@ -7,12 +7,17 @@ import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
+import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
+
 require('express-async-errors');
 
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const issueRepository: IssueRepository = new IssueRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
-const service: ProjectService = new ProjectServiceImpl(projectRepository, issueRepository, userRepository);
+const userProjectRoleRepository: UserProjectRoleRepository = new UserProjectRoleRepositoryImpl(db);
+const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
+const service: ProjectService = new ProjectServiceImpl(projectRepository, issueRepository, userRepository, userProjectRoleRepository, issueProviderRepository);
 
 export const projectRouter = Router();
 
@@ -31,4 +36,12 @@ projectRouter.get('/:projectId/filters/dev', validateRequest(ProjectIdParamDTO, 
   const filters: DevProjectFiltersDTO = await service.getDevProjectFilters({ projectId, userId: sub });
 
   return res.status(HttpStatus.OK).json(filters);
+});
+
+projectRouter.get('/me', async (_req: Request, res: Response) => {
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+
+  const info = await service.getMyProjectInfo(sub);
+
+  return res.status(200).json(info);
 });
