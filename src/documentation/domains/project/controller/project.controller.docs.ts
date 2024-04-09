@@ -1,6 +1,28 @@
 /**
  * @swagger
  * paths:
+ *   /me:
+ *     get:
+ *       summary: Get my project view data
+ *       description: Retrieves information about projects (and its members) associated with the logged-in user.
+ *       tags:
+ *         - Project
+ *       security:
+ *         - bearerAuth: []
+ *       responses:
+ *         '200':
+ *           description: OK
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/ProjectViewDTO'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *
  *   /api/projects/{projectId}/filters/pm:
  *     get:
  *       summary: Retrieve project filters for a project manager.
