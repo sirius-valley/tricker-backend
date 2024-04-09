@@ -39,12 +39,6 @@ jobs:
           role-to-assume: arn:aws:iam::916062039779:role/rds-github-backend
           aws-region: us-east-1
 
-
-      - name: Migrate DB
-        run: npm run db:migrate
-        env:
-          DATABASE_URL: ${{secrets.DATABASE_URL}}
-
         # TODO USE OIDC PROVIDER
       - name: Serverless Deploy
         run: serverless deploy
