@@ -280,7 +280,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       projectId2: project.id,
       integratorName: integrator.name,
       acceptanceUrl: process.env.FRONTEND_URL!,
-      denialUrl: process.env.BACKEND_URL!,
+      denialUrl: process.env.FRONTEND_URL!,
     };
   }
 

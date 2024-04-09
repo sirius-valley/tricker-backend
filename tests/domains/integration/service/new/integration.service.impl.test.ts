@@ -113,6 +113,8 @@ describe('integration service tests', () => {
         organizationName: mockedOrganizationName,
         issueProviderName: mockedIssueProviderId,
       };
+      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
+
       integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
       adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
       adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);

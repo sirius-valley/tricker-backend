@@ -40,6 +40,8 @@ export const mockUserDataDTO: UserData = {
 export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
   name: mockedProjectName,
   id: mockedProviderProjectId,
+  projectUrl: 'someUrl',
+  projectImage: undefined,
 };
 
 export const mocksAdministratorDTO: AdministratorDTO[] = [

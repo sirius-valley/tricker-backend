@@ -14,12 +14,12 @@ export class LinearDataRetriever {
   }
 
   async getTeam(projectId: string): Promise<Team> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return await this.linearClient.team(projectId);
   }
 
   async getProjects(): Promise<Team[]> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return (await this.linearClient.teams()).nodes;
   }
 
@@ -37,12 +37,12 @@ export class LinearDataRetriever {
   }
 
   async getOrganization(): Promise<Organization> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return await this.linearClient.organization;
   }
 
   async getMyMail(): Promise<string> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return (await this.linearClient.viewer).email;
   }
 
@@ -61,7 +61,7 @@ export class LinearDataRetriever {
   }
 
   async getIssue(issueId: string): Promise<Issue> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return await this.linearClient.issue(issueId);
   }
 
@@ -80,7 +80,7 @@ export class LinearDataRetriever {
   }
 
   async getUser(userId: string): Promise<User> {
-    if (this.linearClient === undefined) throw new LinearIntegrationException('Linear client undefined');
+    if (this.linearClient === undefined) throw new LinearIntegrationException(400, 'Linear client undefined');
     return await this.linearClient.user(userId);
   }
 }
