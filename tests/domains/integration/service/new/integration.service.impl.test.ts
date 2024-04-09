@@ -38,7 +38,8 @@ import { type NextFunction, type Request, type Response } from 'express';
 import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
 import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
-import { mockUserDTO } from '../../../issue/mockData';
+import { mockProjectDTO, mockUserDTO } from '../../../issue/mockData';
+import jwt from 'jsonwebtoken';
 
 describe('integration service tests', () => {
   const adapterMock: MockProxy<ProjectManagementToolAdapter> = mock<ProjectManagementToolAdapter>();
@@ -104,7 +105,7 @@ describe('integration service tests', () => {
     it('should create a pending project authorization successfully', async () => {
       // GIVEN
       process.env.AUTHORIZATION_SECRET = 'secret';
-      process.env.BACKEND_URL = mockedUrl;
+      process.env.FRONTEND_URL = mockedUrl;
       const pendingAuthRequest: AuthorizationRequestDTO = {
         apiToken: mockedToken,
         projectId: mockedProviderProjectId,
@@ -114,12 +115,13 @@ describe('integration service tests', () => {
         issueProviderName: mockedIssueProviderId,
       };
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
-
-      integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
       adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
       adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       administratorRepositoryMock.getByOrganizationName.mockResolvedValue(mocksAdministratorDTO);
+      jest.spyOn(jwt, 'sign').mockImplementation(() => mockedToken);
       emailServiceMock.sendAuthorizationMail.mockResolvedValue();
+      integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
 
       // WHEN
       const { pendingProject: actualPendingAuthorization } = await testedService.createPendingAuthorization(pendingAuthRequest);
