@@ -52,7 +52,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     Logger.timeEnd(`Verifications`);
 
     try {
-      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
+      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => await this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
         ConflictException,
         PrismaClientKnownRequestError,
         PrismaClientUnknownRequestError,
@@ -249,23 +249,24 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
     await this.verifyProjectDuplication(authReq.projectId);
 
-    const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
-    const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
-    const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
+    const integrator: UserData = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
+    const project: BasicProjectDataDTO = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
+    const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
     }
-    const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
+    const pendingAuth: PendingProjectAuthorizationDTO = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
-    if (adminIntegrator === undefined) {
+    const pmIsAdmin: boolean = adminIntegrator !== undefined;
+    if (!pmIsAdmin) {
       for (const admin of admins) {
         const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
-        const variables = this.createEmailVariables(token, project, integrator);
+        const variables: AuthorizationEmailVariables = this.createEmailVariables(token, project, integrator);
         await this.emailService.sendAuthorizationMail(admin.email, variables);
       }
     }
 
-    return { pendingProject: pendingAuth, pmIsAdmin: adminIntegrator !== undefined };
+    return { pendingProject: pendingAuth, pmIsAdmin };
   }
 
   /**

@@ -253,12 +253,26 @@ export interface IntegrationParams {
   organizationId: string;
 }
 
+/**
+ * Represents pending project information for linear integration.
+ */
 export class PendingProjectInfoDTO {
+  /** The name of the project. */
   projectName: string;
+
+  /** The URL of the project's image, if available. */
   projectImage: string | null;
+
+  /** The name of the Project Manager. */
   pmName: string;
+
+  /** The URL of the Project Manager's image, if available. */
   pmImage: string | null;
 
+  /**
+   * Constructs a new PendingProjectInfoDTO object.
+   * @param info - The information object used to initialize the PendingProjectInfoDTO.
+   */
   constructor(info: PendingProjectInfoDTO) {
     this.projectName = info.projectName;
     this.projectImage = info.projectImage;

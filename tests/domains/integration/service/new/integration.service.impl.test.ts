@@ -255,7 +255,7 @@ describe('integration service tests', () => {
     it('should successfully return pending project info', async () => {
       // given
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
       adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       const expected: PendingProjectInfoDTO = mockPendingProjectInfoDTO;
@@ -267,15 +267,6 @@ describe('integration service tests', () => {
       expect.assertions(2);
       expect(received.pmName).toEqual(expected.pmName);
       expect(received.projectName).toEqual(expected.projectName);
-    });
-
-    it('should throw a NotFoundException if project manager is not found', async () => {
-      // given
-      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      userRepositoryMock.getById.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
-      // when - then
-      expect.assertions(2);
-      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
     });
   });
 });

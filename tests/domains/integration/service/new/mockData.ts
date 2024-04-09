@@ -35,6 +35,7 @@ export const mockPendingProjectAuthorizationDTO: PendingProjectAuthorizationDTO 
 export const mockUserDataDTO: UserData = {
   name: mockedMemberName,
   email: 'mockedEmail@mail.com',
+  image: null,
 };
 
 export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
