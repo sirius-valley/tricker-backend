@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
 import { type UserData, type UserDTO, type UserRepository } from '@domains/user';
-import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException } from '@utils';
+import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -9,7 +9,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type IntegrationParams, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
@@ -141,17 +141,14 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {UnauthorizedException} - Thrown if the API key is not valid for the provided email.
    */
   async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
+    let userEmail: string;
     try {
-      const userEmail = await this.adapter.getMyEmail(apiKey);
-      if (userEmail !== pmEmail) {
-        throw new Error();
-      }
+      userEmail = await this.adapter.getMyEmail(apiKey);
     } catch (e) {
-      if (e instanceof LinearIntegrationException) {
-        throw e;
-      } else {
-        throw new UnauthorizedException('401', 'Linear api key is not valid');
-      }
+      throw new LinearIntegrationException(400, 'Linear api key is not valid');
+    }
+    if (userEmail !== pmEmail) {
+      throw new NotFoundException('User');
     }
   }
 
@@ -282,7 +279,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       projectId1: project.id,
       projectId2: project.id,
       integratorName: integrator.name,
-      acceptanceUrl: process.env.BACKEND_URL!,
+      acceptanceUrl: process.env.FRONTEND_URL!,
       denialUrl: process.env.BACKEND_URL!,
     };
   }
@@ -303,5 +300,16 @@ export class IntegrationServiceImpl implements IntegrationService {
     const email: string = await this.adapter.getMyEmail(apiKey);
 
     await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
+  }
+
+  async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    const pm: UserDTO | null = await this.userRepository.getById(pendingProject.integratorId);
+    if (pm === null) {
+      throw new NotFoundException('User');
+    }
+    const projectFromLinear: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
+
+    return { pmImage: pm.profileImage, pmName: pm.name!, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }
 }

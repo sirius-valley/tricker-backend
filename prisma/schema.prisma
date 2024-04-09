@@ -266,6 +266,8 @@ model OrganizationAdministrator {
 model PendingProjectAuthorization {
   id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerProjectId String
+  projectName       String
+  projectImageUrl   String?
   token             String
   integratorId      String
   issueProviderId   String @db.Uuid

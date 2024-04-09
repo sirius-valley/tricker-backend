@@ -52,10 +52,19 @@ export class ProjectDTO {
   }
 }
 
-// todo: replace this with something more useful in the future
+/**
+ * Interface defining the structure of basic project data.
+ */
 export interface BasicProjectDataDTO {
+  /** The name of the project. */
   name: string;
+
+  /** The unique identifier of the project. */
   id: string;
+
+  projectUrl: string;
+
+  projectImage?: string;
 }
 
 /**

@@ -252,3 +252,17 @@ export interface IntegrationParams {
   authorizedMemberMails: string[];
   organizationId: string;
 }
+
+export class PendingProjectInfoDTO {
+  projectName: string;
+  projectImage: string | null;
+  pmName: string;
+  pmImage: string | null;
+
+  constructor(info: PendingProjectInfoDTO) {
+    this.projectName = info.projectName;
+    this.projectImage = info.projectImage;
+    this.pmName = info.pmName;
+    this.pmImage = info.pmImage;
+  }
+}

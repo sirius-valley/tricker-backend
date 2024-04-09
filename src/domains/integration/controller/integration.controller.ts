@@ -8,7 +8,7 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from '@domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, MailToken, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
+import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, MailToken, type PendingProjectInfoDTO, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
@@ -80,4 +80,12 @@ integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdInt
   await service.declineProject(projectId);
 
   return res.sendStatus(HttpStatus.NO_CONTENT);
+});
+
+integrationRouter.get('/linear/:projectId/information', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+  const { projectId } = req.params;
+
+  const pendingProjectInfo: PendingProjectInfoDTO = await service.provideProjectInfo(projectId);
+
+  return res.sendStatus(HttpStatus.OK).json(pendingProjectInfo);
 });
