@@ -304,12 +304,9 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
-    const pm: UserDTO | null = await this.userRepository.getById(pendingProject.integratorId);
-    if (pm === null || pm.deletedAt !== null) {
-      throw new NotFoundException('User');
-    }
+    const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
     const projectFromLinear: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
 
-    return { pmImage: pm.profileImage, pmName: pm.name!, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
+    return { pmImage: pm.image, pmName: pm.name, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }
 }

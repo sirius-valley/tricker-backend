@@ -87,5 +87,5 @@ integrationRouter.get('/linear/:projectId/information', validateRequest(ProjectI
 
   const pendingProjectInfo: PendingProjectInfoDTO = await service.provideProjectInfo(projectId);
 
-  return res.sendStatus(HttpStatus.OK).json(pendingProjectInfo);
+  return res.status(HttpStatus.OK).json(pendingProjectInfo);
 });
