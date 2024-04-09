@@ -68,6 +68,9 @@ export interface UserData {
 
   /** The email address of the user. */
   email: string;
+
+  /** The image url of the user (if available) */
+  image: string | null;
 }
 
 export class UserIssueDTO {
