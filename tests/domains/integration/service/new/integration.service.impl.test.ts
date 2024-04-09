@@ -31,8 +31,9 @@ import {
   mockProjectMember1,
   mockProjectMember3,
   mockProjectMember2,
+  mockPendingProjectInfoDTO,
 } from './mockData';
-import { AuthorizationRequestDTO, AuthorizedMemberDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
+import { AuthorizationRequestDTO, AuthorizedMemberDTO, type PendingProjectInfoDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type NextFunction, type Request, type Response } from 'express';
 import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
@@ -247,6 +248,34 @@ describe('integration service tests', () => {
       expect.assertions(2);
       await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow(ConflictException);
       await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow('Project already being integrated');
+    });
+  });
+
+  describe('provideProjectInfo method', () => {
+    it('should successfully return pending project info', async () => {
+      // given
+      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
+      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
+      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      const expected: PendingProjectInfoDTO = mockPendingProjectInfoDTO;
+
+      // when
+      const received: PendingProjectInfoDTO = await testedService.provideProjectInfo(mockedProviderProjectId);
+
+      // then
+      expect.assertions(2);
+      expect(received.pmName).toEqual(expected.pmName);
+      expect(received.projectName).toEqual(expected.projectName);
+    });
+
+    it('should throw a NotFoundException if project manager is not found', async () => {
+      // given
+      pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
+      userRepositoryMock.getById.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
+      // when - then
+      expect.assertions(2);
+      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
     });
   });
 });

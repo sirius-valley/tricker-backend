@@ -3,7 +3,7 @@ import { type UserData } from '@domains/user';
 import { type BasicProjectDataDTO } from '@domains/project/dto';
 import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
-import type { ProjectMemberDataDTO } from '@domains/integration/dto';
+import type { PendingProjectInfoDTO, ProjectMemberDataDTO } from '@domains/integration/dto';
 
 export const mockedAdminId = 'mockedAdminId';
 export const mockedAdminEmail = 'admin@example.com';
@@ -42,6 +42,13 @@ export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
   id: mockedProviderProjectId,
   projectUrl: 'someUrl',
   projectImage: undefined,
+};
+
+export const mockPendingProjectInfoDTO: PendingProjectInfoDTO = {
+  projectName: 'Example Project',
+  projectImage: null,
+  pmName: 'John Doe',
+  pmImage: null,
 };
 
 export const mocksAdministratorDTO: AdministratorDTO[] = [
