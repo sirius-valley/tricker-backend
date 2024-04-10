@@ -476,7 +476,7 @@
  *     get:
  *       summary: Get pending information of a project for linear integration.
  *       tags:
- *         - Linear Integration
+ *         - Integration Linear
  *       parameters:
  *         - in: path
  *           name: projectId
