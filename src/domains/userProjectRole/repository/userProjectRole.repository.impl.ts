@@ -1,12 +1,12 @@
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
-import { UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
+import { UserProjectRoleDTO, type UserProjectRoleInput, type UserProjectRoleUpdateExtended } from '@domains/userProjectRole/dto';
 import { type PrismaClient, type UserProjectRole } from '@prisma/client';
 import { type UserProject } from '@domains/issue/dto';
 
 export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(input: UserProjectRoleInputDTO): Promise<UserProjectRoleDTO> {
+  async create(input: UserProjectRoleInput): Promise<UserProjectRoleDTO> {
     const userProjectRole = await this.db.userProjectRole.create({
       data: {
         userId: input.userId,
@@ -34,5 +34,20 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     });
 
     return userProjectRole === null ? null : new UserProjectRoleDTO(userProjectRole);
+  }
+
+  async update(input: UserProjectRoleUpdateExtended): Promise<UserProjectRoleDTO> {
+    const userProjectRole = await this.db.userProjectRole.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        roleId: input.roleId,
+        isAccepted: input.isAccepted,
+        userEmitterId: input.userEmitterId,
+      },
+    });
+
+    return new UserProjectRoleDTO(userProjectRole);
   }
 }
