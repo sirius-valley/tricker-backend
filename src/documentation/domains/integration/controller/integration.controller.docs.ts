@@ -397,12 +397,6 @@
  *             type: string
  *           required: true
  *           description: The ID of the project to decline integration.
- *         - in: query
- *           name: token
- *           schema:
- *             type: string
- *           required: true
- *           description: The token associated with the project to decline integration.
  *       responses:
  *         '204':
  *           description: No Content.
@@ -485,12 +479,6 @@
  *             type: string
  *             format: uuid
  *           description: The ID of the project for which information is requested.
- *         - in: query
- *           name: token
- *           required: true
- *           schema:
- *             type: string
- *           description: The token associated with the project for linear integration.
  *       security:
  *         - bearerAuth: []
  *       responses:

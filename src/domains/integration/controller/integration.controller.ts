@@ -1,5 +1,5 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateAdminIdentity, validateRequest } from '@utils';
+import { db, validateRequest } from '@utils';
 import { type ProjectDTO } from '@domains/project/dto';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
@@ -8,7 +8,7 @@ import HttpStatus from 'http-status';
 import { type PendingMemberMailsRepository, PendingMemberMailsRepositoryImpl } from '@domains/pendingMemberMail/repository';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, MailToken, type PendingProjectInfoDTO, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
+import { AuthorizationRequestDTO, LinearMembersPreIntegrationBody, type PendingProjectInfoDTO, type ProjectPreIntegratedDTO, ProviderKeyDTO } from '@domains/integration/dto';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { type PendingProjectAuthorizationRepository, PendingProjectAuthorizationRepositoryImpl } from '@domains/pendingProjectAuthorization/repository';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
@@ -53,7 +53,7 @@ integrationRouter.post('/linear/project/:id/members', validateRequest(LinearMemb
   return res.status(HttpStatus.OK).json(members);
 });
 
-integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+integrationRouter.get('/linear/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request<ProjectIdIntegrationInputDTO>, res: Response) => {
   const { projectId } = req.params;
 
   await service.acceptProject(projectId);
@@ -70,7 +70,7 @@ integrationRouter.post('/linear/authorization', validateRequest(AuthorizationReq
   return res.status(HttpStatus.CREATED).json(pmIsAdmin);
 });
 
-integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request<ProjectIdIntegrationInputDTO>, res: Response) => {
   const { projectId } = req.params;
 
   await service.declineProject(projectId);
@@ -78,7 +78,7 @@ integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdInt
   return res.sendStatus(HttpStatus.NO_CONTENT);
 });
 
-integrationRouter.get('/linear/:projectId/information', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+integrationRouter.get('/linear/:projectId/information', validateRequest(ProjectIdIntegrationInputDTO, 'params'), async (req: Request<ProjectIdIntegrationInputDTO>, res: Response) => {
   const { projectId } = req.params;
 
   const pendingProjectInfo: PendingProjectInfoDTO = await service.provideProjectInfo(projectId);
