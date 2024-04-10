@@ -99,14 +99,26 @@ export class RoleInputDTO {
   roleId!: string;
 }
 
+/**
+ * Interface representing input data for updating a user's project role.
+ */
 export interface UserProjectRoleUpdateInput {
-  roleId: string;
+  /** Identifier of the user associated with the project role. */
   userId: string;
+  /** Identifier of the project associated with the project role. */
   projectId: string;
-  userEmitterCognitoId: string;
+  /** Identifier of the role associated with the project role. */
+  roleId: string;
+  /** Identifier of the user who emits the project role. */
   userEmitterId?: string;
+  /** Name of the user who emits the project role. */
+  userEmitterCognitoId: string;
 }
 
+/**
+ * Interface representing input data for updating a user's project role in the repository.
+ */
 export interface UserProjectRoleUpdateExtended extends UserProjectRoleInput {
+  /** Identifier of the userProjectRole to be updated. */
   id: string;
 }

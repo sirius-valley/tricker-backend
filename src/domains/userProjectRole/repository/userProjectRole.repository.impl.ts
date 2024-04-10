@@ -36,6 +36,11 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     return userProjectRole === null ? null : new UserProjectRoleDTO(userProjectRole);
   }
 
+  /**
+   * Updates a user-project role relationship by ID.
+   * @param input Object containing data to update a userProjectRole.
+   * @returns A Promise resolving to a UserProjectRoleDTO object.
+   */
   async update(input: UserProjectRoleUpdateExtended): Promise<UserProjectRoleDTO> {
     const userProjectRole = await this.db.userProjectRole.update({
       where: {
