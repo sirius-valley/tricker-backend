@@ -66,8 +66,12 @@ integrationRouter.post('/linear/authorization', validateRequest(AuthorizationReq
   const authorizationReq = _req.body;
 
   const { pmIsAdmin } = await service.createPendingAuthorization(authorizationReq);
-
-  return res.status(HttpStatus.CREATED).json(pmIsAdmin);
+  if (pmIsAdmin) {
+    res.status(HttpStatus.CREATED).json(pmIsAdmin);
+    await service.integrateProject(authorizationReq.projectId);
+  } else {
+    return res.status(HttpStatus.CREATED).json(pmIsAdmin);
+  }
 });
 
 integrationRouter.get('/linear/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
