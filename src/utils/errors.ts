@@ -61,15 +61,9 @@ export class InternalServerErrorException extends HttpException {
  * Represents an exception specific to Linear errors.
  * Extends the InternalServerErrorException class.
  */
-export class LinearIntegrationException extends InternalServerErrorException {
-  /**
-   * Creates an instance of LinearIntegrationException.
-   * @param message Optional. A human-readable description of the error.
-   * @param errors Optional. Additional details or errors associated with the exception.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(message?: string, errors?: object | object[]) {
-    super(message, errors);
+export class LinearIntegrationException extends HttpException {
+  constructor(code: number, message?: string, error?: object[] | object) {
+    super(code, message ?? 'Linear error.', error);
   }
 }
 

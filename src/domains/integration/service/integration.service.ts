@@ -1,5 +1,5 @@
 import { type ProjectDTO } from '@domains/project/dto';
-import { type AuthorizationRequestDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type PendingProjectInfoDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 
 export interface IntegrationService {
@@ -10,4 +10,5 @@ export interface IntegrationService {
   validateIntegratorIdentity: (apiKey: string, pmEmail: string | undefined) => Promise<void>;
   declineProject: (projectId: string) => Promise<void>;
   acceptProject: (projectId: string) => Promise<void>;
+  provideProjectInfo: (projectId: string) => Promise<PendingProjectInfoDTO>;
 }

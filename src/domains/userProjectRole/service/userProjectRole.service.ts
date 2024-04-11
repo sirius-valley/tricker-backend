@@ -1,5 +1,5 @@
-import { type UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleDTO, type UserProjectRoleInput } from '@domains/userProjectRole/dto';
 
 export interface UserProjectRoleService {
-  create: (input: UserProjectRoleInputDTO) => Promise<UserProjectRoleDTO>;
+  create: (input: UserProjectRoleInput) => Promise<UserProjectRoleDTO>;
 }

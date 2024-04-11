@@ -1,5 +1,5 @@
 import { type UserProjectRoleService } from '@domains/userProjectRole/service/userProjectRole.service';
-import { type UserProjectRoleDTO, type UserProjectRoleInputDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleDTO, type UserProjectRoleInput } from '@domains/userProjectRole/dto';
 import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 import { type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -14,7 +14,7 @@ export class UserProjectRoleServiceImpl implements UserProjectRoleService {
     private readonly roleRepository: RoleRepository
   ) {}
 
-  async create(input: UserProjectRoleInputDTO): Promise<UserProjectRoleDTO> {
+  async create(input: UserProjectRoleInput): Promise<UserProjectRoleDTO> {
     const user = await this.userRepository.getById(input.userId);
     if (user == null || user.deletedAt !== null) throw new NotFoundException('User');
     const project = await this.projectRepository.getById(input.projectId);

@@ -36,7 +36,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
       );
     } catch (err: any) {
       const linearError = err as LinearError;
-      throw new LinearIntegrationException(linearError.message, linearError.errors);
+      throw new LinearIntegrationException(400, linearError.message, linearError.errors);
     }
   }
 
@@ -60,7 +60,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
       return eventData;
     } catch (err: any) {
       const linearError = err as LinearError;
-      throw new LinearIntegrationException(linearError.message, linearError.errors);
+      throw new LinearIntegrationException(400, linearError.message, linearError.errors);
     }
   }
 
@@ -213,13 +213,14 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     this.dataRetriever.configureRetriever(apiKey);
     const user = await this.dataRetriever.getUser(memberId);
 
-    return { name: user.name, email: user.email };
+    return { name: user.name, email: user.email, image: user.avatarUrl ?? null };
   }
 
   async getProjectById(projectId: string, apiKey: string): Promise<BasicProjectDataDTO> {
     this.dataRetriever.configureRetriever(apiKey);
     const team = await this.dataRetriever.getTeam(projectId);
+    const org = await this.dataRetriever.getOrganization();
 
-    return { name: team.name, id: projectId };
+    return { name: team.name, id: projectId, projectImage: org.logoUrl, projectUrl: `https://linear.app/${org.urlKey}` };
   }
 }

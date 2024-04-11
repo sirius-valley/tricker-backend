@@ -1,7 +1,7 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
 import { type BasicProjectDataDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
 import { type UserData, type UserDTO, type UserRepository } from '@domains/user';
-import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException, UnauthorizedException } from '@utils';
+import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type OrganizationDTO } from '@domains/organization/dto';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -9,7 +9,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type IntegrationParams, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
@@ -55,7 +55,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     Logger.timeEnd(`Verifications`);
 
     try {
-      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId, issueProviderName }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
+      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => await this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId, issueProviderName }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
         ConflictException,
         PrismaClientKnownRequestError,
         PrismaClientUnknownRequestError,
@@ -145,17 +145,14 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {UnauthorizedException} - Thrown if the API key is not valid for the provided email.
    */
   async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
+    let userEmail: string;
     try {
-      const userEmail = await this.adapter.getMyEmail(apiKey);
-      if (userEmail !== pmEmail) {
-        throw new Error();
-      }
+      userEmail = await this.adapter.getMyEmail(apiKey);
     } catch (e) {
-      if (e instanceof LinearIntegrationException) {
-        throw e;
-      } else {
-        throw new UnauthorizedException('401', 'Linear api key is not valid');
-      }
+      throw new LinearIntegrationException(400, 'Linear api key is not valid');
+    }
+    if (userEmail !== pmEmail) {
+      throw new NotFoundException('User');
     }
   }
 
@@ -256,23 +253,24 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
     await this.verifyProjectDuplication(authReq.projectId);
 
-    const integrator = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
-    const project = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
-    const admins = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
+    const integrator: UserData = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
+    const project: BasicProjectDataDTO = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
+    const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
     }
-    const pendingAuth = await this.integrationRepository.createIntegrationProjectRequest(authReq);
+    const pendingAuth: PendingProjectAuthorizationDTO = await this.integrationRepository.createIntegrationProjectRequest(authReq);
     const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
-    if (adminIntegrator === undefined) {
+    const pmIsAdmin: boolean = adminIntegrator !== undefined;
+    if (!pmIsAdmin) {
       for (const admin of admins) {
         const token = jwt.sign({ adminId: admin.id }, process.env.AUTHORIZATION_SECRET!, { expiresIn: '7 days' });
-        const variables = this.createEmailVariables(token, project, integrator);
+        const variables: AuthorizationEmailVariables = this.createEmailVariables(token, project, integrator);
         await this.emailService.sendAuthorizationMail(admin.email, variables);
       }
     }
 
-    return { pendingProject: pendingAuth, pmIsAdmin: adminIntegrator !== undefined };
+    return { pendingProject: pendingAuth, pmIsAdmin };
   }
 
   /**
@@ -286,8 +284,8 @@ export class IntegrationServiceImpl implements IntegrationService {
       projectId1: project.id,
       projectId2: project.id,
       integratorName: integrator.name,
-      acceptanceUrl: process.env.BACKEND_URL!,
-      denialUrl: process.env.BACKEND_URL!,
+      acceptanceUrl: process.env.FRONTEND_URL!,
+      denialUrl: process.env.FRONTEND_URL!,
     };
   }
 
@@ -307,5 +305,13 @@ export class IntegrationServiceImpl implements IntegrationService {
     const email: string = await this.adapter.getMyEmail(apiKey);
 
     await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
+  }
+
+  async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
+    const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
+    const projectFromLinear: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
+
+    return { pmImage: pm.image, pmName: pm.name, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }
 }

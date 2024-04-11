@@ -1,6 +1,7 @@
 import type { IssueViewDTO } from '@domains/issue';
 import { StageType } from '@prisma/client';
 import { type DevProjectFiltersDTO, type PMProjectFiltersDTO } from '@domains/project/dto';
+import type { UserProjectRoleUpdateInput } from '@domains/userProjectRole/dto';
 
 export const mockIssueViewDTO1: IssueViewDTO = {
   id: 'issue789',
@@ -118,4 +119,12 @@ export const mockPMProjectFilterDTO: PMProjectFiltersDTO = {
       name: 'John Doe',
     },
   ],
+};
+
+export const mockUserProjectRoleUpdateInput: UserProjectRoleUpdateInput = {
+  userId: 'user123',
+  userEmitterId: undefined,
+  projectId: 'Project777',
+  roleId: 'role888',
+  userEmitterCognitoId: 'cognito145',
 };

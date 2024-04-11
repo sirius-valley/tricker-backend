@@ -233,6 +233,17 @@ export const mockUserProjectRoleDTO: UserProjectRoleDTO = {
   deletedAt: null,
 };
 
+export const mockUserProjectRolePMDTO: UserProjectRoleDTO = {
+  id: 'userProjectRole852',
+  userId: 'user123',
+  userEmitterId: 'user123',
+  projectId: 'Project777',
+  roleId: 'role888',
+  createdAt: new Date('2024-03-12T09:00:00Z'),
+  updatedAt: new Date('2024-03-12T09:00:00Z'),
+  deletedAt: null,
+};
+
 export const mockPMRoleDTO: RoleDTO = {
   id: 'role888',
   name: 'Project Manager',

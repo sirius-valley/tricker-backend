@@ -218,6 +218,9 @@ export class AuthorizedMemberDTO {
   readonly email!: string;
 }
 
+/**
+ * DTO that represents the provider api key to query the external API
+ * */
 export class ApiKeyDTO {
   @IsNotEmpty()
   @IsString()
@@ -260,4 +263,43 @@ export interface IntegrationParams {
   authorizedMemberMails: string[];
   organizationId: string;
   issueProviderName: string;
+}
+
+/**
+ * Represents pending project information for linear integration.
+ */
+export class PendingProjectInfoDTO {
+  /** The name of the project. */
+  projectName: string;
+
+  /** The URL of the project's image, if available. */
+  projectImage: string | null;
+
+  /** The name of the Project Manager. */
+  pmName: string;
+
+  /** The URL of the Project Manager's image, if available. */
+  pmImage: string | null;
+
+  /**
+   * Constructs a new PendingProjectInfoDTO object.
+   * @param info - The information object used to initialize the PendingProjectInfoDTO.
+   */
+  constructor(info: PendingProjectInfoDTO) {
+    this.projectName = info.projectName;
+    this.projectImage = info.projectImage;
+    this.pmName = info.pmName;
+    this.pmImage = info.pmImage;
+  }
+}
+
+/**
+ * DTO that represents the name of an issue provider, a URL param of the integration endpoint
+ * */
+export class IssueProviderURLParams {
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }
