@@ -305,6 +305,26 @@
  *       example:
  *         key: "your-api-key-here"
  *         provider: "linear"
+ *
+ *     PendingProjectInfoDTO:
+ *       type: object
+ *       properties:
+ *         projectName:
+ *           type: string
+ *         projectImage:
+ *           type: string
+ *           nullable: true
+ *         pmName:
+ *           type: string
+ *         pmImage:
+ *           type: string
+ *           nullable: true
+ *       example:
+ *         projectName: "Project Name"
+ *         projectImage: "http://example.com/image.jpg"
+ *         pmName: "PM Name"
+ *         pmImage: "http://example.com/pm_image.jpg"
+ *
  * paths:
  *   /api/integration/linear/projects:
  *     post:
@@ -334,13 +354,14 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
- *         '500':
- *           $ref: '#/components/responses/InternalServerErrorException'
+ *
  *   /api/integration/linear/{projectId}/accept:
  *     get:
  *       summary: Integrate a project into Linear
  *       tags:
  *         - "Integration Linear"
+ *       security:
+ *         - bearerAuth: []
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -361,13 +382,14 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
- *         '500':
- *           $ref: '#/components/responses/InternalServerErrorException'
+ *
  *   /api/integration/linear/{projectId}/decline:
  *     get:
  *       summary: Decline integration of a project with Linear provider.
  *       tags:
  *         - Integration Linear
+ *       security:
+ *         - bearerAuth: []
  *       parameters:
  *         - in: path
  *           name: projectId
@@ -390,8 +412,7 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
- *         '500':
- *           $ref: '#/components/responses/InternalServerErrorException'
+ *
  *   /api/integration/linear/project/{id}/members:
  *     post:
  *       summary: Get members of a project
@@ -421,6 +442,7 @@
  *                 type: array
  *                 items:
  *                   $ref: '#/components/schemas/ProjectMemberDataDTO'
+ *
  *   /api/integration/linear/authorization:
  *     post:
  *       summary: Create a pending authorization for project integration.
@@ -449,4 +471,39 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '409':
  *           $ref: '#/components/responses/ConflictException'
+ *
+ *   /api/integration/linear/{projectId}/information:
+ *     get:
+ *       summary: Get pending information of a project for linear integration.
+ *       tags:
+ *         - Integration Linear
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           description: The ID of the project for which information is requested.
+ *         - in: query
+ *           name: token
+ *           required: true
+ *           schema:
+ *             type: string
+ *           description: The token associated with the project for linear integration.
+ *       security:
+ *         - bearerAuth: []
+ *       responses:
+ *         '200':
+ *           description: Pending project information.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/PendingProjectInfoDTO'
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  */

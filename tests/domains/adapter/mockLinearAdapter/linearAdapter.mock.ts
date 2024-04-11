@@ -42,11 +42,11 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
   }
 
   async getMemberById(memberId: string): Promise<UserData> {
-    return { name: 'example member', email: 'uniqueEmail@mail.com' };
+    return { name: 'example member', email: 'uniqueEmail@mail.com', image: null };
   }
 
   async getProjectById(projectId: string): Promise<BasicProjectDataDTO> {
-    return { name: 'example project', id: 'project id' };
+    return { name: 'example project', id: 'project id', projectImage: undefined, projectUrl: 'someUrl' };
   }
 
   async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
