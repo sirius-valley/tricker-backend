@@ -1,5 +1,5 @@
 import { type ProjectService } from '@domains/project/service/project.service';
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectDTO } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, type ProjectDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -41,6 +41,10 @@ export class ProjectServiceImpl implements ProjectService {
     const issues: IssueViewDTO[] = await this.issueRepository.getByProjectId(projectId);
 
     return this.getFilters(issues);
+  }
+
+  async getProjectsListByUserIdFiltered(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
+    return [];
   }
 
   /**

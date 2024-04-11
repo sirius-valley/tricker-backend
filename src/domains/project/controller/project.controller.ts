@@ -32,3 +32,9 @@ projectRouter.get('/:projectId/filters/dev', validateRequest(ProjectIdParamDTO, 
 
   return res.status(HttpStatus.OK).json(filters);
 });
+/*
+projectRouter.get('/myProjects', validateRequest(KeyPhraseParamDTO, 'query'), async(req: Request<any, any, any, KeyPhraseParamDTO>, res: Response) => {
+  const { name } = req.query;
+
+  const projects = await service.
+}) */

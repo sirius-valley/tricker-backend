@@ -1,4 +1,4 @@
-import { IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
@@ -62,6 +62,7 @@ export interface BasicProjectDataDTO {
   /** The unique identifier of the project. */
   id: string;
 
+  /** The project url of the provider. */
   projectUrl: string;
 
   projectImage?: string;
@@ -145,4 +146,42 @@ export interface ProjectCreationInput {
 export enum ProjectRole {
   PROJECT_MANAGER = 'Project Manager',
   DEVELOPER = 'Developer',
+}
+
+/**
+ * Represents the project name for the project filter.
+ */
+export class KeyPhraseParamDTO {
+  @IsString()
+  @IsNotEmpty()
+  projectName?: string;
+}
+
+/**
+ * DTO defining a basic data from a project
+ */
+export class ProjectBasicDTO {
+  /** The name of the project. */
+  name: string;
+
+  /** The unique identifier of the project. */
+  id: string;
+
+  /** The project url of the provider. */
+  projectImage?: string;
+
+  /**
+   * Constructs a new instance of the ProjectBasicDTO class.
+   * @param {ProjectBasicDTO} project - The project.
+   */
+  constructor(project: ProjectBasicDTO) {
+    this.id = project.id;
+    this.name = project.name;
+    this.projectImage = project.projectImage;
+  }
+}
+
+export interface ProjectsFilterInput {
+  userId: string;
+  projectName?: string;
 }
