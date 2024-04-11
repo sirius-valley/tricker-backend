@@ -64,12 +64,12 @@ integrationRouter.get('/:issueProviderName/:projectId/accept', validateRequest(P
 
 integrationRouter.post('/:issueProviderName/authorization', validateRequest(IssueProviderURLParams, 'params'), validateRequest(AuthorizationRequestDTO, 'body'), async (_req: Request<any, any, AuthorizationRequestDTO>, res: Response) => {
   const authorizationReq = _req.body;
-  // const { issueProviderName } = _req.params as IssueProviderURLParams;
+  const { issueProviderName } = _req.params as IssueProviderURLParams;
 
   const { pmIsAdmin } = await service.createPendingAuthorization(authorizationReq);
   if (pmIsAdmin) {
     res.status(HttpStatus.CREATED).json(pmIsAdmin);
-    await service.integrateProject(authorizationReq.projectId);
+    await service.integrateProject(authorizationReq.projectId, issueProviderName);
   } else {
     return res.status(HttpStatus.CREATED).json(pmIsAdmin);
   }
