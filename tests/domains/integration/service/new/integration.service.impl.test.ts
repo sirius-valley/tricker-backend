@@ -40,7 +40,6 @@ import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationC
 import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
 import { mockProjectDTO, mockUserDTO } from '../../../issue/mockData';
-import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 import jwt from 'jsonwebtoken';
 
 describe('integration service tests', () => {
@@ -53,23 +52,11 @@ describe('integration service tests', () => {
   const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
   const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
   const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
-  const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
   let testedService: IntegrationService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    testedService = new IntegrationServiceImpl(
-      adapterMock,
-      projectRepositoryMock,
-      userRepositoryMock,
-      pendingAuthProjectRepositoryMock,
-      pendingMemberMailsRepositoryMock,
-      organizationRepositoryMock,
-      administratorRepositoryMock,
-      integrationRepositoryMock,
-      emailServiceMock,
-      issueProviderRepositoryMock
-    );
+    testedService = new IntegrationServiceImpl(adapterMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
   });
 
   describe('declineProject method', () => {

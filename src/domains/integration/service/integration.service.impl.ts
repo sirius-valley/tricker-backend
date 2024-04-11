@@ -19,7 +19,6 @@ import process from 'process';
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
 import { retry } from '@utils/retry';
 import { type AdministratorDTO } from '@domains/administrator/dto';
-import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -31,8 +30,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly organizationRepository: OrganizationRepository,
     private readonly administratorRepository: AdministratorRepository,
     private readonly integrationRepository: IntegrationRepository,
-    private readonly emailService: EmailService,
-    private readonly issueProviderRepository: IssueProviderRepository
+    private readonly emailService: EmailService
   ) {}
 
   /**

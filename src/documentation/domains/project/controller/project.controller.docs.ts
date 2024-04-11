@@ -1,23 +1,29 @@
 /**
  * @swagger
  * paths:
- *   /me:
+ *   /api/projects/{projectId}:
  *     get:
- *       summary: Get my project view data
- *       description: Retrieves information about projects (and its members) associated with the logged-in user.
+ *       summary: Get project info with members. Roles included when the requester is a PM.
+ *       description: Retrieves information about projects (and its members) associated with the logged-in user. Roles included when the requester is a PM.
  *       tags:
  *         - Project
  *       security:
  *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: The ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
  *       responses:
  *         '200':
  *           description: OK
  *           content:
  *             application/json:
  *               schema:
- *                 type: array
- *                 items:
- *                   $ref: '#/components/schemas/ProjectViewDTO'
+ *                 $ref: '#/components/schemas/ProjectViewDTO'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':

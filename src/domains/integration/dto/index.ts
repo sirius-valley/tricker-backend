@@ -118,6 +118,11 @@ export class LinearMembersPreIntegrationParams {
   @IsUUID()
   readonly id!: string;
 
+  /**
+   * Issue provider name for member retrieval
+   * @type {string}
+   * @example "Linear"
+   * */
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()

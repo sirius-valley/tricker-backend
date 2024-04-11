@@ -17,7 +17,6 @@ import { LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetrie
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
-import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 
 require('express-async-errors');
 
@@ -33,8 +32,7 @@ const organizationRepository: OrganizationRepository = new OrganizationRepositor
 const emailService: EmailService = new MailgunEmailService(mailgunClient);
 const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
 const integrationRepository: IntegrationRepository = new IntegrationRepositoryImpl(db);
-const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService, issueProviderRepository);
+const service: IntegrationService = new IntegrationServiceImpl(adapter, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService);
 
 integrationRouter.post('/:issueProviderName/projects', validateRequest(IssueProviderURLParams, 'params'), validateRequest(ApiKeyDTO, 'body'), async (req: Request<any, any, ApiKeyDTO>, res: Response) => {
   const { key } = req.body;
@@ -82,7 +80,7 @@ integrationRouter.get('/:issueProviderName/:projectId/decline', validateRequest(
 });
 
 integrationRouter.get(
-  '/linear/:projectId/information',
+  '/:issueProviderName/:projectId/information',
   validateRequest(IssueProviderURLParams, 'params'),
   validateRequest(ProjectIdIntegrationInputDTO, 'params'),
   validateRequest(MailToken, 'query'),
