@@ -114,7 +114,7 @@ describe('project service tests', () => {
     it('should throw NotFoundException if user is not found', async () => {
       const userId = 'user-123';
       const projectId = 'project-456';
-      userRepositoryMock.getById.mockResolvedValueOnce(null);
+      userRepositoryMock.getByCognitoId.mockResolvedValueOnce(null);
 
       try {
         await projectService.getMyProjectView({ userId, projectId });
@@ -123,8 +123,8 @@ describe('project service tests', () => {
         expect(e.message).toBe("Not found. Couldn't find User");
       }
 
-      expect(userRepositoryMock.getById).toHaveBeenCalledTimes(1);
-      expect(userRepositoryMock.getById).toHaveBeenCalledWith(userId);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).not.toHaveBeenCalled();
     });
 
@@ -132,7 +132,7 @@ describe('project service tests', () => {
       const userId = 'user-123';
       const projectId = 'project-456';
       const user = { id: userId, name: 'John Doe' } as unknown as UserDTO;
-      userRepositoryMock.getById.mockResolvedValueOnce(user);
+      userRepositoryMock.getByCognitoId.mockResolvedValueOnce(user);
       projectRepositoryMock.getProjectDetails.mockResolvedValueOnce(null);
 
       try {
@@ -142,8 +142,8 @@ describe('project service tests', () => {
         expect(e.message).toBe("Not found. Couldn't find Project");
       }
 
-      expect(userRepositoryMock.getById).toHaveBeenCalledTimes(1);
-      expect(userRepositoryMock.getById).toHaveBeenCalledWith(userId);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
     });
@@ -200,23 +200,17 @@ describe('project service tests', () => {
         users: [{ name: user.name, email: user.email, image: user.profileImage, role: project.usersAndRoles[0].role }],
       };
 
-      userRepositoryMock.getById.mockResolvedValueOnce(user);
+      userRepositoryMock.getByCognitoId.mockResolvedValueOnce(user);
       projectRepositoryMock.getProjectDetails.mockResolvedValueOnce(project);
 
       const result = await projectService.getMyProjectView({ userId, projectId });
 
       expect(result).toEqual(expectedProjectView);
 
-      expect(userRepositoryMock.getById).toHaveBeenCalledTimes(1);
-      expect(userRepositoryMock.getById).toHaveBeenCalledWith(userId);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
+      expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
     });
-
-    // it('returns MyProjectViewDTO with user details without role if user is not a Project Manager', async () => {
-    //   const userId = 'user-123';
-    //   const projectId = 'project-456';
-    //   const user = { id: userId, name }
-    // })
   });
 });
