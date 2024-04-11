@@ -3,7 +3,7 @@ import { type AuthorizationRequestDTO } from '@domains/integration/dto';
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import type { PrismaClient } from '@prisma/client';
 import { encryptData, Logger } from '@utils';
-import { type ProjectCreationInput, ProjectDTO } from '@domains/project/dto';
+import { type IntegratedProjectCreationInput, ProjectDTO } from '@domains/project/dto';
 
 export class IntegrationRepositoryImpl implements IntegrationRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -41,10 +41,10 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
   /**
    * Creates a new integrated project in the database.
    *
-   * @param {ProjectCreationInput} input - The input data for creating the project.
+   * @param {IntegratedProjectCreationInput} input - The input data for creating the project.
    * @returns {Promise<ProjectDTO>} - A promise that resolves to a ProjectDTO object representing the created project.
    */
-  async createIntegratedProject(input: ProjectCreationInput): Promise<ProjectDTO> {
+  async createIntegratedProject(input: IntegratedProjectCreationInput): Promise<ProjectDTO> {
     Logger.time('Project Integration TX');
     const newProject = await this.db.$transaction(async (tx) => {
       const newProject = await tx.project.create({
@@ -55,6 +55,12 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
           organization: {
             connect: {
               id: input.organizationId,
+            },
+          },
+          url: input.project.url,
+          issueProvider: {
+            connect: {
+              name: input.issueProviderName,
             },
           },
           usersRoles: {

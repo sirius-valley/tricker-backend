@@ -12,25 +12,25 @@ import { type PendingProjectAuthorizationRepository } from '@domains/pendingProj
 import {
   mockBasicProjectDataDTO,
   mockedAdminEmail,
+  mockedEncryptedToken,
+  mockedGeneratedId,
   mockedIntegratorId,
   mockedIssueProviderId,
+  mockedIssueProviderName,
   mockedMemberName,
   mockedOrganizationId,
+  mockedOrganizationName,
   mockedProjectName,
   mockedProviderProjectId,
-  mockedEncryptedToken,
+  mockedToken,
+  mockedUrl,
   mockPendingProjectAuthorizationDTO,
+  mockProjectMember1,
+  mockProjectMember2,
+  mockProjectMember3,
+  mockProjectMembers,
   mocksAdministratorDTO,
   mockUserDataDTO,
-  mockedToken,
-  mockedGeneratedId,
-  mockedIssueProviderName,
-  mockedOrganizationName,
-  mockedUrl,
-  mockProjectMembers,
-  mockProjectMember1,
-  mockProjectMember3,
-  mockProjectMember2,
 } from './mockData';
 import { AuthorizationRequestDTO, AuthorizedMemberDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
@@ -39,6 +39,7 @@ import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationC
 import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
 import { mockUserDTO } from '../../../issue/mockData';
+import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 
 describe('integration service tests', () => {
   const adapterMock: MockProxy<ProjectManagementToolAdapter> = mock<ProjectManagementToolAdapter>();
@@ -50,11 +51,23 @@ describe('integration service tests', () => {
   const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
   const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
   const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
+  const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
   let testedService: IntegrationService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    testedService = new IntegrationServiceImpl(adapterMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
+    testedService = new IntegrationServiceImpl(
+      adapterMock,
+      projectRepositoryMock,
+      userRepositoryMock,
+      pendingAuthProjectRepositoryMock,
+      pendingMemberMailsRepositoryMock,
+      organizationRepositoryMock,
+      administratorRepositoryMock,
+      integrationRepositoryMock,
+      emailServiceMock,
+      issueProviderRepositoryMock
+    );
   });
 
   describe('declineProject method', () => {

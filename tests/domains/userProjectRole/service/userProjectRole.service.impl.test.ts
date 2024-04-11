@@ -42,6 +42,9 @@ beforeEach(() => {
     emittedUserProjectRole: [],
   });
   project = new ProjectDTO({
+    issueProviderId: 'issueId-1234',
+    updatedAt: new Date(),
+    url: 'url.url',
     id: 'idP',
     providerId: 'pId',
     organizationId: 'oId',

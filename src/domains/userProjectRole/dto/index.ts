@@ -45,15 +45,12 @@ export class UserProjectRoleDTO {
  * This class extends UserProjectRoleDTO and includes additional information about the user, project, and role.
  *
  */
-export class ExtendedUserProjectRoleDTO extends UserProjectRoleDTO {
+export class UserRoleDTO extends UserProjectRoleDTO {
   /**
    * DTO representing the user basic data associated with the project and the role.
    */
   user: BasicUserDTO;
-  /**
-   * DTO representing the project associated with the user and the role.
-   */
-  project: ProjectDTO;
+
   /**
    * DTO representing the user's role in the project.
    */
@@ -62,12 +59,11 @@ export class ExtendedUserProjectRoleDTO extends UserProjectRoleDTO {
   /**
    * Constructor for ExtendedUserProjectRoleDTO class.
    *
-   * @param {ExtendedUserProjectRoleDTO} input - Data used to populate the DTO.
+   * @param {UserRoleDTO} input - Data used to populate the DTO.
    */
-  constructor(input: ExtendedUserProjectRoleDTO) {
+  constructor(input: UserRoleDTO) {
     super(input);
     this.user = input.user;
-    this.project = input.project;
     this.role = input.role;
   }
 }

@@ -19,6 +19,7 @@ import process from 'process';
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
 import { retry } from '@utils/retry';
 import { type AdministratorDTO } from '@domains/administrator/dto';
+import { type IssueProviderRepository } from '@domains/issueProvider/repository';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -30,17 +31,19 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly organizationRepository: OrganizationRepository,
     private readonly administratorRepository: AdministratorRepository,
     private readonly integrationRepository: IntegrationRepository,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly issueProviderRepository: IssueProviderRepository
   ) {}
 
   /**
    * Integrate a project into Tricker platform.
    * @param projectId {string} The ID of the project to integrate.
+   * @param issueProviderName {string} The name of the issue provider to be used to integrate.
    * @returns {ProjectDTO} The integrated project.
    * @throws {ConflictException} If the project has already been integrated or is inactive.
    * @throws {NotFoundException} If any related entities (organization, pending project) are not found.
    */
-  async integrateProject(projectId: string): Promise<ProjectDTO> {
+  async integrateProject(projectId: string, issueProviderName: string): Promise<ProjectDTO> {
     Logger.time('Verifications');
     // verify if project has not been integrated
     await this.verifyProjectDuplication(projectId);
@@ -52,7 +55,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     Logger.timeEnd(`Verifications`);
 
     try {
-      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
+      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId, issueProviderName }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
         ConflictException,
         PrismaClientKnownRequestError,
         PrismaClientUnknownRequestError,
@@ -74,7 +77,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     }
   }
 
-  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail }: IntegrationParams): Promise<ProjectDTO> {
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName }: IntegrationParams): Promise<ProjectDTO> {
     Logger.time('Provider project data adaptation');
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({
       providerProjectId: projectId,
@@ -92,6 +95,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       project: projectData,
       organizationId,
       integratorEmail,
+      issueProviderName,
     });
 
     Logger.complete(`Integration finished`);

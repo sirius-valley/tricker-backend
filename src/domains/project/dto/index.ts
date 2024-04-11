@@ -3,6 +3,8 @@ import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 import type { RoleDTO } from '@domains/role/dto';
+import type { UserRoleDTO } from '@domains/userProjectRole/dto';
+import type { IssueProviderDTO } from '@domains/issueProvider/dto';
 
 /**
  * Data Transfer Object representing a partial view of the project, only principal data.
@@ -124,9 +126,9 @@ export class PMProjectFiltersDTO extends DevProjectFiltersDTO {
 /**
  * Interface defining the structure of the input data for creating a project.
  *
- * @interface ProjectCreationInput
+ * @interface IntegratedProjectCreationInput
  */
-export interface ProjectCreationInput {
+export interface IntegratedProjectCreationInput {
   /**
    * Array of email addresses of authorized users for the project.
    */
@@ -147,6 +149,10 @@ export interface ProjectCreationInput {
    * Email address of the project integrator/pm.
    */
   integratorEmail: string;
+  /**
+   * Name of the issue provider used to integrate the project.
+   */
+  issueProviderName: string;
 }
 
 /**
@@ -162,7 +168,7 @@ export enum ProjectRole {
  *
  * This interface represents a subset of project data and its members for display purposes.
  */
-export interface ProjectViewDTO {
+export interface MyProjectViewDTO {
   /**
    * ID of the project in the issue provider platform.
    */
@@ -190,7 +196,7 @@ export interface ProjectViewDTO {
   /**
    * Array of ProjectUserViewDTO objects representing users associated with the project.
    */
-  users: ProjectUserViewDTO[];
+  users: MyProjectsUserViewDTO[];
 }
 
 /**
@@ -198,7 +204,7 @@ export interface ProjectViewDTO {
  *
  * This interface represents a subset of user data for display within a project context.
  */
-export interface ProjectUserViewDTO {
+export interface MyProjectsUserViewDTO {
   /**
    * User's name (if available).
    */
@@ -215,4 +221,34 @@ export interface ProjectUserViewDTO {
    * Optional RoleDTO object representing the user's role in the project (if requester is a PM).
    */
   role?: RoleDTO;
+}
+
+/**
+ * Represents detailed information about a project, including associated users and issue provider.
+ *
+ * This class extends `ProjectDTO` to provide additional project details.
+ *
+ * @extends ProjectDTO
+ */
+export class ProjectDetailsDTO extends ProjectDTO {
+  /**
+   * Array of UserRoleDTO objects representing users associated with the project and their roles.
+   */
+  usersAndRoles: UserRoleDTO[];
+
+  /**
+   * An IssueProviderDTO object containing details about the issue provider platform used for the project (optional).
+   */
+  issueProvider: IssueProviderDTO;
+
+  /**
+   * Creates a new ProjectDetailsDTO instance.
+   *
+   * @param {ProjectDetailsDTO} input - An object containing project details.
+   */
+  constructor(input: ProjectDetailsDTO) {
+    super(input);
+    this.usersAndRoles = input.usersAndRoles;
+    this.issueProvider = input.issueProvider;
+  }
 }

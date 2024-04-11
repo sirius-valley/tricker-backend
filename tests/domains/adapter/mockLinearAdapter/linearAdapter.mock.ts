@@ -24,6 +24,7 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
       stages: [],
       labels: [],
       issues: [],
+      url: 'url',
     };
   }
 
