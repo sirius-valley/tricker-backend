@@ -26,7 +26,7 @@ export class ProjectServiceImpl implements ProjectService {
    *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
    */
   async getMyProjectView({ userId, projectId }: GetProjectParams): Promise<MyProjectViewDTO> {
-    const user = await this.userRepository.getById(userId);
+    const user = await this.userRepository.getByCognitoId(userId);
     if (user == null) throw new NotFoundException('User');
 
     const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails(userId, projectId);
