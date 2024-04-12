@@ -3,7 +3,7 @@ import { type AuthorizationRequestDTO, type PendingProjectInfoDTO, type ProjectM
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 
 export interface IntegrationService {
-  integrateProject: (projectId: string) => Promise<ProjectDTO>;
+  integrateProject: (projectId: string, issueProviderName: string) => Promise<ProjectDTO>;
   getMembers: (projectId: string, apiToken: string) => Promise<ProjectMemberDataDTO[]>;
   createPendingAuthorization: (authorizationReq: AuthorizationRequestDTO) => Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }>;
   retrieveProjectsFromProvider: (input: ProjectsPreIntegratedInputDTO) => Promise<ProjectPreIntegratedDTO[]>;

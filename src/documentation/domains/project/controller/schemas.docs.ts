@@ -88,4 +88,58 @@
  *         name: "Backlog"
  *         type: "BACKLOG"
  *         color: "#bec2c8"
+ *
+ *     ProjectViewDTO:
+ *       type: object
+ *       required:
+ *         - providerId
+ *         - image
+ *         - url
+ *         - name
+ *         - issueProviderName
+ *         - updatedAt
+ *         - users
+ *       properties:
+ *         providerId:
+ *           type: string
+ *           description: ID of the project in the external provider system.
+ *         image:
+ *           type: string
+ *           nullable: true
+ *           description: URL of the project image (if available).
+ *         url:
+ *           type: string
+ *           description: URL of the project in the external provider system (if available).
+ *         name:
+ *           type: string
+ *           description: Name of the project.
+ *         issueProviderName:
+ *           type: string
+ *           description: Name of the issue tracker used by the project (if applicable).
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date and time the project information was last updated.
+ *         users:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ProjectUserViewDTO'
+ *           description: Array of ProjectUserViewDTO objects representing users associated with the project.
+ *     ProjectUserViewDTO:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           nullable: true
+ *           description: User's name (optional).
+ *         email:
+ *           type: string
+ *           description: User's email address.
+ *         image:
+ *           type: string
+ *           nullable: true
+ *           description: URL of the user's profile image (optional).
+ *         role:
+ *           $ref: '#/components/schemas/RoleDTO'  # Assuming RoleDTO is defined elsewhere
+ *           description: Optional RoleDTO object representing the user's role in the project (if requester is a PM).
  */

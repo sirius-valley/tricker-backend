@@ -35,7 +35,7 @@ userRouter.post('/getOrCreate', async (_req: Request<any, any, { idToken: string
   return res.status(alreadyExists ? HttpStatus.OK : HttpStatus.CREATED).json(user);
 });
 
-userRouter.post('/:userId/project/:projectId/modification', validateRequest(RoleInputDTO, 'body'), validateRequest(UserProjectInputDTO, 'params'), validateUserIsProjectManager, async (req: Request<UserProjectInputDTO, any, RoleInputDTO>, res: Response) => {
+userRouter.post('/:userId/project/:projectId/modification', validateRequest(RoleInputDTO, 'body'), validateRequest(UserProjectInputDTO, 'params'), validateUserIsProjectManager(), async (req: Request<UserProjectInputDTO, any, RoleInputDTO>, res: Response) => {
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
   const { projectId, userId } = req.params;
   const { roleId } = req.body;

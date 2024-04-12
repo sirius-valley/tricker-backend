@@ -1,6 +1,34 @@
 /**
  * @swagger
  * paths:
+ *   /api/projects/{projectId}:
+ *     get:
+ *       summary: Get project info with members. Roles included when the requester is a PM.
+ *       description: Retrieves information about projects (and its members) associated with the logged-in user. Roles included when the requester is a PM.
+ *       tags:
+ *         - Project
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: The ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *       responses:
+ *         '200':
+ *           description: OK
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ProjectViewDTO'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *
  *   /api/projects/{projectId}/filters/pm:
  *     get:
  *       summary: Retrieve project filters for a project manager.

@@ -7,6 +7,7 @@ import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
+
 require('express-async-errors');
 
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
@@ -31,4 +32,13 @@ projectRouter.get('/:projectId/filters/dev', validateRequest(ProjectIdParamDTO, 
   const filters: DevProjectFiltersDTO = await service.getDevProjectFilters({ projectId, userId: sub });
 
   return res.status(HttpStatus.OK).json(filters);
+});
+
+projectRouter.get('/:projectId', validateRequest(ProjectIdParamDTO, 'params'), async (_req: Request<ProjectIdParamDTO>, res: Response) => {
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+  const { projectId } = _req.params;
+
+  const info = await service.getMyProjectView({ userId: sub, projectId });
+
+  return res.status(200).json(info);
 });

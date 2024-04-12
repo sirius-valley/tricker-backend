@@ -113,6 +113,9 @@ export const mockLogicallyDeletedUserDTO: UserDTO = {
 };
 
 export const mockProjectDTO: ProjectDTO = {
+  issueProviderId: '',
+  updatedAt: new Date(),
+  url: '',
   id: 'Project777',
   name: 'Tricker',
   providerId: 'IdLinear1',
