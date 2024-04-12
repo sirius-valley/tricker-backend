@@ -196,7 +196,7 @@ export class ProjectBasicDTO {
   id: string;
 
   /** The project url of the provider. */
-  projectImage?: string;
+  image?: string;
 
   /**
    * Constructs a new instance of the ProjectBasicDTO class.
@@ -205,7 +205,7 @@ export class ProjectBasicDTO {
   constructor(project: ProjectBasicDTO) {
     this.id = project.id;
     this.name = project.name;
-    this.projectImage = project.projectImage;
+    this.image = project.image;
   }
 }
 

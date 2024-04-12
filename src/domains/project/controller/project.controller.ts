@@ -2,7 +2,7 @@ import { type Request, type Response, Router } from 'express';
 import { db, validateRequest, validateUserIsProjectManager } from '@utils';
 import HttpStatus from 'http-status';
 import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue';
-import { type DevProjectFiltersDTO, KeyPhraseParamDTO, type PMProjectFiltersDTO, ProjectIdParamDTO } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, KeyPhraseParamDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, ProjectIdParamDTO } from '@domains/project/dto';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
@@ -36,7 +36,7 @@ projectRouter.get('/:projectId/filters/dev', validateRequest(ProjectIdParamDTO, 
 projectRouter.get('/', validateRequest(KeyPhraseParamDTO, 'query'), async (req: Request<any, any, any, KeyPhraseParamDTO>, res: Response) => {
   const { projectName } = req.query;
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
-  const projects = await service.getProjectsListByUserIdFiltered({ projectName, userId: sub });
+  const projects: ProjectBasicDTO[] = await service.getProjectsListByUserIdFiltered({ projectName, userId: sub });
 
   return res.status(HttpStatus.OK).json(projects);
 });
