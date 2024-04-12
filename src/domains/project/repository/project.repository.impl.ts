@@ -118,128 +118,128 @@ export class ProjectRepositoryImpl implements ProjectRepository {
    */
   async delete(projectId: string): Promise<string> {
     const project = await this.db.$transaction(async (tx) => {
+      await tx.userProjectRole.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.projectLabel.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.projectStage.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issue.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.manualTimeModification.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.timeTracking.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issueChangeLog.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issueCustomFields.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.blockerStatusModification.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
       const project = await tx.project.update({
         where: {
           id: projectId,
           deletedAt: null,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.userProjectRole.updateMany({
-        where: {
-          project: {
-            id: projectId,
-            deletedAt: null,
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.projectLabel.updateMany({
-        where: {
-          project: {
-            id: projectId,
-            deletedAt: null,
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.projectStage.updateMany({
-        where: {
-          project: {
-            id: projectId,
-            deletedAt: null,
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.issue.updateMany({
-        where: {
-          project: {
-            id: projectId,
-            deletedAt: null,
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.manualTimeModification.updateMany({
-        where: {
-          issue: {
-            project: {
-              id: projectId,
-              deletedAt: null,
-            },
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.timeTracking.updateMany({
-        where: {
-          issue: {
-            project: {
-              id: projectId,
-              deletedAt: null,
-            },
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.issueChangeLog.updateMany({
-        where: {
-          issue: {
-            project: {
-              id: projectId,
-              deletedAt: null,
-            },
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.issueCustomFields.updateMany({
-        where: {
-          issue: {
-            project: {
-              id: projectId,
-              deletedAt: null,
-            },
-          },
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      tx.blockerStatusModification.updateMany({
-        where: {
-          issue: {
-            project: {
-              id: projectId,
-              deletedAt: null,
-            },
-          },
         },
         data: {
           deletedAt: new Date(),
