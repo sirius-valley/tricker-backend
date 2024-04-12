@@ -47,7 +47,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
    * @param {string} userId - ID of the user requesting project details (used for access control).
    * @returns {Promise<ProjectDetailsDTO | null>} - Promise resolving to a ProjectDetailsDTO object if found and user has access, otherwise null.
    */
-  async getProjectDetails(projectId: string, userId: string): Promise<ProjectDetailsDTO | null> {
+  async getProjectDetails(userId: string, projectId: string): Promise<ProjectDetailsDTO | null> {
     const details = await this.db.project.findFirst({
       where: {
         AND: [
@@ -65,7 +65,6 @@ export class ProjectRepositoryImpl implements ProjectRepository {
       },
       include: {
         usersRoles: {
-          select: {},
           include: {
             user: true,
             role: {

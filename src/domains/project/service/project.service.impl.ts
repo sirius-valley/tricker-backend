@@ -29,11 +29,11 @@ export class ProjectServiceImpl implements ProjectService {
     const user = await this.userRepository.getByCognitoId(userId);
     if (user == null) throw new NotFoundException('User');
 
-    const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails(userId, projectId);
+    const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails(user.id, projectId);
     if (project == null) throw new NotFoundException('Project');
 
     const pmUserAndRole: UserRoleDTO | undefined = project.usersAndRoles.find((userAndRole) => userAndRole.role.name === ProjectRole.PROJECT_MANAGER);
-    const currentUserIsPm: boolean = pmUserAndRole !== undefined && pmUserAndRole.user.id === userId;
+    const currentUserIsPm: boolean = pmUserAndRole !== undefined && pmUserAndRole.user.id === user.id;
 
     return {
       providerId: project.providerId,
