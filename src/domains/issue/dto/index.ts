@@ -4,6 +4,7 @@ import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
 import { type UserIssueDTO } from '@domains/user';
 import { IsTodayOrAfterToday } from '@utils';
 import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { Transform } from 'class-transformer';
 
 export class IssueDTO {
   id: string;
@@ -353,6 +354,7 @@ export class PMOptionalIssueFiltersDTO {
    */
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   name?: string;
 }
 
@@ -401,6 +403,7 @@ export class DevOptionalIssueFiltersDTO {
    */
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   name?: string;
 }
 

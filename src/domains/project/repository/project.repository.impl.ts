@@ -1,5 +1,5 @@
 import { type ProjectRepository } from '@domains/project/repository/project.repository';
-import { ProjectDetailsDTO, ProjectDTO } from '@domains/project/dto';
+import { ProjectDetailsDTO, ProjectDTO, ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type PrismaClient, type Project } from '@prisma/client';
 import { UserRoleDTO } from '@domains/userProjectRole/dto';
 import { BasicUserDTO } from '@domains/user';
@@ -102,5 +102,28 @@ export class ProjectRepositoryImpl implements ProjectRepository {
               })
           ),
         });
+  }
+
+  /**
+   * Retrieves projects based on the provided filter input.
+   * @param input - The input object containing the filter criteria.
+   * @returns An array of ProjectBasicDTO objects representing the retrieved projects.
+   */
+  async getProjectsByUserId(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
+    const projects = await this.db.project.findMany({
+      where: {
+        usersRoles: {
+          some: {
+            userId: input.userId,
+          },
+        },
+        name: {
+          contains: input.projectName ?? '',
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    return projects.map((project) => new ProjectBasicDTO(project));
   }
 }

@@ -4,7 +4,7 @@ import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import { type EventData } from '@domains/event/dto';
 import { type AdaptProjectDataInput } from '@domains/adapter/dto';
 import { type UserData } from '@domains/user';
-import { type BasicProjectDataDTO } from '@domains/project/dto';
+import { type BasicProjectDataInput } from '@domains/project/dto';
 
 export class LinearAdapterMock implements ProjectManagementToolAdapter {
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
@@ -46,7 +46,7 @@ export class LinearAdapterMock implements ProjectManagementToolAdapter {
     return { name: 'example member', email: 'uniqueEmail@mail.com', image: null };
   }
 
-  async getProjectById(projectId: string): Promise<BasicProjectDataDTO> {
+  async getProjectById(projectId: string): Promise<BasicProjectDataInput> {
     return { name: 'example project', id: 'project id', projectImage: undefined, projectUrl: 'someUrl' };
   }
 

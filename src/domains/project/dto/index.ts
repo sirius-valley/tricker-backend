@@ -1,10 +1,11 @@
-import { IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 import type { RoleDTO } from '@domains/role/dto';
 import type { UserRoleDTO } from '@domains/userProjectRole/dto';
 import type { IssueProviderDTO } from '@domains/issueProvider/dto';
+import { Transform } from 'class-transformer';
 
 /**
  * Data Transfer Object representing a partial view of the project, only principal data.
@@ -40,7 +41,7 @@ export class ProjectDTO {
   deletedAt: Date | null;
 
   /**
-   * Date and time the project was sincronized with the integrated platform
+   * Date and time the project was synchronized with the integrated platform
    * */
   updatedAt: Date;
 
@@ -76,15 +77,17 @@ export class ProjectDTO {
 /**
  * Interface defining the structure of basic project data.
  */
-export interface BasicProjectDataDTO {
+export interface BasicProjectDataInput {
   /** The name of the project. */
   name: string;
 
   /** The unique identifier of the project. */
   id: string;
 
+  /** The project url of the provider. */
   projectUrl: string;
 
+  /** The project image. */
   projectImage?: string;
 }
 
@@ -173,6 +176,51 @@ export enum ProjectRole {
 }
 
 /**
+ * Represents the project name for the project filter.
+ */
+export class KeyPhraseParamDTO {
+  @IsString()
+  @IsNotEmpty()
+  @Transform(({ value }) => value.trim())
+  projectName?: string;
+}
+
+/**
+ * DTO defining a basic data from a project
+ */
+export class ProjectBasicDTO {
+  /** The name of the project. */
+  name: string;
+
+  /** The unique identifier of the project. */
+  id: string;
+
+  /** The project url of the provider. */
+  projectImage?: string;
+
+  /**
+   * Constructs a new instance of the ProjectBasicDTO class.
+   * @param {BasicProjectDataInput} project - The project.
+   */
+  constructor(project: ProjectBasicDTO) {
+    this.id = project.id;
+    this.name = project.name;
+    this.projectImage = project.projectImage;
+  }
+}
+
+/**
+ * Input object for filtering projects.
+ */
+export interface ProjectsFilterInput {
+  /** The ID of the user. */
+  userId: string;
+
+  /** (Optional) The name of the project to filter by. */
+  projectName?: string;
+}
+
+/**
  * Interface defining the structure of a partial view of a project.
  *
  * This interface represents a subset of project data and its members for display purposes.
@@ -199,7 +247,7 @@ export interface MyProjectViewDTO {
    */
   issueProviderName: string;
   /**
-   * Date and time the project information was syncronized with issue provider platform.
+   * Date and time the project information was synchronized with issue provider platform.
    */
   updatedAt: Date;
   /**

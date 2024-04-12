@@ -1,6 +1,6 @@
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type UserData } from '@domains/user';
-import { type BasicProjectDataDTO } from '@domains/project/dto';
+import { type BasicProjectDataInput } from '@domains/project/dto';
 import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
 import type { PendingProjectInfoDTO, ProjectMemberDataDTO } from '@domains/integration/dto';
@@ -38,7 +38,7 @@ export const mockUserDataDTO: UserData = {
   image: null,
 };
 
-export const mockBasicProjectDataDTO: BasicProjectDataDTO = {
+export const mockBasicProjectDataDTO: BasicProjectDataInput = {
   name: mockedProjectName,
   id: mockedProviderProjectId,
   projectUrl: 'someUrl',
