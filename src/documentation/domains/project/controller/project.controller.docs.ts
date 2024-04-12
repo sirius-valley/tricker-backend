@@ -89,4 +89,40 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *
+ *   /api/projects/user/{userId}:
+ *     get:
+ *       summary: "Get projects filtered by user"
+ *       tags:
+ *         - "Project"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: userId
+ *           required: true
+ *           description: The ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *         - in: query
+ *           name: projectName
+ *           schema:
+ *             type: string
+ *           description: "Name of the project to filter by"
+ *       responses:
+ *         '200':
+ *           description: "List of projects filtered by user"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: "#/components/schemas/ProjectBasicDTO"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  */

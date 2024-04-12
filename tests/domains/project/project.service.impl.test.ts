@@ -2,8 +2,8 @@ import { issueRepositoryMock, projectRepositoryMock, userRepositoryMock } from '
 import { NotFoundException } from '@utils';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { mockProjectDTO, mockUserDTO } from '../issue/mockData';
-import { mockDevProjectFilterDTO, mockIssueViewDTO1, mockIssueViewDTO2, mockIssueViewDTO3, mockPMProjectFilterDTO } from './mockData';
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO } from '@domains/project/dto';
+import { mockDevProjectFilterDTO, mockIssueViewDTO1, mockIssueViewDTO2, mockIssueViewDTO3, mockPMProjectFilterDTO, mockProjectBasicDTO, mockProjectsFilterInput } from './mockData';
+import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectBasicDTO } from '@domains/project/dto';
 
 describe('project service tests', () => {
   let projectService: ProjectService;
@@ -103,6 +103,31 @@ describe('project service tests', () => {
       expect(expected.stages[1]).toEqual(received.stages[1]);
       expect(expected.assignees.length).toEqual(received.assignees.length);
       expect(expected.assignees[1]).toEqual(received.assignees[1]);
+    });
+  });
+
+  describe('getProjectsListByUserIdFiltered method', () => {
+    it('should successfully get a list of projects for an specific user', async (): Promise<void> => {
+      // given
+      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getProjectsByUserId.mockResolvedValue([mockProjectBasicDTO]);
+      const expected: ProjectBasicDTO[] = [mockProjectBasicDTO];
+      // when
+      const received: ProjectBasicDTO[] = await projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput);
+      // then
+      expect.assertions(3);
+      expect(expected.length).toEqual(received.length);
+      expect(expected[0].id).toEqual(received[0].id);
+      expect(expected[0].name).toEqual(received[0].name);
+    });
+
+    it('should throw NotFoundException when user is logically deleted', async (): Promise<void> => {
+      // given - when
+      userRepositoryMock.getById.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
+      // then
+      expect.assertions(2);
+      await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow(NotFoundException);
+      await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow("Not found. Couldn't find User");
     });
   });
 });

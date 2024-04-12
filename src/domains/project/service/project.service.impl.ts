@@ -43,8 +43,19 @@ export class ProjectServiceImpl implements ProjectService {
     return this.getFilters(issues);
   }
 
+  /**
+   * Retrieves a filtered list of projects for a user.
+   * @param input - The input object containing the filter criteria.
+   * @returns An array of ProjectBasicDTO objects representing the filtered projects.
+   * @throws NotFoundException when the user is not found or deleted.
+   */
   async getProjectsListByUserIdFiltered(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
-    return [];
+    const user: UserDTO | null = await this.userRepository.getById(input.userId);
+    if (user === null || user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+
+    return await this.projectRepository.getProjectsByUserId(input);
   }
 
   /**
