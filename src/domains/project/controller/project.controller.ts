@@ -38,7 +38,16 @@ projectRouter.get('/:projectId', validateRequest(ProjectIdParamDTO, 'params'), a
   const { sub } = res.locals.context as CognitoAccessTokenPayload;
   const { projectId } = _req.params;
 
-  const info = await service.getMyProjectView({ userId: sub, projectId });
+  const info = await service.getMyProjectView({ cognitoId: sub, projectId });
 
-  return res.status(200).json(info);
+  return res.status(HttpStatus.OK).json(info);
+});
+
+projectRouter.delete('/:projectId', validateRequest(ProjectIdParamDTO, 'params'), async (_req: Request<ProjectIdParamDTO>, res: Response) => {
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+  const { projectId } = _req.params;
+
+  const id = await service.deleteProject({ cognitoId: sub, projectId });
+
+  return res.status(HttpStatus.NO_CONTENT).send(`The project with id: ${id} was successfully deleted.`);
 });

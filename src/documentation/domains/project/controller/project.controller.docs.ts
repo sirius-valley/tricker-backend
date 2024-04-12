@@ -117,4 +117,36 @@
  *           $ref: '#/components/responses/UnauthorizedException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *
+ *   /api/projects/{projectId}/:
+ *     delete:
+ *       summary: Delete a project by ID
+ *       description: Deletes a project with the specified ID.
+ *       tags:
+ *         - Project
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - name: projectId
+ *           in: path
+ *           required: true
+ *           description: The unique identifier of the project to delete.
+ *           schema:
+ *             type: string
+ *       responses:
+ *         '204':
+ *           description: Project deleted successfully.
+ *           content:
+ *             text/plain:
+ *               schema:
+ *                 type: string
+ *                 example: The project with id 123 was successfully deleted.
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '403':
+ *           $ref: '#/components/responses/ForbiddenException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
  */

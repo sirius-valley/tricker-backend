@@ -4,5 +4,6 @@ import { type UserProject } from '@domains/issue';
 export interface ProjectService {
   getDevProjectFilters: (input: UserProject) => Promise<DevProjectFiltersDTO>;
   getPMProjectFilters: (projectId: string) => Promise<PMProjectFiltersDTO>;
-  getMyProjectView: (input: { userId: string; projectId: string }) => Promise<MyProjectViewDTO>;
+  getMyProjectView: (input: { cognitoId: string; projectId: string }) => Promise<MyProjectViewDTO>;
+  deleteProject: (input: { cognitoId: string; projectId: string }) => Promise<string>;
 }

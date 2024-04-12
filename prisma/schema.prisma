@@ -66,10 +66,11 @@ model Issue {
 }
 
 model IssueCustomFields {
-  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  issueId String @db.Uuid
-  name    String
-  value   String
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueId   String    @db.Uuid
+  name      String
+  value     String
+  deletedAt DateTime?
 
   issue Issue @relation(fields: [issueId], references: [id])
 }
@@ -125,6 +126,7 @@ model TimeTracking {
   issueId   String    @db.Uuid
   startTime DateTime
   endTime   DateTime?
+  deletedAt DateTime?
 
   issue Issue @relation(fields: [issueId], references: [id])
 }
@@ -156,18 +158,20 @@ model BlockerStatusModification {
   createdAt         DateTime  @default(now())
   reason            String
   comment           String
+  deletedAt         DateTime?
 
   issue       Issue @relation(fields: [issueId], references: [id])
   userEmitter User? @relation(fields: [userEmitterId], references: [id])
 }
 
 model ManualTimeModification {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  issueId          String   @db.Uuid
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueId          String    @db.Uuid
   timeAmount       Int
   modificationDate DateTime
   reason           String
-  createdAt        DateTime @default(now())
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
 
   issue Issue @relation(fields: [issueId], references: [id])
 }
@@ -182,6 +186,7 @@ model IssueChangeLog {
   to                String?
   eventRegisteredAt DateTime?
   createdAt         DateTime  @default(now())
+  deletedAt         DateTime?
 
   userEmitter User? @relation(fields: [userEmitterId], references: [id])
   issue       Issue @relation(fields: [issueId], references: [id])
@@ -211,7 +216,6 @@ model ProjectLabel {
   deletedAt DateTime?
 
   project Project @relation(fields: [projectId], references: [id])
-  // label   Label   @relation(fields: [labelId], references: [id])
   issues  Issue[]
 
   @@unique([projectId, name])
