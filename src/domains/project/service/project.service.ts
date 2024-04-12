@@ -1,4 +1,4 @@
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type MyProjectViewDTO } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type UserProject } from '@domains/issue';
 
 export interface ProjectService {
@@ -6,4 +6,5 @@ export interface ProjectService {
   getPMProjectFilters: (projectId: string) => Promise<PMProjectFiltersDTO>;
   getMyProjectView: (input: { cognitoId: string; projectId: string }) => Promise<MyProjectViewDTO>;
   deleteProject: (input: { cognitoId: string; projectId: string }) => Promise<string>;
+  getProjectsListByUserIdFiltered: (input: ProjectsFilterInput) => Promise<ProjectBasicDTO[]>;
 }

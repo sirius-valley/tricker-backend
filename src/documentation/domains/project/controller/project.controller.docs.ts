@@ -118,6 +118,35 @@
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
  *
+ *   /api/projects/:
+ *     get:
+ *       summary: "Get projects filtered by user"
+ *       tags:
+ *         - "Project"
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: query
+ *           name: projectName
+ *           schema:
+ *             type: string
+ *           description: "Name of the project to filter by"
+ *       responses:
+ *         '200':
+ *           description: "List of projects filtered by user"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: "#/components/schemas/ProjectBasicDTO"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *
  *   /api/projects/{projectId}/:
  *     delete:
  *       summary: Delete a project by ID

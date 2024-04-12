@@ -1,5 +1,5 @@
 import { type ProjectService } from '@domains/project/service/project.service';
-import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectDTO, ProjectRole, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -102,6 +102,22 @@ export class ProjectServiceImpl implements ProjectService {
     const issues: IssueViewDTO[] = await this.issueRepository.getByProjectId(projectId);
 
     return this.getFilters(issues);
+  }
+
+  /**
+   * Retrieves a filtered list of projects for a user.
+   * @param input - The input object containing the filter criteria.
+   * @returns An array of ProjectBasicDTO objects representing the filtered projects.
+   * @throws NotFoundException when the user is not found or deleted.
+   */
+  async getProjectsListByUserIdFiltered(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
+    const user: UserDTO | null = await this.userRepository.getByCognitoId(input.userId);
+    if (user === null || user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+    input.userId = user.id;
+
+    return await this.projectRepository.getProjectsByUserId(input);
   }
 
   /**

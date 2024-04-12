@@ -142,4 +142,22 @@
  *         role:
  *           $ref: '#/components/schemas/RoleDTO'  # Assuming RoleDTO is defined elsewhere
  *           description: Optional RoleDTO object representing the user's role in the project (if requester is a PM).
+ *
+ *     ProjectBasicDTO:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: "The name of the project"
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: "The unique identifier of the project"
+ *         projectImage:
+ *           type: string
+ *           description: "The project url of the provider"
+ *       example:
+ *         name: "Tricker"
+ *         id: "d42b1ac8-343f-4b32-bb6b-7e5a09b5596d"
+ *         projectImage: "http://example.com/project1.png"
  */

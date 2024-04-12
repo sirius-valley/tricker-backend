@@ -2,8 +2,8 @@ import { issueRepositoryMock, projectRepositoryMock, userRepositoryMock } from '
 import { NotFoundException } from '@utils';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { mockProjectDTO, mockUserDTO } from '../issue/mockData';
-import { mockDevProjectFilterDTO, mockIssueViewDTO1, mockIssueViewDTO2, mockIssueViewDTO3, mockPMProjectFilterDTO } from './mockData';
-import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO } from '@domains/project/dto';
+import { mockDevProjectFilterDTO, mockIssueViewDTO1, mockIssueViewDTO2, mockIssueViewDTO3, mockPMProjectFilterDTO, mockProjectBasicDTO, mockProjectsFilterInput } from './mockData';
+import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectBasicDTO } from '@domains/project/dto';
 import { type UserDTO } from '@domains/user';
 import { type UserRoleDTO } from '@domains/userProjectRole/dto';
 import { type RoleDTO } from '@domains/role/dto';
@@ -211,6 +211,31 @@ describe('project service tests', () => {
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
+    });
+  });
+
+  describe('getProjectsListByUserIdFiltered method', () => {
+    it('should successfully get a list of projects for an specific user', async (): Promise<void> => {
+      // given
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getProjectsByUserId.mockResolvedValue([mockProjectBasicDTO]);
+      const expected: ProjectBasicDTO[] = [mockProjectBasicDTO];
+      // when
+      const received: ProjectBasicDTO[] = await projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput);
+      // then
+      expect.assertions(3);
+      expect(expected.length).toEqual(received.length);
+      expect(expected[0].id).toEqual(received[0].id);
+      expect(expected[0].name).toEqual(received[0].name);
+    });
+
+    it('should throw NotFoundException when user is logically deleted', async (): Promise<void> => {
+      // given - when
+      userRepositoryMock.getByCognitoId.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
+      // then
+      expect.assertions(2);
+      await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow(NotFoundException);
+      await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow("Not found. Couldn't find User");
     });
   });
 });
