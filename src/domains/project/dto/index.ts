@@ -5,6 +5,7 @@ import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
 import type { RoleDTO } from '@domains/role/dto';
 import type { UserRoleDTO } from '@domains/userProjectRole/dto';
 import type { IssueProviderDTO } from '@domains/issueProvider/dto';
+import { Transform } from 'class-transformer';
 
 /**
  * Data Transfer Object representing a partial view of the project, only principal data.
@@ -40,7 +41,7 @@ export class ProjectDTO {
   deletedAt: Date | null;
 
   /**
-   * Date and time the project was sincronized with the integrated platform
+   * Date and time the project was synchronized with the integrated platform
    * */
   updatedAt: Date;
 
@@ -76,7 +77,7 @@ export class ProjectDTO {
 /**
  * Interface defining the structure of basic project data.
  */
-export interface BasicProjectDataDTO {
+export interface BasicProjectDataInput {
   /** The name of the project. */
   name: string;
 
@@ -86,6 +87,7 @@ export interface BasicProjectDataDTO {
   /** The project url of the provider. */
   projectUrl: string;
 
+  /** The project image. */
   projectImage?: string;
 }
 
@@ -179,6 +181,7 @@ export enum ProjectRole {
 export class KeyPhraseParamDTO {
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => value.trim())
   projectName?: string;
 }
 
@@ -197,7 +200,7 @@ export class ProjectBasicDTO {
 
   /**
    * Constructs a new instance of the ProjectBasicDTO class.
-   * @param {ProjectBasicDTO} project - The project.
+   * @param {BasicProjectDataInput} project - The project.
    */
   constructor(project: ProjectBasicDTO) {
     this.id = project.id;
@@ -206,8 +209,14 @@ export class ProjectBasicDTO {
   }
 }
 
+/**
+ * Input object for filtering projects.
+ */
 export interface ProjectsFilterInput {
+  /** The ID of the user. */
   userId: string;
+
+  /** (Optional) The name of the project to filter by. */
   projectName?: string;
 }
 
@@ -238,7 +247,7 @@ export interface MyProjectViewDTO {
    */
   issueProviderName: string;
   /**
-   * Date and time the project information was syncronized with issue provider platform.
+   * Date and time the project information was synchronized with issue provider platform.
    */
   updatedAt: Date;
   /**

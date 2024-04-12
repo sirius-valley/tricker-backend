@@ -1,5 +1,5 @@
 import { type IntegrationService } from '@domains/integration/service/integration.service';
-import { type BasicProjectDataDTO, type ProjectDTO, ProjectRole } from '@domains/project/dto';
+import { type BasicProjectDataInput, type ProjectDTO, ProjectRole } from '@domains/project/dto';
 import { type UserData, type UserDTO, type UserRepository } from '@domains/user';
 import { ConflictException, decryptData, LinearIntegrationException, Logger, NotFoundException } from '@utils';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
@@ -172,7 +172,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async declineProject(providerProjectId: string): Promise<void> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
-    const project: BasicProjectDataDTO = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
+    const project: BasicProjectDataInput = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
     await this.pendingAuthProjectRepository.delete(pendingProject.id);
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
@@ -252,7 +252,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.verifyProjectDuplication(authReq.projectId);
 
     const integrator: UserData = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
-    const project: BasicProjectDataDTO = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
+    const project: BasicProjectDataInput = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
@@ -274,7 +274,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Method that encapsulates logic for creating the email variables that will be used to send the email
    * */
-  private createEmailVariables(token: string, project: BasicProjectDataDTO, integrator: UserData): AuthorizationEmailVariables {
+  private createEmailVariables(token: string, project: BasicProjectDataInput, integrator: UserData): AuthorizationEmailVariables {
     return {
       acceptanceToken: token,
       denialToken: token,
@@ -299,7 +299,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       throw new ConflictException('Project already being integrated');
     }
     const apiKey: string = decryptData(pendingProject.token);
-    const project: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, apiKey);
+    const project: BasicProjectDataInput = await this.adapter.getProjectById(projectId, apiKey);
     const email: string = await this.adapter.getMyEmail(apiKey);
 
     await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
@@ -308,7 +308,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
-    const projectFromLinear: BasicProjectDataDTO = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
+    const projectFromLinear: BasicProjectDataInput = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
 
     return { pmImage: pm.image, pmName: pm.name, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }

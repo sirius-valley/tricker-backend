@@ -6,7 +6,7 @@ import { type DevProjectFiltersDTO, KeyPhraseParamDTO, type PMProjectFiltersDTO,
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
-import { UserParamDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
+import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 require('express-async-errors');
 
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
@@ -33,10 +33,10 @@ projectRouter.get('/:projectId/filters/dev', validateRequest(ProjectIdParamDTO, 
   return res.status(HttpStatus.OK).json(filters);
 });
 
-projectRouter.get('/user/:userId', validateRequest(KeyPhraseParamDTO, 'query'), validateRequest(UserParamDTO, 'params'), async (req: Request<UserParamDTO, any, any, KeyPhraseParamDTO>, res: Response) => {
+projectRouter.get('/', validateRequest(KeyPhraseParamDTO, 'query'), async (req: Request<any, any, any, KeyPhraseParamDTO>, res: Response) => {
   const { projectName } = req.query;
-  const { userId } = req.params;
-  const projects = await service.getProjectsListByUserIdFiltered({ projectName, userId });
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+  const projects = await service.getProjectsListByUserIdFiltered({ projectName, userId: sub });
 
   return res.status(HttpStatus.OK).json(projects);
 });

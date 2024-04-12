@@ -217,7 +217,7 @@ describe('project service tests', () => {
   describe('getProjectsListByUserIdFiltered method', () => {
     it('should successfully get a list of projects for an specific user', async (): Promise<void> => {
       // given
-      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       projectRepositoryMock.getProjectsByUserId.mockResolvedValue([mockProjectBasicDTO]);
       const expected: ProjectBasicDTO[] = [mockProjectBasicDTO];
       // when
@@ -231,7 +231,7 @@ describe('project service tests', () => {
 
     it('should throw NotFoundException when user is logically deleted', async (): Promise<void> => {
       // given - when
-      userRepositoryMock.getById.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
+      userRepositoryMock.getByCognitoId.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
       // then
       expect.assertions(2);
       await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow(NotFoundException);

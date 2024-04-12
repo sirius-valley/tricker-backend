@@ -1,6 +1,5 @@
 import { type CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserProjectRoleExtendedDTO } from '@domains/userProjectRole/dto';
-import { IsUUID } from 'class-validator';
 
 export type CustomCognitoIdTokenPayload = CognitoIdTokenPayload & {
   name: string;
@@ -163,9 +162,4 @@ export class AssigneeFilterDataDTO {
     this.id = assignee.id;
     this.name = assignee.name;
   }
-}
-
-export class UserParamDTO {
-  @IsUUID()
-  userId!: string;
 }

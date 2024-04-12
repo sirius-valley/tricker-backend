@@ -118,7 +118,7 @@
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
  *
- *   /api/projects/user/{userId}:
+ *   /api/projects/:
  *     get:
  *       summary: "Get projects filtered by user"
  *       tags:
@@ -126,13 +126,6 @@
  *       security:
  *         - bearerAuth: []
  *       parameters:
- *         - in: path
- *           name: userId
- *           required: true
- *           description: The ID of the project.
- *           schema:
- *             type: string
- *             format: uuid
  *         - in: query
  *           name: projectName
  *           schema:

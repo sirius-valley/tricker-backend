@@ -88,10 +88,11 @@ export class ProjectServiceImpl implements ProjectService {
    * @throws NotFoundException when the user is not found or deleted.
    */
   async getProjectsListByUserIdFiltered(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
-    const user: UserDTO | null = await this.userRepository.getById(input.userId);
+    const user: UserDTO | null = await this.userRepository.getByCognitoId(input.userId);
     if (user === null || user.deletedAt !== null) {
       throw new NotFoundException('User');
     }
+    input.userId = user.id;
 
     return await this.projectRepository.getProjectsByUserId(input);
   }
