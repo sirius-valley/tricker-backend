@@ -153,11 +153,11 @@
  *           type: string
  *           format: uuid
  *           description: "The unique identifier of the project"
- *         projectImage:
+ *         image:
  *           type: string
  *           description: "The project url of the provider"
  *       example:
  *         name: "Tricker"
  *         id: "d42b1ac8-343f-4b32-bb6b-7e5a09b5596d"
- *         projectImage: "http://example.com/project1.png"
+ *         image: "http://example.com/project1.png"
  */
