@@ -1,4 +1,4 @@
-import { type GetProjectParams, type ProjectService } from '@domains/project/service/project.service';
+import { type ProjectService } from '@domains/project/service/project.service';
 import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectDTO, ProjectRole, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
@@ -17,7 +17,7 @@ export class ProjectServiceImpl implements ProjectService {
   /**
    * Fetches detailed information about a specific project.
    *
-   * @param {GetProjectParams} input - An object containing user ID and project ID for lookup.
+   * @param input - An object containing user ID and project ID for lookup.
    * @param {string} input.userId - ID of the user requesting project information.
    * @param {string} input.projectId - ID of the project to retrieve details for.
    * @returns {Promise<MyProjectViewDTO>} - Promise resolving to a ProjectViewDTO object with project details.
@@ -25,7 +25,7 @@ export class ProjectServiceImpl implements ProjectService {
    *                                 * 'User': If the user with the provided ID is not found.
    *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
    */
-  async getMyProjectView({ userId, projectId }: GetProjectParams): Promise<MyProjectViewDTO> {
+  async getMyProjectView({ userId, projectId }: { userId: string; projectId: string }): Promise<MyProjectViewDTO> {
     const user = await this.userRepository.getByCognitoId(userId);
     if (user == null) throw new NotFoundException('User');
 
