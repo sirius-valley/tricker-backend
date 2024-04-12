@@ -15,15 +15,17 @@ export class ProjectDataDTO {
   stages: StageData[];
   labels: string[];
   issues: IssueDataDTO[];
+  url: string;
 
-  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: StageData[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
-    this.projectId = projectId;
-    this.projectName = name;
-    this.members = members;
-    this.image = image;
-    this.stages = stages;
-    this.labels = labels;
-    this.issues = issues;
+  constructor(input: ProjectDataDTO) {
+    this.projectId = input.projectId;
+    this.projectName = input.projectName;
+    this.members = input.members;
+    this.image = input.image;
+    this.stages = input.stages;
+    this.labels = input.labels;
+    this.issues = input.issues;
+    this.url = input.url;
   }
 }
 
@@ -63,6 +65,12 @@ export class ProjectIdIntegrationInputDTO {
   @IsString()
   @IsNotEmpty()
   projectId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }
 
 /**
@@ -109,6 +117,17 @@ export class LinearMembersPreIntegrationParams {
    * */
   @IsUUID()
   readonly id!: string;
+
+  /**
+   * Issue provider name for member retrieval
+   * @type {string}
+   * @example "Linear"
+   * */
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }
 
 /**
@@ -204,16 +223,13 @@ export class AuthorizedMemberDTO {
   readonly email!: string;
 }
 
-export class ProviderKeyDTO {
+/**
+ * DTO that represents the provider api key to query the external API
+ * */
+export class ApiKeyDTO {
   @IsNotEmpty()
   @IsString()
   key!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @IsValidIssueProvider()
-  @Transform(({ value }) => value.trim().toUpperCase())
-  provider!: string;
 }
 
 /**
@@ -251,6 +267,7 @@ export interface IntegrationParams {
   pendingProject: PendingProjectAuthorizationDTO;
   authorizedMemberMails: string[];
   organizationId: string;
+  issueProviderName: string;
 }
 
 /**
@@ -279,4 +296,15 @@ export class PendingProjectInfoDTO {
     this.pmName = info.pmName;
     this.pmImage = info.pmImage;
   }
+}
+
+/**
+ * DTO that represents the name of an issue provider, a URL param of the integration endpoint
+ * */
+export class IssueProviderURLParams {
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }

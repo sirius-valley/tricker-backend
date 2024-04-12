@@ -1,10 +1,11 @@
-import { type ProjectService } from '@domains/project/service/project.service';
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, type ProjectDTO, type ProjectsFilterInput } from '@domains/project/dto';
+import { type GetProjectParams, type ProjectService } from '@domains/project/service/project.service';
+import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectDTO, ProjectRole, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
 import { NotFoundException } from '@utils';
 import { StageDTO, type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
+import { type UserRoleDTO } from '@domains/userProjectRole/dto';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
@@ -12,6 +13,43 @@ export class ProjectServiceImpl implements ProjectService {
     private readonly issueRepository: IssueRepository,
     private readonly userRepository: UserRepository
   ) {}
+
+  /**
+   * Fetches detailed information about a specific project.
+   *
+   * @param {GetProjectParams} input - An object containing user ID and project ID for lookup.
+   * @param {string} input.userId - ID of the user requesting project information.
+   * @param {string} input.projectId - ID of the project to retrieve details for.
+   * @returns {Promise<MyProjectViewDTO>} - Promise resolving to a ProjectViewDTO object with project details.
+   * @throws {NotFoundException} - Throws NotFoundException with specific messages:
+   *                                 * 'User': If the user with the provided ID is not found.
+   *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
+   */
+  async getMyProjectView({ userId, projectId }: GetProjectParams): Promise<MyProjectViewDTO> {
+    const user = await this.userRepository.getByCognitoId(userId);
+    if (user == null) throw new NotFoundException('User');
+
+    const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails(user.id, projectId);
+    if (project == null) throw new NotFoundException('Project');
+
+    const pmUserAndRole: UserRoleDTO | undefined = project.usersAndRoles.find((userAndRole) => userAndRole.role.name === ProjectRole.PROJECT_MANAGER);
+    const currentUserIsPm: boolean = pmUserAndRole !== undefined && pmUserAndRole.user.id === user.id;
+
+    return {
+      providerId: project.providerId,
+      image: project.image,
+      url: project.url,
+      name: project.name,
+      issueProviderName: project.issueProvider.name,
+      updatedAt: project.updatedAt,
+      users: project.usersAndRoles.map((userAndRole) => ({
+        name: userAndRole.user.name,
+        email: userAndRole.user.email,
+        image: userAndRole.user.profileImage,
+        role: currentUserIsPm ? userAndRole.role : undefined,
+      })),
+    };
+  }
 
   /**
    * Retrieves development project filters based on the provided user and project IDs.

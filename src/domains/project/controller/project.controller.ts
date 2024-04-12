@@ -40,3 +40,12 @@ projectRouter.get('/user/:userId', validateRequest(KeyPhraseParamDTO, 'query'), 
 
   return res.status(HttpStatus.OK).json(projects);
 });
+
+projectRouter.get('/:projectId', validateRequest(ProjectIdParamDTO, 'params'), async (_req: Request<ProjectIdParamDTO>, res: Response) => {
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+  const { projectId } = _req.params;
+
+  const info = await service.getMyProjectView({ userId: sub, projectId });
+
+  return res.status(200).json(info);
+});

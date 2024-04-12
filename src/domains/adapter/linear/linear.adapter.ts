@@ -81,7 +81,16 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
     const org: Organization = await this.dataRetriever.getOrganization();
     const issues = await this.adaptAllProjectIssuesData(input.providerProjectId);
 
-    return new ProjectDataDTO(input.providerProjectId, teamMembers, team.name, stages, labels, org.logoUrl ?? null, issues);
+    return new ProjectDataDTO({
+      projectId: input.providerProjectId,
+      members: teamMembers,
+      projectName: team.name,
+      image: org.logoUrl ?? null,
+      stages,
+      labels,
+      issues,
+      url: `https://linear.app/${org.urlKey}`,
+    });
   }
 
   /**

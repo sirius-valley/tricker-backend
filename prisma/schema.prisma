@@ -65,15 +65,6 @@ model Issue {
   manualTimeModifications    ManualTimeModification[]
 }
 
-// model IssueLabel {
-//   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   labelId String @db.Uuid
-//   issueId String @db.Uuid
-//
-//   label Label @relation(fields: [labelId], references: [id])
-//   issue Issue @relation(fields: [issueId], references: [id])
-// }
-
 model IssueCustomFields {
   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   issueId String @db.Uuid
@@ -84,19 +75,23 @@ model IssueCustomFields {
 }
 
 model Project {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name           String
-  providerId     String    @unique
-  organizationId String    @db.Uuid
-  image          String?
-  createdAt      DateTime  @default(now())
-  deletedAt      DateTime?
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  providerId      String    @unique
+  organizationId  String    @db.Uuid
+  issueProviderId String    @db.Uuid
+  url             String
+  image           String?
+  createdAt       DateTime  @default(now())
+  deletedAt       DateTime?
+  updatedAt       DateTime  @default(now())
 
   organization  Organization      @relation(fields: [organizationId], references: [id])
   usersRoles    UserProjectRole[]
   projectStages ProjectStage[]
   issues        Issue[]
   labels        ProjectLabel[]
+  issueProvider IssueProvider     @relation(fields: [issueProviderId], references: [id])
 }
 
 model LogWebhooks {
@@ -151,14 +146,6 @@ model UserProjectRole {
   role        Role    @relation(fields: [roleId], references: [id])
 }
 
-// model Label {
-//   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   name String
-//
-//   issues        IssueLabel[]
-//   projectLabels ProjectLabel[]
-// }
-
 model BlockerStatusModification {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerEventId   String?
@@ -170,9 +157,8 @@ model BlockerStatusModification {
   reason            String
   comment           String
 
-  issue       Issue  @relation(fields: [issueId], references: [id])
+  issue       Issue @relation(fields: [issueId], references: [id])
   userEmitter User? @relation(fields: [userEmitterId], references: [id])
-
 }
 
 model ManualTimeModification {
@@ -264,12 +250,12 @@ model OrganizationAdministrator {
 }
 
 model PendingProjectAuthorization {
-  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerProjectId String
   token             String
   integratorId      String
-  issueProviderId   String @db.Uuid
-  organizationId    String @db.Uuid
+  issueProviderId   String  @db.Uuid
+  organizationId    String  @db.Uuid
   isIntegrating     Boolean @default(false)
 
   issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
@@ -281,6 +267,7 @@ model IssueProvider {
   id                          String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                        String                        @unique
   PendingProjectAuthorization PendingProjectAuthorization[]
+  projects                    Project[]
 }
 
 model MemberEmail {
