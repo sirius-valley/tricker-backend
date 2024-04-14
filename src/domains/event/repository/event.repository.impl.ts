@@ -16,6 +16,7 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.timeTracking.update({
       where: {
         id: input.id,
+        deletedAt: null,
       },
       data: {
         endTime: input.endTime,
@@ -35,6 +36,7 @@ export class EventRepositoryImpl implements EventRepository {
       take: 1,
       where: {
         issueId,
+        deletedAt: null,
       },
       orderBy: [{ startTime: 'desc' }],
     });
@@ -110,6 +112,7 @@ export class EventRepositoryImpl implements EventRepository {
     const modifications: ManualTimeModification[] = await this.db.manualTimeModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -120,6 +123,7 @@ export class EventRepositoryImpl implements EventRepository {
     const timeTrackingEvents: TimeTracking[] = await this.db.timeTracking.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -146,6 +150,7 @@ export class EventRepositoryImpl implements EventRepository {
     const blockerEvents: BlockerStatusModification[] = await this.db.blockerStatusModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -161,6 +166,7 @@ export class EventRepositoryImpl implements EventRepository {
     const changeLogs: IssueChangeLog[] = await this.db.issueChangeLog.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 

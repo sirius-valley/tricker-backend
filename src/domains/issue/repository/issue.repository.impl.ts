@@ -11,6 +11,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       where: {
         projectId: input.projectId,
         name: input.name,
+        deletedAt: null,
       },
     });
 
@@ -65,6 +66,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issue: Issue | null = await this.db.issue.findFirst({
       where: {
         providerIssueId,
+        deletedAt: null,
       },
     });
 
@@ -75,6 +77,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issue: Issue | null = await this.db.issue.findUnique({
       where: {
         id,
+        deletedAt: null,
       },
     });
 
@@ -92,6 +95,7 @@ export class IssueRepositoryImpl implements IssueRepository {
       take: 5,
       where: {
         projectId: filters.projectId,
+        deletedAt: null,
         projectStageId: { in: filters.stageIds },
         assigneeId: filters.assigneeIds === undefined ? { not: null } : { in: filters.assigneeIds },
         storyPoints: filters.isOutOfEstimation === undefined ? {} : filters.isOutOfEstimation ? null : { not: null },
@@ -201,6 +205,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issues = await this.db.issue.findMany({
       where: {
         projectId,
+        deletedAt: null,
         assignee: {
           projectsRoleAssigned: {
             every: {
@@ -302,6 +307,7 @@ export class IssueRepositoryImpl implements IssueRepository {
     const issue = await this.db.issue.update({
       where: {
         id: data.issueId,
+        deletedAt: null,
       },
       data: {
         assigneeId: data.assigneeId,

@@ -38,6 +38,7 @@ export class ProjectLabelRepositoryImpl implements ProjectLabelRepository {
           name,
           projectId,
         },
+        deletedAt: null,
       },
     });
 
