@@ -130,7 +130,7 @@ export const mockUserProjectRoleUpdateInput: UserProjectRoleUpdateInput = {
 };
 
 export const mockProjectBasicDTO: ProjectBasicDTO = {
-  projectImage: undefined,
+  image: undefined,
   name: 'Tricker',
   id: 'Project777',
 };

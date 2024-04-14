@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
@@ -179,6 +179,7 @@ export enum ProjectRole {
  * Represents the project name for the project filter.
  */
 export class KeyPhraseParamDTO {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value.trim())
@@ -196,7 +197,7 @@ export class ProjectBasicDTO {
   id: string;
 
   /** The project url of the provider. */
-  projectImage?: string;
+  image?: string;
 
   /**
    * Constructs a new instance of the ProjectBasicDTO class.
@@ -205,7 +206,7 @@ export class ProjectBasicDTO {
   constructor(project: ProjectBasicDTO) {
     this.id = project.id;
     this.name = project.name;
-    this.projectImage = project.projectImage;
+    this.image = project.image;
   }
 }
 

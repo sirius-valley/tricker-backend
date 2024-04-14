@@ -271,6 +271,6 @@ export class ProjectRepositoryImpl implements ProjectRepository {
       },
     });
 
-    return projects.map((project) => new ProjectBasicDTO(project));
+    return projects.map((project) => new ProjectBasicDTO({ ...project, image: project.image ?? undefined }));
   }
 }
