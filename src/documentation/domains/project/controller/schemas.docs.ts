@@ -89,7 +89,7 @@
  *         type: "BACKLOG"
  *         color: "#bec2c8"
  *
- *     ProjectViewDTO:
+ *     MyProjectViewDTO:
  *       type: object
  *       required:
  *         - providerId
@@ -124,10 +124,13 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/ProjectUserViewDTO'
- *           description: Array of ProjectUserViewDTO objects representing users associated with the project.
- *     ProjectUserViewDTO:
+ *           description: Array of MyProjectUserViewDTO objects representing users associated with the project.
+ *     MyProjectUserViewDTO:
  *       type: object
  *       properties:
+ *         id:
+ *           type: string
+ *           description: User's ID.
  *         name:
  *           type: string
  *           nullable: true

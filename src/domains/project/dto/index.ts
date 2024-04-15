@@ -264,6 +264,10 @@ export interface MyProjectViewDTO {
  */
 export interface MyProjectsUserViewDTO {
   /**
+   * User's ID.
+   */
+  id: string;
+  /**
    * User's name (if available).
    */
   name: string | null;
