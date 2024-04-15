@@ -43,6 +43,7 @@ export class ProjectServiceImpl implements ProjectService {
       issueProviderName: project.issueProvider.name,
       updatedAt: project.updatedAt,
       users: project.usersAndRoles.map((userAndRole) => ({
+        id: userAndRole.user.id,
         name: userAndRole.user.name,
         email: userAndRole.user.email,
         image: userAndRole.user.profileImage,
