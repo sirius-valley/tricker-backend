@@ -197,7 +197,7 @@ describe('project service tests', () => {
         name: project.name,
         issueProviderName: project.issueProvider.name,
         updatedAt: project.updatedAt,
-        users: [{ name: user.name, email: user.email, image: user.profileImage, role: project.usersAndRoles[0].role }],
+        users: [{ id: user.id, name: user.name, email: user.email, image: user.profileImage, role: project.usersAndRoles[0].role }],
       };
 
       userRepositoryMock.getByCognitoId.mockResolvedValueOnce(user);
