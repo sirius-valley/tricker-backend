@@ -39,7 +39,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
   }
 
   /**
-   * Creates a new integrated project in the database.
+   * Creates a new integrated project in the database. It also deletes any pending project authorization left.
    *
    * @param {IntegratedProjectCreationInput} input - The input data for creating the project.
    * @returns {Promise<ProjectDTO>} - A promise that resolves to a ProjectDTO object representing the created project.
@@ -197,6 +197,27 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
             },
           });
         }
+
+        await tx.pendingProjectAuthorization.update({
+          where: {
+            id: input.pendingProjectId,
+            deletedAt: null,
+          },
+          data: {
+            deletedAt: new Date(),
+            token: null,
+          },
+        });
+
+        await tx.memberEmail.updateMany({
+          where: {
+            pendingProjectAuthorizationId: input.pendingProjectId,
+            deletedAt: null,
+          },
+          data: {
+            deletedAt: new Date(),
+          },
+        });
 
         return newProject;
       },

@@ -268,6 +268,7 @@ export interface IntegrationParams {
   authorizedMemberMails: string[];
   organizationId: string;
   issueProviderName: string;
+  pendingProjectId: string;
 }
 
 /**

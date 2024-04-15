@@ -254,13 +254,14 @@ model OrganizationAdministrator {
 }
 
 model PendingProjectAuthorization {
-  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerProjectId String
-  token             String
+  token             String?
   integratorId      String
-  issueProviderId   String  @db.Uuid
-  organizationId    String  @db.Uuid
-  isIntegrating     Boolean @default(false)
+  issueProviderId   String    @db.Uuid
+  organizationId    String    @db.Uuid
+  isIntegrating     Boolean   @default(false)
+  deletedAt         DateTime?
 
   issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
   organization  Organization  @relation(fields: [organizationId], references: [id])
@@ -275,11 +276,12 @@ model IssueProvider {
 }
 
 model MemberEmail {
-  id                            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email                         String
-  pendingProjectAuthorizationId String @db.Uuid
+  pendingProjectAuthorizationId String    @db.Uuid
+  deletedAt                     DateTime?
 
-  pendingProjectAuthorization PendingProjectAuthorization @relation(fields: [pendingProjectAuthorizationId], references: [id], onDelete: Cascade)
+  pendingProjectAuthorization PendingProjectAuthorization @relation(fields: [pendingProjectAuthorizationId], references: [id])
 
   @@unique([pendingProjectAuthorizationId, email])
 }

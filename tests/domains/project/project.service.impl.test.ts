@@ -145,7 +145,7 @@ describe('project service tests', () => {
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
-      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
+      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith({ userId, projectId });
     });
 
     it('returns MyProjectViewDTO with user details if user is a Project Manager', async () => {
@@ -210,7 +210,7 @@ describe('project service tests', () => {
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
-      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
+      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith({ userId, projectId });
     });
   });
 
