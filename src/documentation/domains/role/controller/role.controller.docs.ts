@@ -3,10 +3,12 @@
  * paths:
  *   /api/roles/:
  *     get:
- *       summary: Retrieve roles
+ *       summary: Retrieve all roles from database
+ *       tags:
+ *         - "Role"
  *       description: Retrieves a list of roles.
  *       security:
- *         - apiKeyAuth: []
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: A list of roles retrieved successfully.
