@@ -39,6 +39,7 @@ export class ProjectStageRepositoryImpl implements ProjectStageRepository {
           projectId: input.projectId,
           name: input.name,
         },
+        deletedAt: null,
       },
     });
 
@@ -49,6 +50,7 @@ export class ProjectStageRepositoryImpl implements ProjectStageRepository {
     const projectStage = await this.db.projectStage.findUnique({
       where: {
         id,
+        deletedAt: null,
       },
     });
 

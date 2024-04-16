@@ -47,24 +47,28 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.verifyProjectDuplication(projectId);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: true });
-    const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
+    const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token!);
     const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
     Logger.timeEnd(`Verifications`);
 
+    let newProject: ProjectDTO;
+
     try {
-      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => await this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId, issueProviderName }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
-        ConflictException,
-        PrismaClientKnownRequestError,
-        PrismaClientUnknownRequestError,
-      ]);
-      await this.pendingAuthProjectRepository.delete(pendingProject.id);
-      await this.emailService.sendConfirmationMail(integratorEmail, {
-        projectName: newProject.name,
-        projectId: newProject.id,
-        url: process.env.FRONTEND_URL!,
-      });
-      return newProject;
+      newProject = await retry<ProjectDTO, Error>(
+        async () =>
+          await this.integration({
+            projectId,
+            pendingProject,
+            integratorEmail,
+            authorizedMemberMails,
+            organizationId,
+            issueProviderName,
+            pendingProjectId: pendingProject.id,
+          }),
+        { delay: 1000 * 60 * 60 * 2, retries: 3 },
+        [ConflictException, PrismaClientKnownRequestError, PrismaClientUnknownRequestError]
+      );
     } catch (e: any) {
       Logger.error(e.message);
       Logger.error(e.cause);
@@ -73,14 +77,22 @@ export class IntegrationServiceImpl implements IntegrationService {
       await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
       throw e;
     }
+
+    await this.emailService.sendConfirmationMail(integratorEmail, {
+      projectName: newProject.name,
+      projectId: newProject.id,
+      url: process.env.FRONTEND_URL!,
+    });
+
+    return newProject;
   }
 
-  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName }: IntegrationParams): Promise<ProjectDTO> {
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName, pendingProjectId }: IntegrationParams): Promise<ProjectDTO> {
     Logger.time('Provider project data adaptation');
     const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({
       providerProjectId: projectId,
       pmEmail: integratorEmail,
-      token: pendingProject.token,
+      token: pendingProject.token!,
     });
     Logger.timeEnd(`Provider project data adaptation`);
 
@@ -94,6 +106,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       organizationId,
       integratorEmail,
       issueProviderName,
+      pendingProjectId,
     });
 
     Logger.complete(`Integration finished`);
@@ -174,8 +187,8 @@ export class IntegrationServiceImpl implements IntegrationService {
    */
   async declineProject(providerProjectId: string): Promise<void> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
-    const project: BasicProjectDataInput = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
+    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token!);
+    const project: BasicProjectDataInput = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token!));
 
     await this.pendingAuthProjectRepository.delete(pendingProject.id);
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
@@ -301,7 +314,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     if (pendingProject.isIntegrating) {
       throw new ConflictException('Project already being integrated');
     }
-    const apiKey: string = decryptData(pendingProject.token);
+    const apiKey: string = decryptData(pendingProject.token!);
     const project: BasicProjectDataInput = await this.adapter.getProjectById(projectId, apiKey);
     const email: string = await this.adapter.getMyEmail(apiKey);
 
@@ -310,8 +323,8 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
-    const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
-    const projectFromLinear: BasicProjectDataInput = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
+    const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token!));
+    const projectFromLinear: BasicProjectDataInput = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token!));
 
     return { pmImage: pm.image, pmName: pm.name, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }

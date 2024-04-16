@@ -24,6 +24,7 @@ export const integrationRouter: Router = Router();
 
 const dataRetriever: LinearDataRetriever = new LinearDataRetriever();
 const adapter: ProjectManagementToolAdapter = new LinearAdapter(dataRetriever);
+
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
 const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);

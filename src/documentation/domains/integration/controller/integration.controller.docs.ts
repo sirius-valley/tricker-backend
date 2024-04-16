@@ -57,6 +57,12 @@
  *             type: string
  *           required: true
  *           description: The name of the issue provider that going to be used for integration.
+ *         - in: query
+ *           name: token
+ *           schema:
+ *             type: string
+ *           required: true
+ *           description: The token associated with the project to accept integration.
  *       responses:
  *         '201':
  *           description: Project integrated successfully
