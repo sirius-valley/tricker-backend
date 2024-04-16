@@ -165,6 +165,10 @@ export interface IntegratedProjectCreationInput {
    * Name of the issue provider used to integrate the project.
    */
   issueProviderName: string;
+  /**
+   * Pending project authorization ID to be te deleted when transaction finishes successfully.
+   * */
+  pendingProjectId: string;
 }
 
 /**

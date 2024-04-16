@@ -9,7 +9,7 @@ export class PendingProjectAuthorizationDTO {
   providerProjectId: string;
 
   /** The authorization token associated with the project. */
-  token: string;
+  token: string | null;
 
   /** The identifier of the issue provider. */
   issueProviderId: string;

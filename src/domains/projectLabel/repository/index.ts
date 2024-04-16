@@ -1,2 +1,2 @@
-export * from './projectLabelRepositoryImpl';
-export * from './projectLabelRepository';
+export * from './projectLabel.repository.impl';
+export * from './projectLabel.repository';

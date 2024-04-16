@@ -53,19 +53,23 @@ export class IntegrationServiceImpl implements IntegrationService {
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
     Logger.timeEnd(`Verifications`);
 
+    let newProject: ProjectDTO;
+
     try {
-      const newProject: ProjectDTO = await retry<ProjectDTO, Error>(async () => await this.integration({ projectId, pendingProject, integratorEmail, authorizedMemberMails, organizationId, issueProviderName }), { delay: 1000 * 60 * 60 * 2, retries: 3 }, [
-        ConflictException,
-        PrismaClientKnownRequestError,
-        PrismaClientUnknownRequestError,
-      ]);
-      await this.pendingAuthProjectRepository.delete(pendingProject.id);
-      await this.emailService.sendConfirmationMail(integratorEmail, {
-        projectName: newProject.name,
-        projectId: newProject.id,
-        url: process.env.FRONTEND_URL!,
-      });
-      return newProject;
+      newProject = await retry<ProjectDTO, Error>(
+        async () =>
+          await this.integration({
+            projectId,
+            pendingProject,
+            integratorEmail,
+            authorizedMemberMails,
+            organizationId,
+            issueProviderName,
+            pendingProjectId: pendingProject.id,
+          }),
+        { delay: 1000 * 60 * 60 * 2, retries: 3 },
+        [ConflictException, PrismaClientKnownRequestError, PrismaClientUnknownRequestError]
+      );
     } catch (e: any) {
       Logger.error(e.message);
       Logger.error(e.cause);
@@ -74,9 +78,17 @@ export class IntegrationServiceImpl implements IntegrationService {
       await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
       throw e;
     }
+
+    await this.emailService.sendConfirmationMail(integratorEmail, {
+      projectName: newProject.name,
+      projectId: newProject.id,
+      url: process.env.FRONTEND_URL!,
+    });
+
+    return newProject;
   }
 
-  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName }: IntegrationParams): Promise<ProjectDTO> {
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName, pendingProjectId }: IntegrationParams): Promise<ProjectDTO> {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     Logger.time('Provider project data adaptation');
     const projectData: ProjectDataDTO = await adapter.adaptProjectData({
@@ -96,6 +108,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       organizationId,
       integratorEmail,
       issueProviderName,
+      pendingProjectId,
     });
 
     Logger.complete(`Integration finished`);
