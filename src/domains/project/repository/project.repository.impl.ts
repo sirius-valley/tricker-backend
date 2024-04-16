@@ -1,5 +1,5 @@
 import { type ProjectRepository } from '@domains/project/repository/project.repository';
-import { ProjectDetailsDTO, ProjectDTO, ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
+import { ProjectBasicDTO, ProjectDetailsDTO, ProjectDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type PrismaClient, type Project } from '@prisma/client';
 import { UserRoleDTO } from '@domains/userProjectRole/dto';
 import { BasicUserDTO } from '@domains/user';
@@ -18,6 +18,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findUnique({
       where: {
         id: projectId,
+        deletedAt: null,
       },
     });
 
@@ -34,6 +35,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
     const project: Project | null = await this.db.project.findFirst({
       where: {
         providerId,
+        deletedAt: null,
       },
     });
 
@@ -42,17 +44,18 @@ export class ProjectRepositoryImpl implements ProjectRepository {
 
   /**
    * Fetches detailed information about a project, including associated users and roles.
-   *
-   * @param {string} projectId - ID of the project to retrieve details for.
-   * @param {string} userId - ID of the user requesting project details (used for access control).
+   * @param input - An object containing user ID and project ID for project retrieval.
+   * @param {string} input.projectId - ID of the project to retrieve details for.
+   * @param {string} input.userId - ID of the user requesting project details (used for access control).
    * @returns {Promise<ProjectDetailsDTO | null>} - Promise resolving to a ProjectDetailsDTO object if found and user has access, otherwise null.
    */
-  async getProjectDetails(userId: string, projectId: string): Promise<ProjectDetailsDTO | null> {
+  async getProjectDetails({ userId, projectId }: { userId: string; projectId: string }): Promise<ProjectDetailsDTO | null> {
     const details = await this.db.project.findFirst({
       where: {
         AND: [
           {
             id: projectId,
+            deletedAt: null,
           },
           {
             usersRoles: {
@@ -105,6 +108,149 @@ export class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   /**
+   * Deletes a project by its ID using soft deletion.
+   *
+   * This method performs a database transaction to ensure data consistency. It updates
+   * the project and related entities by setting their "deletedAt" field to the current date.
+   *
+   * @param {string} projectId - The unique identifier of the project to delete.
+   * @returns {Promise<string>} - A promise that resolves to the deleted project ID.
+   */
+  async delete(projectId: string): Promise<string> {
+    const project = await this.db.$transaction(async (tx) => {
+      await tx.userProjectRole.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.projectLabel.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.projectStage.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issue.updateMany({
+        where: {
+          project: {
+            id: projectId,
+            deletedAt: null,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.manualTimeModification.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.timeTracking.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issueChangeLog.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.issueCustomFields.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.blockerStatusModification.updateMany({
+        where: {
+          issue: {
+            project: {
+              id: projectId,
+              deletedAt: null,
+            },
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      return await tx.project.update({
+        where: {
+          id: projectId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+    });
+
+    return project.id;
+  }
+
+  /**
    * Retrieves projects based on the provided filter input.
    * @param input - The input object containing the filter criteria.
    * @returns An array of ProjectBasicDTO objects representing the retrieved projects.
@@ -112,6 +258,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
   async getProjectsByUserId(input: ProjectsFilterInput): Promise<ProjectBasicDTO[]> {
     const projects = await this.db.project.findMany({
       where: {
+        deletedAt: null,
         usersRoles: {
           some: {
             userId: input.userId,

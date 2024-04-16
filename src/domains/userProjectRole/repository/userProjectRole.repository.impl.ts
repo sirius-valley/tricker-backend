@@ -30,6 +30,7 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
       where: {
         projectId: input.projectId,
         userId: input.userId,
+        deletedAt: null,
       },
     });
 
@@ -45,6 +46,7 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
     const userProjectRole = await this.db.userProjectRole.update({
       where: {
         id: input.id,
+        deletedAt: null,
       },
       data: {
         roleId: input.roleId,
@@ -69,6 +71,7 @@ export class UserProjectRoleRepositoryImpl implements UserProjectRoleRepository 
       where: {
         userId,
         projectId,
+        deletedAt: null,
         isAccepted: true,
       },
       include: {

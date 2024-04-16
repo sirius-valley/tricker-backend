@@ -3,7 +3,7 @@ import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFilters
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
-import { NotFoundException } from '@utils';
+import { ForbiddenException, NotFoundException } from '@utils';
 import { StageDTO, type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
 import { type UserRoleDTO } from '@domains/userProjectRole/dto';
 
@@ -15,21 +15,44 @@ export class ProjectServiceImpl implements ProjectService {
   ) {}
 
   /**
+   * Deletes a project by its ID. Checks for user's permissions for deleting projects.
+   *
+   * @param input - An object containing user ID and project ID for project deletion.
+   * @param {string} input.cognitoId - AWS Cognito ID of the user trying to delete the project.
+   * @param {string} input.projectId - ID of the project to delete.
+   * @throws {NotFoundException} - If the project with the specified ID is not found.
+   * @returns {Promise<string>} - A promise that resolves to the deleted ID upon successful deletion.
+   */
+  async deleteProject({ cognitoId, projectId }: { cognitoId: string; projectId: string }): Promise<string> {
+    const user = await this.userRepository.getByCognitoId(cognitoId);
+    if (user == null) throw new NotFoundException('User');
+
+    const project = await this.projectRepository.getProjectDetails({ projectId, userId: user.id });
+    if (project == null) throw new NotFoundException('Project');
+
+    const currentUserAndRole = project.usersAndRoles.find((userAndRole) => userAndRole.user.cognitoId === cognitoId);
+
+    if (currentUserAndRole!.role.name === ProjectRole.DEVELOPER) throw new ForbiddenException();
+
+    return await this.projectRepository.delete(projectId);
+  }
+
+  /**
    * Fetches detailed information about a specific project.
    *
    * @param input - An object containing user ID and project ID for lookup.
-   * @param {string} input.userId - ID of the user requesting project information.
+   * @param {string} input.cognitoId - AWS Cognito ID of the user requesting project information.
    * @param {string} input.projectId - ID of the project to retrieve details for.
    * @returns {Promise<MyProjectViewDTO>} - Promise resolving to a ProjectViewDTO object with project details.
    * @throws {NotFoundException} - Throws NotFoundException with specific messages:
    *                                 * 'User': If the user with the provided ID is not found.
    *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
    */
-  async getMyProjectView({ userId, projectId }: { userId: string; projectId: string }): Promise<MyProjectViewDTO> {
-    const user = await this.userRepository.getByCognitoId(userId);
+  async getMyProjectView({ cognitoId, projectId }: { cognitoId: string; projectId: string }): Promise<MyProjectViewDTO> {
+    const user = await this.userRepository.getByCognitoId(cognitoId);
     if (user == null) throw new NotFoundException('User');
 
-    const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails(user.id, projectId);
+    const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails({ userId: user.id, projectId });
     if (project == null) throw new NotFoundException('Project');
 
     const pmUserAndRole: UserRoleDTO | undefined = project.usersAndRoles.find((userAndRole) => userAndRole.role.name === ProjectRole.PROJECT_MANAGER);

@@ -117,7 +117,7 @@ describe('project service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValueOnce(null);
 
       try {
-        await projectService.getMyProjectView({ userId, projectId });
+        await projectService.getMyProjectView({ cognitoId: userId, projectId });
       } catch (e: any) {
         expect(e).toBeInstanceOf(NotFoundException);
         expect(e.message).toBe("Not found. Couldn't find User");
@@ -136,7 +136,7 @@ describe('project service tests', () => {
       projectRepositoryMock.getProjectDetails.mockResolvedValueOnce(null);
 
       try {
-        await projectService.getMyProjectView({ userId, projectId });
+        await projectService.getMyProjectView({ cognitoId: userId, projectId });
       } catch (e: any) {
         expect(e).toBeInstanceOf(NotFoundException);
         expect(e.message).toBe("Not found. Couldn't find Project");
@@ -145,7 +145,7 @@ describe('project service tests', () => {
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
-      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
+      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith({ userId, projectId });
     });
 
     it('returns MyProjectViewDTO with user details if user is a Project Manager', async () => {
@@ -203,14 +203,14 @@ describe('project service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValueOnce(user);
       projectRepositoryMock.getProjectDetails.mockResolvedValueOnce(project);
 
-      const result = await projectService.getMyProjectView({ userId, projectId });
+      const result = await projectService.getMyProjectView({ cognitoId: userId, projectId });
 
       expect(result).toEqual(expectedProjectView);
 
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledTimes(1);
       expect(userRepositoryMock.getByCognitoId).toHaveBeenCalledWith(userId);
       expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledTimes(1);
-      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith(userId, projectId);
+      expect(projectRepositoryMock.getProjectDetails).toHaveBeenCalledWith({ userId, projectId });
     });
   });
 

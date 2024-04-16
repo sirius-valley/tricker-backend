@@ -1,10 +1,9 @@
-import { type ProjectLabelRepository } from '@domains/projectLabel/repository/projectLabelRepository';
+import { type ProjectLabelRepository } from '@domains/projectLabel/repository/projectLabel.repository';
 import { ProjectLabelDTO } from '@domains/projectLabel/dto';
 import type { PrismaClient, ProjectLabel } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 
 export class ProjectLabelRepositoryImpl implements ProjectLabelRepository {
-  constructor(private readonly db: Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   /**
    * Creates a new project-related label in the database.
@@ -38,6 +37,7 @@ export class ProjectLabelRepositoryImpl implements ProjectLabelRepository {
           name,
           projectId,
         },
+        deletedAt: null,
       },
     });
 

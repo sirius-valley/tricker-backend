@@ -9,6 +9,7 @@ export class PendingProjectAuthorizationRepositoryImpl implements PendingProject
     const pendingProject: PendingProjectAuthorization | null = await this.db.pendingProjectAuthorization.findFirst({
       where: {
         providerProjectId,
+        deletedAt: null,
       },
     });
 
@@ -16,11 +17,26 @@ export class PendingProjectAuthorizationRepositoryImpl implements PendingProject
   }
 
   async delete(id: string): Promise<PendingProjectAuthorizationDTO> {
-    const pendingProject: PendingProjectAuthorization = await this.db.pendingProjectAuthorization.delete({
+    const deletedPendingProject = this.db.pendingProjectAuthorization.update({
       where: {
         id,
       },
+      data: {
+        deletedAt: new Date(),
+        token: null,
+      },
     });
+
+    const deletedMemberEmails = this.db.memberEmail.updateMany({
+      where: {
+        pendingProjectAuthorizationId: id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    const [, pendingProject] = await this.db.$transaction([deletedMemberEmails, deletedPendingProject]);
 
     return new PendingProjectAuthorizationDTO(pendingProject);
   }
@@ -34,6 +50,7 @@ export class PendingProjectAuthorizationRepositoryImpl implements PendingProject
     const pendingProject = await this.db.pendingProjectAuthorization.update({
       where: {
         id: data.pendingProjectId,
+        deletedAt: null,
       },
       data: {
         isIntegrating: data.isIntegrating,

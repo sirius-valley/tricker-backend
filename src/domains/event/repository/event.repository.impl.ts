@@ -16,6 +16,7 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.timeTracking.update({
       where: {
         id: input.id,
+        deletedAt: null,
       },
       data: {
         endTime: input.endTime,
@@ -35,6 +36,7 @@ export class EventRepositoryImpl implements EventRepository {
       take: 1,
       where: {
         issueId,
+        deletedAt: null,
       },
       orderBy: [{ startTime: 'desc' }],
     });
@@ -50,6 +52,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
+            deletedAt: { not: null },
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -83,6 +86,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
+            deletedAt: { not: null },
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -110,6 +114,7 @@ export class EventRepositoryImpl implements EventRepository {
     const modifications: ManualTimeModification[] = await this.db.manualTimeModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -120,6 +125,7 @@ export class EventRepositoryImpl implements EventRepository {
     const timeTrackingEvents: TimeTracking[] = await this.db.timeTracking.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -129,7 +135,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO> {
     const event = await this.db.timeTracking.create({
       data: {
-        issueId,
+        issue: {
+          connect: {
+            id: issueId,
+            deletedAt: { not: null },
+          },
+        },
         startTime: new Date(),
       },
     });
@@ -146,6 +157,7 @@ export class EventRepositoryImpl implements EventRepository {
     const blockerEvents: BlockerStatusModification[] = await this.db.blockerStatusModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -161,6 +173,7 @@ export class EventRepositoryImpl implements EventRepository {
     const changeLogs: IssueChangeLog[] = await this.db.issueChangeLog.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -184,7 +197,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createManualTimeModification(input: ManualTimeModificationEventInput): Promise<ManualTimeModificationDTO> {
     const event = await this.db.manualTimeModification.create({
       data: {
-        issueId: input.issueId,
+        issue: {
+          connect: {
+            id: input.issueId,
+            deletedAt: { not: null },
+          },
+        },
         reason: input.reason,
         timeAmount: input.timeAmount,
         modificationDate: input.date,
