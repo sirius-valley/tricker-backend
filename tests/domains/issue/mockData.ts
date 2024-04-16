@@ -225,7 +225,7 @@ export const mockPMIssueFilterParameters = {
 export const mockUserProjectRoleDTO: UserProjectRoleDTO = {
   id: 'userProjectRole852',
   userId: 'user123',
-  userEmitterId: 'user123',
+  userEmitterId: 'user124',
   projectId: 'Project777',
   roleId: 'role333',
   createdAt: new Date('2024-03-12T09:00:00Z'),

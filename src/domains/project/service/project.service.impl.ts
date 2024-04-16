@@ -3,15 +3,17 @@ import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFilters
 import { type IssueRepository, type IssueViewDTO, type Priority, priorityOrder, type UserProject } from '@domains/issue';
 import { type AssigneeFilterDataDTO, type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
-import { ForbiddenException, NotFoundException } from '@utils';
+import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import { StageDTO, type StageExtendedDTO, StageTypeOrder } from '@domains/projectStage/dto';
-import { type UserRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleDTO, type UserRoleDTO } from '@domains/userProjectRole/dto';
+import { type UserProjectRoleRepository } from '@domains/userProjectRole/repository';
 
 export class ProjectServiceImpl implements ProjectService {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly issueRepository: IssueRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly userProjectRoleRepository: UserProjectRoleRepository
   ) {}
 
   /**
@@ -122,6 +124,31 @@ export class ProjectServiceImpl implements ProjectService {
   }
 
   /**
+   * Deletes a member from a project.
+   * @param input - Parameters for identifying the user-project relationship.
+   * @param {string} input.projectId - The id of the project
+   * @param {string} input.userId - The id of the issue
+   * @param {string} input.cognitoId - The cognito id of the Project Manager who is trying to delete the member
+   * @returns A Promise that resolves once the member is deleted.
+   * @throws NotFoundException if the user-project role is not found.
+   * @throws ConflictException if the user tries to delete themselves.
+   */
+  async deleteMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<void> {
+    const user: UserDTO = (await this.userRepository.getByCognitoId(cognitoId))!;
+    if (user.id === userId) {
+      throw new ConflictException('Project Managers can`t delete themselves.');
+    }
+    await this.validateProjectExistence(projectId);
+    await this.validateUserExistence(userId);
+    const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId({ projectId, userId });
+    if (userProjectRole === null) {
+      throw new NotFoundException('UserProjectRole');
+    }
+
+    await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
+  }
+
+  /**
    * Extracts project filters from the provided list of issues.
    * @param {IssueViewDTO[]} issues - The list of issues.
    * @returns {PMProjectFiltersDTO} The project filters extracted from the issues.
@@ -198,5 +225,20 @@ export class ProjectServiceImpl implements ProjectService {
     }
 
     return project;
+  }
+
+  /**
+   * Validates the existence of a user.
+   * @param {string} userId - The ID of the project to validate.
+   * @returns {Promise<UserDTO>} The project if found.
+   * @throws {NotFoundException} If the project is not found.
+   */
+  private async validateUserExistence(userId: string): Promise<UserDTO> {
+    const user: UserDTO | null = await this.userRepository.getById(userId);
+    if (user === null || user.deletedAt !== null) {
+      throw new NotFoundException('User');
+    }
+
+    return user;
   }
 }
