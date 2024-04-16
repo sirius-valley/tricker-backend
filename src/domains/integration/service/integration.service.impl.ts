@@ -19,10 +19,11 @@ import process from 'process';
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
 import { retry } from '@utils/retry';
 import { type AdministratorDTO } from '@domains/administrator/dto';
+import { type AdapterFactory } from '@domains/adapter/factory/adapter.factory';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
-    private readonly adapter: ProjectManagementToolAdapter,
+    private readonly adapterFactory: AdapterFactory,
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
     private readonly pendingAuthProjectRepository: PendingProjectAuthorizationRepository,
@@ -47,7 +48,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.verifyProjectDuplication(projectId);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: true });
-    const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token);
+    const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token, issueProviderName);
     const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
     Logger.timeEnd(`Verifications`);
@@ -76,8 +77,9 @@ export class IntegrationServiceImpl implements IntegrationService {
   }
 
   private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName }: IntegrationParams): Promise<ProjectDTO> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     Logger.time('Provider project data adaptation');
-    const projectData: ProjectDataDTO = await this.adapter.adaptProjectData({
+    const projectData: ProjectDataDTO = await adapter.adaptProjectData({
       providerProjectId: projectId,
       pmEmail: integratorEmail,
       token: pendingProject.token,
@@ -113,9 +115,10 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByCognitoId(input.pmProviderId);
-    await this.validateIntegratorIdentity(input.apyKey, pm?.email);
-    const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(input.issueProviderName);
+    const pm: UserDTO | null = await this.userRepository.getByCognitoId(input.pmProviderId);
+    await this.validateIntegratorIdentity(input.apyKey, pm?.email, input.issueProviderName);
+    const unfilteredProjects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects();
     const filteredProjects: ProjectPreIntegratedDTO[] = [];
     // retrieve only not integrated and not pending authorization projects
     for (const project of unfilteredProjects) {
@@ -137,15 +140,17 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   /**
    * Validates user identity using an apiKey and an email address.
+   * @param issueProviderName Name of the issue provider
    * @param {string} apiKey - The API key for authentication.
    * @param {string} pmEmail - The email address of the user to compare.
    * @returns {Promise<void>} - No return value, but throws an exception if validation fails.
    * @throws {UnauthorizedException} - Thrown if the API key is not valid for the provided email.
    */
-  async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined): Promise<void> {
+  async validateIntegratorIdentity(apiKey: string, pmEmail: string | undefined, issueProviderName: string): Promise<void> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     let userEmail: string;
     try {
-      userEmail = await this.adapter.getMyEmail(apiKey);
+      userEmail = await adapter.getMyEmail(apiKey);
     } catch (e) {
       throw new LinearIntegrationException(400, 'Linear api key is not valid');
     }
@@ -156,23 +161,27 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   /**
    * Gets basic members info that belong to a specific project
+   * @param issueProviderName Name of the issue provider
    * @param {string} projectId - The Project ID to which members belong
    * @param {string} apiKey - The API key for authentication.
    * @returns {Promise<ProjectMemberDataDTO[]>} A promise that resolves once retrieval is done and contains an array of basic data about project users
    */
-  async getMembers(projectId: string, apiKey: string): Promise<ProjectMemberDataDTO[]> {
-    return (await this.adapter.getMembersByProjectId(projectId, apiKey)).sort((a, b) => a.name.localeCompare(b.name));
+  async getMembers(projectId: string, apiKey: string, issueProviderName: string): Promise<ProjectMemberDataDTO[]> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
+    return (await adapter.getMembersByProjectId(projectId, apiKey)).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
    * Declines a project integration request.
+   * @param issueProviderName Name of the issue provider
    * @param providerProjectId - The ID of the project in the provider.
    * @returns A Promise that resolves once the project integration request is declined.
    */
-  async declineProject(providerProjectId: string): Promise<void> {
+  async declineProject(providerProjectId: string, issueProviderName: string): Promise<void> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
-    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token);
-    const project: BasicProjectDataInput = await this.adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
+    const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token, issueProviderName);
+    const project: BasicProjectDataInput = await adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
     await this.pendingAuthProjectRepository.delete(pendingProject.id);
     await this.emailService.sendDenialMail(integrator.email, { projectName: project.name, projectId: project.id, url: process.env.BACKEND_URL! });
@@ -210,12 +219,14 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   /**
    * Retrieves the integrator of the project using the provided API key.
+   * @param issueProviderName Name of the issue provider
    * @param apikey The API key used for authentication.
    * @returns A promise that resolves with the user who is the integrator of the project.
    * @throws {NotFoundException} If the user is not found.
    */
-  private async getProjectIntegrator(apikey: string): Promise<UserDTO> {
-    const userEmail: string = await this.adapter.getMyEmail(decryptData(apikey));
+  private async getProjectIntegrator(apikey: string, issueProviderName: string): Promise<UserDTO> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
+    const userEmail: string = await adapter.getMyEmail(decryptData(apikey));
     const user: UserDTO | null = await this.userRepository.getByEmail(userEmail);
     if (user == null) {
       throw new NotFoundException('User');
@@ -241,18 +252,20 @@ export class IntegrationServiceImpl implements IntegrationService {
 
   /**
    * Creates a pending project authorization for later admin approval
+   * @param issueProviderName Name of the issue provider
    * @param {AuthorizationRequestDTO} authReq - Already validated input data to create the pending authorization
    * @returns {Promise<PendingProjectAuthorizationDTO>} A promise that resolves once emails are sent and authorization was created, containing info about the latter
    */
-  async createPendingAuthorization(authReq: AuthorizationRequestDTO): Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }> {
+  async createPendingAuthorization(authReq: AuthorizationRequestDTO, issueProviderName: string): Promise<{ pendingProject: PendingProjectAuthorizationDTO; pmIsAdmin: boolean }> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const existingPendingAuth = await this.pendingAuthProjectRepository.getByProjectId(authReq.projectId);
     if (existingPendingAuth != null) {
       throw new ConflictException('The project you are trying to integrate is already waiting for authorization.');
     }
     await this.verifyProjectDuplication(authReq.projectId);
 
-    const integrator: UserData = await this.adapter.getMemberById(authReq.integratorId, authReq.apiToken);
-    const project: BasicProjectDataInput = await this.adapter.getProjectById(authReq.projectId, authReq.apiToken);
+    const integrator: UserData = await adapter.getMemberById(authReq.integratorId, authReq.apiToken);
+    const project: BasicProjectDataInput = await adapter.getProjectById(authReq.projectId, authReq.apiToken);
     const admins: AdministratorDTO[] = await this.administratorRepository.getByOrganizationName(authReq.organizationName);
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
@@ -290,25 +303,28 @@ export class IntegrationServiceImpl implements IntegrationService {
   /**
    * Accepts a project.
    * @param projectId The unique identifier of the project.
+   * @param issueProviderName Name of the issue provider
    * @returns A Promise that resolves when the project is accepted.
    * @throws {ConflictException} If the project integration flow is currently in progress.
    */
-  async acceptProject(projectId: string): Promise<void> {
+  async acceptProject(projectId: string, issueProviderName: string): Promise<void> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     if (pendingProject.isIntegrating) {
       throw new ConflictException('Project already being integrated');
     }
     const apiKey: string = decryptData(pendingProject.token);
-    const project: BasicProjectDataInput = await this.adapter.getProjectById(projectId, apiKey);
-    const email: string = await this.adapter.getMyEmail(apiKey);
+    const project: BasicProjectDataInput = await adapter.getProjectById(projectId, apiKey);
+    const email: string = await adapter.getMyEmail(apiKey);
 
     await this.emailService.sendAcceptanceMail(email, { projectName: project.name });
   }
 
-  async provideProjectInfo(projectId: string): Promise<PendingProjectInfoDTO> {
+  async provideProjectInfo(projectId: string, issueProviderName: string): Promise<PendingProjectInfoDTO> {
+    const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
-    const pm: UserData = await this.adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
-    const projectFromLinear: BasicProjectDataInput = await this.adapter.getProjectById(projectId, decryptData(pendingProject.token));
+    const pm: UserData = await adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
+    const projectFromLinear: BasicProjectDataInput = await adapter.getProjectById(projectId, decryptData(pendingProject.token));
 
     return { pmImage: pm.image, pmName: pm.name, projectImage: projectFromLinear.projectImage ?? null, projectName: projectFromLinear.name };
   }
