@@ -74,18 +74,48 @@ export class ProjectIdIntegrationInputDTO {
 }
 
 /**
- * Represents a project sent to the integrator in the project integration request flow
- * */
+ * Data transfer object (DTO) representing a pre-integrated project.
+ */
 export class ProjectPreIntegratedDTO {
+  /**
+   * ID of the project from the provider.
+   */
   providerProjectId: string;
+
+  /**
+   * Name of the project.
+   */
   name: string;
+
+  /**
+   * Image URL of the project, can be null.
+   */
   image: string | null;
 
+  /**
+   * State of the project, represented by the ProjectState enum.
+   */
+  state: ProjectState;
+
+  /**
+   * Constructs a new instance of ProjectPreIntegratedDTO.
+   * @param project - Object containing project data to initialize the DTO.
+   */
   constructor(project: ProjectPreIntegratedDTO) {
     this.providerProjectId = project.providerProjectId;
     this.name = project.name;
     this.image = project.image;
+    this.state = project.state;
   }
+}
+
+/**
+ * Enum representing if a project has been already integrated.
+ */
+export enum ProjectState {
+  NOT_ADDED = 'NOT_ADDED',
+  PENDING = 'PENDING',
+  ADDED = 'ADDED',
 }
 
 export interface ProjectsPreIntegratedInputDTO {

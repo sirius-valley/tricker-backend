@@ -9,7 +9,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, ProjectState, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
@@ -113,19 +113,22 @@ export class IntegrationServiceImpl implements IntegrationService {
    * @throws {NotFoundException} If the specified issue provider is not found.
    */
   async retrieveProjectsFromProvider(input: ProjectsPreIntegratedInputDTO): Promise<ProjectPreIntegratedDTO[]> {
-    const pm = await this.userRepository.getByCognitoId(input.pmProviderId);
+    const pm: UserDTO | null = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email);
-    const unfilteredProjects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
-    const filteredProjects: ProjectPreIntegratedDTO[] = [];
-    // retrieve only not integrated and not pending authorization projects
-    for (const project of unfilteredProjects) {
+    const projects: ProjectPreIntegratedDTO[] = await this.adapter.getAndAdaptProjects();
+    const taggedProjects: ProjectPreIntegratedDTO[] = [];
+    // detect pending projects or already integrated
+    for (const project of projects) {
       const integratedProject: ProjectDTO | null = await this.projectRepository.getByProviderId(project.providerProjectId);
       const pendingAuthorizationProject: PendingProjectAuthorizationDTO | null = await this.pendingAuthProjectRepository.getByProjectId(project.providerProjectId);
-      if (integratedProject === null && pendingAuthorizationProject === null) {
-        filteredProjects.push(project);
+      if (integratedProject !== null) {
+        project.state = ProjectState.ADDED;
+      } else if (pendingAuthorizationProject !== null) {
+        project.state = ProjectState.PENDING;
       }
+      taggedProjects.push(project);
     }
-    return filteredProjects;
+    return taggedProjects;
   }
 
   private async assignRoles(members: ProjectMemberDataDTO[], pmEmail: string): Promise<UserRole[]> {
