@@ -52,6 +52,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
+            deletedAt: { not: null },
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -85,6 +86,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
+            deletedAt: { not: null },
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -133,7 +135,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO> {
     const event = await this.db.timeTracking.create({
       data: {
-        issueId,
+        issue: {
+          connect: {
+            id: issueId,
+            deletedAt: { not: null },
+          },
+        },
         startTime: new Date(),
       },
     });
@@ -190,7 +197,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createManualTimeModification(input: ManualTimeModificationEventInput): Promise<ManualTimeModificationDTO> {
     const event = await this.db.manualTimeModification.create({
       data: {
-        issueId: input.issueId,
+        issue: {
+          connect: {
+            id: input.issueId,
+            deletedAt: { not: null },
+          },
+        },
         reason: input.reason,
         timeAmount: input.timeAmount,
         modificationDate: input.date,

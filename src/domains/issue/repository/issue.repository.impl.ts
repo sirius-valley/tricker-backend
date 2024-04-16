@@ -255,6 +255,7 @@ export class IssueRepositoryImpl implements IssueRepository {
   async getByProjectIdAndUserId(input: UserProject): Promise<IssueViewDTO[]> {
     const issues = await this.db.issue.findMany({
       where: {
+        deletedAt: null,
         projectId: input.projectId,
         assigneeId: input.userId,
         assignee: {
