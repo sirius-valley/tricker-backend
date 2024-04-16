@@ -5,12 +5,11 @@ import { type RoleRepository } from '@domains/role/repository';
 export class RoleServiceImpl implements RoleService {
   constructor(private readonly roleRepository: RoleRepository) {}
 
-  async getOrCreate(name: string): Promise<RoleDTO> {
-    let role: RoleDTO | null = await this.roleRepository.getByName(name);
-    if (role === null) {
-      role = await this.roleRepository.create(name);
-    }
-
-    return role;
+  /**
+   * Retrieves roles from a repository.
+   * @returns A Promise that resolves with an array of RoleDTO objects representing the retrieved roles.
+   */
+  async getRoles(): Promise<RoleDTO[]> {
+    return this.roleRepository.getRoles();
   }
 }

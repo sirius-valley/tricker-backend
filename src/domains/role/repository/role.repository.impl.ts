@@ -34,4 +34,18 @@ export class RoleRepositoryImpl implements RoleRepository {
 
     return role == null ? null : new RoleDTO(role);
   }
+
+  /**
+   * Retrieves all roles from the database.
+   * @returns A Promise that resolves with an array of RoleDTO objects representing the retrieved roles.
+   */
+  async getRoles(): Promise<RoleDTO[]> {
+    const roles = await this.db.role.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return roles.map((role) => new RoleDTO(role));
+  }
 }
