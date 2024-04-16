@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 import { type AssigneeFilterDataDTO } from '@domains/user';
 import { type StageDTO } from '@domains/projectStage/dto';
 import { type ProjectDataDTO, type UserRole } from '@domains/integration/dto';
@@ -185,7 +185,6 @@ export enum ProjectRole {
 export class KeyPhraseParamDTO {
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @Transform(({ value }) => value.trim())
   projectName?: string;
 }
@@ -267,6 +266,10 @@ export interface MyProjectViewDTO {
  * This interface represents a subset of user data for display within a project context.
  */
 export interface MyProjectsUserViewDTO {
+  /**
+   * User's ID.
+   */
+  id: string;
   /**
    * User's name (if available).
    */

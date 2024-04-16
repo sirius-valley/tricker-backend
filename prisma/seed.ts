@@ -25,6 +25,27 @@ async function runSeeding(): Promise<void> {
     },
     update: {},
   });
+
+  Logger.debug('Seeding db with predefined Roles');
+  await prisma.role.upsert({
+    where: {
+      name: 'Project Manager',
+    },
+    create: {
+      name: 'Project Manager',
+    },
+    update: {},
+  });
+
+  await prisma.role.upsert({
+    where: {
+      name: 'Developer',
+    },
+    create: {
+      name: 'Developer',
+    },
+    update: {},
+  });
 }
 
 runSeeding()
