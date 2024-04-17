@@ -8,6 +8,7 @@ import { type ProjectService, ProjectServiceImpl } from '@domains/project/servic
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type UserProjectRoleRepository, UserProjectRoleRepositoryImpl } from '@domains/userProjectRole/repository';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 require('express-async-errors');
 
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
@@ -68,4 +69,13 @@ projectRouter.delete('/:projectId/member/:userId', validateRequest(UserProjectPa
   await service.deleteMember({ userId, projectId, cognitoId: sub });
 
   return res.status(HttpStatus.NO_CONTENT).send(`The member with id: ${userId} was successfully deleted.`);
+});
+
+projectRouter.post('/:projectId/member/:userId', validateRequest(UserProjectParamsDTO, 'params'), validateUserIsProjectManager(), async (req: Request<UserProjectParamsDTO>, res: Response) => {
+  const { userId, projectId } = req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
+
+  const userProjectRole: UserProjectRoleDTO = await service.addMember({ userId, projectId, cognitoId: sub });
+
+  return res.status(HttpStatus.OK).json(userProjectRole);
 });

@@ -149,6 +149,21 @@ export class ProjectServiceImpl implements ProjectService {
     await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
   }
 
+  async addMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<UserProjectRoleDTO> {
+    const user: UserDTO = (await this.userRepository.getByCognitoId(cognitoId))!;
+    if (user.id === userId) {
+      throw new ConflictException('Project Managers can`t add themselves.');
+    }
+    await this.validateProjectExistence(projectId);
+    await this.validateUserExistence(userId);
+    const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId({ projectId, userId });
+    if (userProjectRole === null) {
+      throw new NotFoundException('UserProjectRole');
+    }
+
+    return await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: true });
+  }
+
   /**
    * Extracts project filters from the provided list of issues.
    * @param {IssueViewDTO[]} issues - The list of issues.
