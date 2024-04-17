@@ -1,5 +1,6 @@
 import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
 import { type UserProject } from '@domains/issue';
+import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
 
 export interface ProjectService {
   getDevProjectFilters: (input: UserProject) => Promise<DevProjectFiltersDTO>;
@@ -7,5 +8,5 @@ export interface ProjectService {
   getMyProjectView: (input: { cognitoId: string; projectId: string }) => Promise<MyProjectViewDTO>;
   deleteProject: (input: { cognitoId: string; projectId: string }) => Promise<string>;
   getProjectsListByUserIdFiltered: (input: ProjectsFilterInput) => Promise<ProjectBasicDTO[]>;
-  deleteMember: (input: { cognitoId: string; userId: string; projectId: string }) => Promise<void>;
+  deleteMember: (input: { cognitoId: string; userId: string; projectId: string }) => Promise<UserProjectRoleDTO>;
 }
