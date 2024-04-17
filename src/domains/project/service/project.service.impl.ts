@@ -149,6 +149,15 @@ export class ProjectServiceImpl implements ProjectService {
     await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
   }
 
+  /**
+   * Adds a member to a project.
+   * @param cognitoId The Cognito ID of the requester.
+   * @param userId The ID of the user to be added to the project.
+   * @param projectId The ID of the project to which the user will be added.
+   * @returns A Promise that resolves to a UserProjectRoleDTO representing the user's role in the project.
+   * @throws ConflictException if the project manager tries to add themselves.
+   * @throws NotFoundException if the user or project is not found.
+   */
   async addMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<UserProjectRoleDTO> {
     const user: UserDTO = (await this.userRepository.getByCognitoId(cognitoId))!;
     if (user.id === userId) {
