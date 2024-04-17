@@ -9,7 +9,7 @@ import type { ProjectManagementToolAdapter } from '@domains/adapter/projectManag
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
 import type { OrganizationRepository } from '@domains/organization/repository';
-import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, UserRole } from '@domains/integration/dto';
+import { type AuthorizationRequestDTO, type IntegrationParams, type PendingProjectInfoDTO, type ProjectDataDTO, type ProjectMemberDataDTO, type ProjectPreIntegratedDTO, type ProjectsPreIntegratedInputDTO, ProjectState, UserRole } from '@domains/integration/dto';
 import { type EmailService } from '@domains/email/service';
 import jwt from 'jsonwebtoken';
 import { type AuthorizationEmailVariables } from '@domains/email/dto';
@@ -48,6 +48,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     await this.verifyProjectDuplication(projectId);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
     await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: true });
+    if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
     const { email: integratorEmail } = await this.getProjectIntegrator(pendingProject.token, issueProviderName);
     const authorizedMemberMails: string[] = await this.getAuthorizedMemberMails(pendingProject.id);
     const { id: organizationId } = await this.getOrganization(pendingProject.organizationId);
@@ -68,7 +69,7 @@ export class IntegrationServiceImpl implements IntegrationService {
             pendingProjectId: pendingProject.id,
           }),
         { delay: 1000 * 60 * 60 * 2, retries: 3 },
-        [ConflictException, PrismaClientKnownRequestError, PrismaClientUnknownRequestError]
+        [PrismaClientKnownRequestError, PrismaClientUnknownRequestError]
       );
     } catch (e: any) {
       Logger.error(e.message);
@@ -91,6 +92,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName, pendingProjectId }: IntegrationParams): Promise<ProjectDTO> {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     Logger.time('Provider project data adaptation');
+    if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
     const projectData: ProjectDataDTO = await adapter.adaptProjectData({
       providerProjectId: projectId,
       pmEmail: integratorEmail,
@@ -131,17 +133,20 @@ export class IntegrationServiceImpl implements IntegrationService {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(input.issueProviderName);
     const pm: UserDTO | null = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email, input.issueProviderName);
-    const unfilteredProjects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects();
-    const filteredProjects: ProjectPreIntegratedDTO[] = [];
-    // retrieve only not integrated and not pending authorization projects
-    for (const project of unfilteredProjects) {
+    const projects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects();
+    const taggedProjects: ProjectPreIntegratedDTO[] = [];
+    // detect pending projects or already integrated
+    for (const project of projects) {
       const integratedProject: ProjectDTO | null = await this.projectRepository.getByProviderId(project.providerProjectId);
       const pendingAuthorizationProject: PendingProjectAuthorizationDTO | null = await this.pendingAuthProjectRepository.getByProjectId(project.providerProjectId);
-      if (integratedProject === null && pendingAuthorizationProject === null) {
-        filteredProjects.push(project);
+      if (integratedProject !== null) {
+        project.state = ProjectState.ADDED;
+      } else if (pendingAuthorizationProject !== null) {
+        project.state = ProjectState.PENDING;
       }
+      taggedProjects.push(project);
     }
-    return filteredProjects;
+    return taggedProjects;
   }
 
   private async assignRoles(members: ProjectMemberDataDTO[], pmEmail: string): Promise<UserRole[]> {
@@ -193,6 +198,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async declineProject(providerProjectId: string, issueProviderName: string): Promise<void> {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(providerProjectId);
+    if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
     const integrator: UserDTO = await this.getProjectIntegrator(pendingProject.token, issueProviderName);
     const project: BasicProjectDataInput = await adapter.getProjectById(providerProjectId, decryptData(pendingProject.token));
 
@@ -326,6 +332,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     if (pendingProject.isIntegrating) {
       throw new ConflictException('Project already being integrated');
     }
+    if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
     const apiKey: string = decryptData(pendingProject.token);
     const project: BasicProjectDataInput = await adapter.getProjectById(projectId, apiKey);
     const email: string = await adapter.getMyEmail(apiKey);
@@ -336,6 +343,7 @@ export class IntegrationServiceImpl implements IntegrationService {
   async provideProjectInfo(projectId: string, issueProviderName: string): Promise<PendingProjectInfoDTO> {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     const pendingProject: PendingProjectAuthorizationDTO = await this.getPendingProject(projectId);
+    if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
     const pm: UserData = await adapter.getMemberById(pendingProject.integratorId, decryptData(pendingProject.token));
     const projectFromLinear: BasicProjectDataInput = await adapter.getProjectById(projectId, decryptData(pendingProject.token));
 

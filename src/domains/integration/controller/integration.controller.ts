@@ -36,7 +36,7 @@ integrationRouter.post('/:issueProviderName/projects', validateRequest(IssueProv
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
   const { issueProviderName } = req.params as IssueProviderURLParams;
 
-  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: issueProviderName, apyKey: key, pmProviderId: sub, issueProviderName });
+  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ apyKey: key, pmProviderId: sub, issueProviderName });
 
   return res.status(HttpStatus.OK).json(projects);
 });

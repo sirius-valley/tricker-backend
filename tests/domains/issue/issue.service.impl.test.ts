@@ -1,5 +1,5 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock } from './mock';
+import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock } from '../mock/mock';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import {
   mockPMIssueFilterParameters,

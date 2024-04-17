@@ -206,6 +206,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
           data: {
             deletedAt: new Date(),
             token: null,
+            isIntegrating: false,
           },
         });
 

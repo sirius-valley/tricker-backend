@@ -1,5 +1,5 @@
 import { type RoleService, RoleServiceImpl } from '@domains/role/service';
-import { roleRepositoryMock } from '../issue/mock';
+import { roleRepositoryMock } from '../mock/mock';
 import { mockDevRoleDTO, mockPMRoleDTO } from '../issue/mockData';
 import { type RoleDTO } from '@domains/role/dto';
 
