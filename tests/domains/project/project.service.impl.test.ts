@@ -250,7 +250,7 @@ describe('project service tests', () => {
       projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
       userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
       userProjectRoleRepositoryMock.getByProjectIdAndUserId.mockResolvedValue(mockUserProjectRoleDTO);
-      userProjectRoleRepositoryMock.update.mockImplementation();
+      userProjectRoleRepositoryMock.update.mockResolvedValue(mockUserProjectRoleDTO);
       // when
       await projectService.deleteMember({ projectId, userId, cognitoId });
       // then

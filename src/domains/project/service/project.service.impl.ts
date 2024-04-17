@@ -128,13 +128,13 @@ export class ProjectServiceImpl implements ProjectService {
    * Deletes a member from a project.
    * @param input - Parameters for identifying the user-project relationship.
    * @param {string} input.projectId - The id of the project
-   * @param {string} input.userId - The id of the issue
+   * @param {string} input.userId - The id of the user to delete
    * @param {string} input.cognitoId - The cognito id of the Project Manager who is trying to delete the member
    * @returns A Promise that resolves once the member is deleted.
    * @throws NotFoundException if the user-project role is not found.
    * @throws ConflictException if the user tries to delete themselves.
    */
-  async deleteMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<void> {
+  async deleteMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<UserProjectRoleDTO> {
     const user: UserDTO = (await this.userRepository.getByCognitoId(cognitoId))!;
     if (user.id === userId) {
       throw new ConflictException('Project Managers can`t delete themselves.');
@@ -142,11 +142,11 @@ export class ProjectServiceImpl implements ProjectService {
     await this.validateProjectExistence(projectId);
     await this.validateUserExistence(userId);
     const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId({ projectId, userId });
-    if (userProjectRole === null) {
+    if (userProjectRole === null || userProjectRole.deletedAt !== null) {
       throw new NotFoundException('UserProjectRole');
     }
 
-    await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
+    return await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
   }
 
   /**
