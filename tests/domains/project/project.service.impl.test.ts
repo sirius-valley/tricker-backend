@@ -175,6 +175,7 @@ describe('project service tests', () => {
         userId,
         user,
         role,
+        isAccepted: true,
       };
       const project: ProjectDetailsDTO = {
         id: projectId,
@@ -197,7 +198,7 @@ describe('project service tests', () => {
         name: project.name,
         issueProviderName: project.issueProvider.name,
         updatedAt: project.updatedAt,
-        users: [{ id: user.id, name: user.name, email: user.email, image: user.profileImage, role: project.usersAndRoles[0].role }],
+        users: [{ id: user.id, name: user.name, email: user.email, image: user.profileImage, role: project.usersAndRoles[0].role, isAccepted: userAndRole.isAccepted }],
       };
 
       userRepositoryMock.getByCognitoId.mockResolvedValueOnce(user);

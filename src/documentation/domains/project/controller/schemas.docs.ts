@@ -123,8 +123,33 @@
  *         users:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/ProjectUserViewDTO'
+ *             $ref: '#/components/schemas/MyProjectUserViewDTO'
  *           description: Array of MyProjectUserViewDTO objects representing users associated with the project.
+ *       example:
+ *         providerId: "8c6e0935-1c27-4b68-804d-5f23d995b5e2"
+ *         image: "https://example.com/project-image.jpg"
+ *         url: "https://example.com/project"
+ *         name: "Awesome Project"
+ *         issueProviderName: "Jira"
+ *         updatedAt: "2024-04-16T12:30:45Z"
+ *         users:
+ *           - id: "5a809934-27d8-4d67-bba4-2d6fdee5fb0c"
+ *             name: "John Doe"
+ *             email: "john@example.com"
+ *             image: "https://example.com/user-profile-image.jpg"
+ *             role:
+ *               id: "e0841d34-b9b2-4ae7-b7b8-330f89fb8ff4"
+ *               name: "Project Manager"
+ *             isAccepted: true
+ *           - id: "d2707d7a-8249-42b7-ae78-fb1eb68a579d"
+ *             name: "Alice Smith"
+ *             email: "alice@example.com"
+ *             image: null
+ *             role:
+ *               id: "e0841d34-b9b2-4ae7-b7b8-330f89fb8ff5"
+ *               name: "Developer"
+ *             isAccepted: false
+ *
  *     MyProjectUserViewDTO:
  *       type: object
  *       properties:
@@ -145,6 +170,18 @@
  *         role:
  *           $ref: '#/components/schemas/RoleDTO'  # Assuming RoleDTO is defined elsewhere
  *           description: Optional RoleDTO object representing the user's role in the project (if requester is a PM).
+ *         isAccepted:
+ *           type: boolean
+ *           description: It indicates if the user is added to the project or deleted from it
+ *       example:
+ *         id: "5a809934-27d8-4d67-bba4-2d6fdee5fb0c"
+ *         name: "John Doe"
+ *         email: "john@example.com"
+ *         image: "https://example.com/user-profile-image.jpg"
+ *         role:
+ *           id: "e0841d34-b9b2-4ae7-b7b8-330f89fb8ff4"
+ *           name: "Project Manager"
+ *         isAccepted: true
  *
  *     ProjectBasicDTO:
  *       type: object

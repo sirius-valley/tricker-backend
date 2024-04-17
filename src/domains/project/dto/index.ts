@@ -257,7 +257,7 @@ export interface MyProjectViewDTO {
   /**
    * Array of ProjectUserViewDTO objects representing users associated with the project.
    */
-  users: MyProjectsUserViewDTO[];
+  users: MyProjectUserViewDTO[];
 }
 
 /**
@@ -265,7 +265,7 @@ export interface MyProjectViewDTO {
  *
  * This interface represents a subset of user data for display within a project context.
  */
-export interface MyProjectsUserViewDTO {
+export interface MyProjectUserViewDTO {
   /**
    * User's ID.
    */
@@ -286,6 +286,10 @@ export interface MyProjectsUserViewDTO {
    * Optional RoleDTO object representing the user's role in the project (if requester is a PM).
    */
   role?: RoleDTO;
+  /**
+   * Boolean representing if the user is added or deleted from the project.
+   */
+  isAccepted: boolean;
 }
 
 /**

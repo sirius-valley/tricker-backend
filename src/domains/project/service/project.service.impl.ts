@@ -49,7 +49,7 @@ export class ProjectServiceImpl implements ProjectService {
    *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
    */
   async getMyProjectView({ cognitoId, projectId }: { cognitoId: string; projectId: string }): Promise<MyProjectViewDTO> {
-    const user = await this.userRepository.getByCognitoId(cognitoId);
+    const user: UserDTO | null = await this.userRepository.getByCognitoId(cognitoId);
     if (user == null) throw new NotFoundException('User');
 
     const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails({ userId: user.id, projectId });
@@ -71,6 +71,7 @@ export class ProjectServiceImpl implements ProjectService {
         email: userAndRole.user.email,
         image: userAndRole.user.profileImage,
         role: currentUserIsPm ? userAndRole.role : undefined,
+        isAccepted: userAndRole.isAccepted,
       })),
     };
   }

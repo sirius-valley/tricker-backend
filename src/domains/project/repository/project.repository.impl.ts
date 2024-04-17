@@ -102,6 +102,7 @@ export class ProjectRepositoryImpl implements ProjectRepository {
                 ...userRole,
                 user: new BasicUserDTO(userRole.user),
                 role: new RoleDTO(userRole.role),
+                isAccepted: userRole.isAccepted,
               })
           ),
         });
