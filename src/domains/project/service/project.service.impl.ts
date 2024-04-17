@@ -127,7 +127,7 @@ export class ProjectServiceImpl implements ProjectService {
    * Deletes a member from a project.
    * @param input - Parameters for identifying the user-project relationship.
    * @param {string} input.projectId - The id of the project
-   * @param {string} input.userId - The id of the issue
+   * @param {string} input.userId - The id of the user to delete
    * @param {string} input.cognitoId - The cognito id of the Project Manager who is trying to delete the member
    * @returns A Promise that resolves once the member is deleted.
    * @throws NotFoundException if the user-project role is not found.
