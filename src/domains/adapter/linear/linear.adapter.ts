@@ -5,7 +5,7 @@ import { processIssueEvents } from '@domains/adapter/linear/event-util';
 import { decryptData, LinearIntegrationException, Logger } from '@utils';
 import { IssueDataDTO, type Priority } from '@domains/issue/dto';
 import { type AdaptProjectDataInput, type LinearIssueData } from '@domains/adapter/dto';
-import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, type StageData } from '@domains/integration/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, ProjectPreIntegratedDTO, ProjectState, type StageData } from '@domains/integration/dto';
 import { type LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
 import { type UserData } from '@domains/user';
 import { type BasicProjectDataInput } from '@domains/project/dto';
@@ -155,7 +155,7 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
   async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
     const teams: Team[] = await this.dataRetriever.getProjects();
     const workspace: Organization = await this.dataRetriever.getOrganization();
-    return teams.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null }));
+    return teams.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null, state: ProjectState.NOT_ADDED }));
   }
 
   /**

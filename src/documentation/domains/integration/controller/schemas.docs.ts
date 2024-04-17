@@ -180,23 +180,34 @@
  *       example:
  *         projectId: "1"
  *
+ *     ProjectState:
+ *       type: string
+ *       enum:
+ *         - NOT_ADDED
+ *         - PENDING
+ *         - ADDED
+ *       description: Enum representing the state of a project.
+ *
  *     ProjectPreIntegratedDTO:
  *       type: object
  *       properties:
  *         providerProjectId:
  *           type: string
- *           description: The ID of the project in the provider's system.
+ *           format: uuid
+ *           example: "5a809934-27d8-4d67-bba4-2d6fdee5fb0c"
+ *           description: ID of the project from the provider (UUID format).
  *         name:
  *           type: string
- *           description: The name of the project.
+ *           example: "Project XYZ"
+ *           description: Name of the project.
  *         image:
  *           type: string
  *           nullable: true
- *           description: The URL of the project's image, if available.
- *       example:
- *         providerProjectId: "123"
- *         name: "Example Project"
- *         image: "http://example.com/image.jpg"
+ *           example: "https://example.com/image.jpg"
+ *           description: Image URL of the project. Can be null.
+ *         state:
+ *           $ref: '#/components/schemas/ProjectState'
+ *           description: State of the project, represented by the ProjectState enum.
  *
  *     ProjectsPreIntegratedInputDTO:
  *       type: object
