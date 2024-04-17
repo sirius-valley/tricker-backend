@@ -52,7 +52,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
-            deletedAt: { not: null },
+            deletedAt: null,
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -86,7 +86,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
-            deletedAt: { not: null },
+            deletedAt: null,
           },
         },
         eventRegisteredAt: input.createdAt,
@@ -138,7 +138,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: issueId,
-            deletedAt: { not: null },
+            deletedAt: null,
           },
         },
         startTime: new Date(),
@@ -200,7 +200,7 @@ export class EventRepositoryImpl implements EventRepository {
         issue: {
           connect: {
             id: input.issueId,
-            deletedAt: { not: null },
+            deletedAt: null,
           },
         },
         reason: input.reason,
