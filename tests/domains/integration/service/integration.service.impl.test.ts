@@ -10,7 +10,7 @@ import { type PendingProjectAuthorizationRepository, PendingProjectAuthorization
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { ProjectDTO } from '@domains/project/dto';
-import { ProjectDataDTO, ProjectMemberDataDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
+import { ProjectDataDTO, ProjectMemberDataDTO, type ProjectPreIntegratedDTO, ProjectState } from '@domains/integration/dto';
 import { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { PendingMemberMailDTO } from '@domains/pendingMemberMail/dto';
 import { OrganizationDTO } from '@domains/organization/dto';
@@ -212,11 +212,11 @@ describe('Integration service', () => {
     it('should successfully retrieve a projects list', async () => {
       jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
       jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
-      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.NOT_ADDED }]);
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
 
-      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker' }];
+      const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.NOT_ADDED }];
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
 
       expect.assertions(2);
@@ -224,30 +224,32 @@ describe('Integration service', () => {
       expect(received).toHaveLength(1);
     });
 
-    it('should retrieve a an empty projects list if pendingAuthorizationProject has been already created', async () => {
+    it('should retrieve a projects list with project with pending state if pendingAuthorizationProject has been already created', async () => {
       jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
       jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
-      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.PENDING }]);
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(mockPendingProjectAuthorizationDTO);
 
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
 
-      expect.assertions(1);
-      expect(received.length).toEqual(0);
+      expect.assertions(2);
+      expect(received.length).toEqual(1);
+      expect(received[0].state).toEqual(ProjectState.PENDING);
     });
 
-    it('should retrieve a an empty projects list if the project has been already created', async () => {
+    it('should retrieve a projects list with project with added state if the project has been already created', async () => {
       jest.spyOn(userMockRepository, 'getByCognitoId').mockResolvedValue(user);
       jest.spyOn(service, 'validateIntegratorIdentity').mockResolvedValue();
-      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker' }]);
+      jest.spyOn(mockAdapterTool, 'getAndAdaptProjects').mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.ADDED }]);
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(mockProjectDTO);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
 
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ providerName: 'Linear', apyKey: 'mock_secret', pmProviderId: 'mail@mail.com' });
 
-      expect.assertions(1);
-      expect(received.length).toEqual(0);
+      expect.assertions(2);
+      expect(received.length).toEqual(1);
+      expect(received[0].state).toEqual(ProjectState.ADDED);
     });
   });
 
