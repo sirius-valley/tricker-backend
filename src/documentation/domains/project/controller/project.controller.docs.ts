@@ -178,4 +178,46 @@
  *           $ref: '#/components/responses/ForbiddenException'
  *         '404':
  *           $ref: '#/components/responses/NotFoundException'
+ *
+ *   /api/projects/{projectId}/member/{userId}:
+ *     delete:
+ *       summary: Delete a member from a project
+ *       description: Deletes a member from a project by their user ID and project ID.
+ *       tags:
+ *         - Project
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "5a809934-27d8-4d67-bba4-2d6fdee5fb0c"
+ *         - in: path
+ *           name: userId
+ *           required: true
+ *           description: ID of the user.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "8c6e0935-1c27-4b68-804d-5f23d995b5e2"
+ *       responses:
+ *         '204':
+ *           description: Member deleted successfully.
+ *           content:
+ *             text/plain:
+ *               schema:
+ *                 type: string
+ *                 example: The member with id 8c6e0935-1c27-4b68-804d-5f23d995b5e2 was successfully deleted.
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  */

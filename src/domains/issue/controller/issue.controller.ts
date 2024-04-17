@@ -106,7 +106,7 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
 
   await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.sendStatus(HttpStatus.NO_CONTENT);
+  return res.status(HttpStatus.NO_CONTENT).send(`The issue with id: ${issueId} was successfully unflagged.`);
 });
 
 issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {

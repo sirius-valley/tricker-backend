@@ -1,7 +1,7 @@
-import { issueRepositoryMock, projectRepositoryMock, userRepositoryMock } from '../issue/mock';
-import { NotFoundException } from '@utils';
+import { issueRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, userRepositoryMock } from '../issue/mock';
+import { ConflictException, NotFoundException } from '@utils';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
-import { mockProjectDTO, mockUserDTO } from '../issue/mockData';
+import { mockProjectDTO, mockUserDTO, mockUserProjectRoleDTO } from '../issue/mockData';
 import { mockDevProjectFilterDTO, mockIssueViewDTO1, mockIssueViewDTO2, mockIssueViewDTO3, mockPMProjectFilterDTO, mockProjectBasicDTO, mockProjectsFilterInput } from './mockData';
 import { type DevProjectFiltersDTO, type MyProjectViewDTO, type PMProjectFiltersDTO, type ProjectDetailsDTO, type ProjectBasicDTO } from '@domains/project/dto';
 import { type UserDTO } from '@domains/user';
@@ -14,7 +14,7 @@ describe('project service tests', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    projectService = new ProjectServiceImpl(projectRepositoryMock, issueRepositoryMock, userRepositoryMock);
+    projectService = new ProjectServiceImpl(projectRepositoryMock, issueRepositoryMock, userRepositoryMock, userProjectRoleRepositoryMock);
   });
 
   describe('getDevProjectFilters method', () => {
@@ -237,6 +237,82 @@ describe('project service tests', () => {
       expect.assertions(2);
       await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow(NotFoundException);
       await expect(projectService.getProjectsListByUserIdFiltered(mockProjectsFilterInput)).rejects.toThrow("Not found. Couldn't find User");
+    });
+  });
+
+  describe('deleteMembers method', () => {
+    it('should logically delete a member from a project', async (): Promise<void> => {
+      // given
+      const projectId: string = 'Project777';
+      const userId: string = 'user124';
+      const cognitoId: string = 'cognito145';
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      userProjectRoleRepositoryMock.getByProjectIdAndUserId.mockResolvedValue(mockUserProjectRoleDTO);
+      userProjectRoleRepositoryMock.update.mockImplementation();
+      // when
+      await projectService.deleteMember({ projectId, userId, cognitoId });
+      // then
+      expect.assertions(2);
+      expect(userProjectRoleRepositoryMock.update).toHaveBeenCalledTimes(1);
+      expect(userProjectRoleRepositoryMock.update).toHaveBeenCalledWith({ ...mockUserProjectRoleDTO, isAccepted: false });
+    });
+
+    it('should throw NotFoundException when user is null', async (): Promise<void> => {
+      // given
+      const projectId: string = 'Project777';
+      const userId: string = 'user124';
+      const cognitoId: string = 'cognito145';
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      userRepositoryMock.getById.mockResolvedValue(null);
+      // then
+      expect.assertions(2);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow(NotFoundException);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow("Not found. Couldn't find User");
+    });
+
+    it('should throw NotFoundException when user is logically deleted', async (): Promise<void> => {
+      // given
+      const projectId: string = 'Project777';
+      const userId: string = 'user124';
+      const cognitoId: string = 'cognito145';
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      userRepositoryMock.getById.mockResolvedValue({ ...mockUserDTO, deletedAt: new Date() });
+      // then
+      expect.assertions(2);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow(NotFoundException);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow("Not found. Couldn't find User");
+    });
+
+    it('should throw NotFoundException when userProjectRole is null', async (): Promise<void> => {
+      // given
+      const projectId: string = 'Project777';
+      const userId: string = 'user124';
+      const cognitoId: string = 'cognito145';
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      userRepositoryMock.getById.mockResolvedValue(mockUserDTO);
+      userProjectRoleRepositoryMock.getByProjectIdAndUserId.mockResolvedValue(null);
+
+      // then
+      expect.assertions(2);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow(NotFoundException);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow("Not found. Couldn't find UserProjectRole");
+    });
+
+    it('should throw ConflictException when Project Manager is trying to delete themselves', async (): Promise<void> => {
+      // given
+      const projectId: string = 'Project777';
+      const userId: string = 'user123';
+      const cognitoId: string = 'cognito145';
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
+      // then
+      expect.assertions(2);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow(ConflictException);
+      await expect(projectService.deleteMember({ projectId, userId, cognitoId })).rejects.toThrow('Project Managers can`t delete themselves.');
     });
   });
 });
