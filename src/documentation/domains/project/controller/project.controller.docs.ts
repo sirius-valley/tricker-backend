@@ -220,4 +220,46 @@
  *           $ref: '#/components/responses/NotFoundException'
  *         '409':
  *           $ref: '#/components/responses/ConflictException'
+ *
+ *     post:
+ *       summary: Add a member from a project
+ *       description: Adds a member from a project by their user ID and project ID.
+ *       tags:
+ *         - Project
+ *       security:
+ *         - bearerAuth: []
+ *       parameters:
+ *         - in: path
+ *           name: projectId
+ *           required: true
+ *           description: ID of the project.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "5a809934-27d8-4d67-bba4-2d6fdee5fb0c"
+ *         - in: path
+ *           name: userId
+ *           required: true
+ *           description: ID of the user.
+ *           schema:
+ *             type: string
+ *             format: uuid
+ *           example: "8c6e0935-1c27-4b68-804d-5f23d995b5e2"
+ *       responses:
+ *         '200':
+ *           description: Member added successfully.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: "#/components/schemas/UserProjectRoleDTO"
+ *         '400':
+ *           $ref: '#/components/responses/ValidationException'
+ *         '401':
+ *           $ref: '#/components/responses/UnauthorizedException'
+ *         '404':
+ *           $ref: '#/components/responses/NotFoundException'
+ *         '409':
+ *           $ref: '#/components/responses/ConflictException'
  */
