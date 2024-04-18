@@ -1,5 +1,3 @@
-import { createMockContext, type MockContext } from '@context';
-import type { PrismaClient } from '@prisma/client';
 import { type EmailService, MailgunEmailService } from '@domains/email/service';
 import { mailgunClient } from '@utils/mail';
 import { UserDTO, type UserRepository, UserRepositoryImpl } from '@domains/user';
@@ -21,7 +19,7 @@ import { IntegrationRepositoryImpl } from '@domains/integration/repository/integ
 import * as utils from '@utils/auth';
 import { mockPendingProjectAuthorizationDTO } from './new/mockData';
 import { mockProjectDTO } from '../../issue/mockData';
-import { adapterFactoryMock, linearAdapterMock } from '../../mock/mock';
+import { adapterFactoryMock, linearAdapterMock, prismaMock } from '../../mock/mock';
 import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
 import { LinearAdapter } from '@domains/adapter/linear/linear.adapter';
 import { LinearDataRetriever } from '@domains/retriever/linear/linear.dataRetriever';
@@ -39,16 +37,12 @@ let pendingProject: PendingProjectAuthorizationDTO;
 let pendingMemberMail: PendingMemberMailDTO;
 let organization: OrganizationDTO;
 let emailSender: EmailService;
-let prismaMockCtx: MockContext;
-let prismaMock: PrismaClient;
 let projectMember: ProjectMemberDataDTO;
 let administratorMockRepository: AdministratorRepository;
 let integrationRepository: IntegrationRepository;
 let mockAdapterTool: ProjectManagementToolAdapter;
 
 beforeEach(() => {
-  prismaMockCtx = createMockContext();
-  prismaMock = prismaMockCtx.prisma;
   emailSender = new MailgunEmailService(mailgunClient);
   userMockRepository = new UserRepositoryImpl(prismaMock);
   projectMockRepository = new ProjectRepositoryImpl(prismaMock);

@@ -6,9 +6,8 @@ import { type UserProjectRoleService, UserProjectRoleServiceImpl } from '@domain
 import { ProjectDTO } from '@domains/project/dto';
 import { RoleDTO } from '@domains/role/dto';
 import { UserProjectRoleDTO } from '@domains/userProjectRole/dto';
-import { createMockContext, type MockContext } from '@context';
-import { type PrismaClient } from '@prisma/client';
 import { NotFoundException } from '@utils';
+import { prismaMock } from '../../mock/mock';
 
 let userMockRepository: UserRepository;
 let roleMockRepository: RoleRepository;
@@ -19,12 +18,8 @@ let user: UserDTO;
 let project: ProjectDTO;
 let role: RoleDTO;
 let userProjectRole: UserProjectRoleDTO;
-let prismaMockCtx: MockContext;
-let prismaMock: PrismaClient;
 
 beforeEach(() => {
-  prismaMockCtx = createMockContext();
-  prismaMock = prismaMockCtx.prisma;
   userMockRepository = new UserRepositoryImpl(prismaMock);
   roleMockRepository = new RoleRepositoryImpl(prismaMock);
   UPRMockRepository = new UserProjectRoleRepositoryImpl(prismaMock);

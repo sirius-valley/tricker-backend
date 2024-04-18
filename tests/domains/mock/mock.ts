@@ -31,13 +31,4 @@ export const organizationRepositoryMock: MockProxy<OrganizationRepository> = moc
 export const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
 export const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
 export const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
-
-export interface MockContext {
-  prisma: DeepMockProxy<PrismaClient>;
-}
-
-export const createMockContext = (): MockContext => {
-  return {
-    prisma: mockDeep<PrismaClient>(),
-  };
-};
+export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
