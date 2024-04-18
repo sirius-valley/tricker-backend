@@ -69,7 +69,7 @@ export class IntegrationServiceImpl implements IntegrationService {
             pendingProjectId: pendingProject.id,
           }),
         { delay: 1000 * 60 * 60 * 2, retries: 3 },
-        [PrismaClientKnownRequestError, PrismaClientUnknownRequestError]
+        [PrismaClientKnownRequestError, PrismaClientUnknownRequestError, ConflictException]
       );
     } catch (e: any) {
       Logger.error(e.message);
