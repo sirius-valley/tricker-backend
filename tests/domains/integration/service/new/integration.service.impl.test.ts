@@ -1,14 +1,4 @@
-import { mock, type MockProxy } from 'jest-mock-extended';
-import type { IntegrationRepository } from '@domains/integration/repository/integration.repository';
 import { type IntegrationService, IntegrationServiceImpl } from '@domains/integration/service';
-import { type EmailService } from '@domains/email/service';
-import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
-import { type OrganizationRepository } from '@domains/organization/repository';
-import { type PendingMemberMailsRepository } from '@domains/pendingMemberMail/repository';
-import { type UserRepository } from '@domains/user';
-import { type ProjectManagementToolAdapter } from '@domains/adapter/projectManagementToolAdapter';
-import { type ProjectRepository } from '@domains/project/repository';
-import { type PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization/repository';
 import {
   mockBasicProjectDataDTO,
   mockedAdminEmail,
@@ -41,22 +31,15 @@ import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
 import { mockProjectDTO, mockUserDTO } from '../../../issue/mockData';
 import jwt from 'jsonwebtoken';
+import { adapterFactoryMock, administratorRepositoryMock, emailServiceMock, integrationRepositoryMock, linearAdapterMock, organizationRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, projectRepositoryMock, userRepositoryMock } from '../../../mock/mock';
 
 describe('integration service tests', () => {
-  const adapterMock: MockProxy<ProjectManagementToolAdapter> = mock<ProjectManagementToolAdapter>();
-  const projectRepositoryMock: MockProxy<ProjectRepository> = mock<ProjectRepository>();
-  const userRepositoryMock: MockProxy<UserRepository> = mock<UserRepository>();
-  const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
-  const pendingMemberMailsRepositoryMock: MockProxy<PendingMemberMailsRepository> = mock<PendingMemberMailsRepository>();
-  const organizationRepositoryMock: MockProxy<OrganizationRepository> = mock<OrganizationRepository>();
-  const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
-  const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
-  const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
   let testedService: IntegrationService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    testedService = new IntegrationServiceImpl(adapterMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
+    adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+    testedService = new IntegrationServiceImpl(adapterFactoryMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
   });
 
   describe('declineProject method', () => {
@@ -64,32 +47,36 @@ describe('integration service tests', () => {
       // given
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
-      adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
+      linearAdapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
       userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
-      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      linearAdapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       pendingAuthProjectRepositoryMock.delete.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
       emailServiceMock.sendDenialMail.mockImplementation(async () => {});
 
       // when
-      await testedService.declineProject(mockedProviderProjectId);
+      await testedService.declineProject(mockedProviderProjectId, 'linear');
 
       // then
       expect.assertions(3);
       expect(emailServiceMock.sendDenialMail).toHaveBeenCalledTimes(1);
-      expect(adapterMock.getProjectById).toHaveBeenCalledTimes(1);
-      expect(adapterMock.getMyEmail).toHaveBeenCalledTimes(1);
+      expect(linearAdapterMock.getProjectById).toHaveBeenCalledTimes(1);
+      expect(linearAdapterMock.getMyEmail).toHaveBeenCalledTimes(1);
     });
 
     it('should throw a NotFoundException if integrator is not correct', async () => {
       // given
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
-      adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
+      linearAdapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
       userRepositoryMock.getByEmail.mockResolvedValue(null);
       // when - then
       expect.assertions(2);
-      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
-      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow("Not found. Couldn't find User");
+      try {
+        await testedService.declineProject(mockedProviderProjectId, 'linear');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(NotFoundException);
+        expect(error.message).toBe("Not found. Couldn't find User");
+      }
     });
 
     it('should throw a NotFoundException if pending project is null', async () => {
@@ -97,8 +84,12 @@ describe('integration service tests', () => {
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
       // when - then
       expect.assertions(2);
-      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow(NotFoundException);
-      await expect(testedService.declineProject(mockedProviderProjectId)).rejects.toThrow("Not found. Couldn't find PendingAuthProject");
+      try {
+        await testedService.declineProject(mockedProviderProjectId, 'linear');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(NotFoundException);
+        expect(error.message).toBe("Not found. Couldn't find PendingAuthProject");
+      }
     });
   });
 
@@ -117,15 +108,15 @@ describe('integration service tests', () => {
       };
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
       projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
-      adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
-      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      linearAdapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
+      linearAdapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       administratorRepositoryMock.getByOrganizationName.mockResolvedValue(mocksAdministratorDTO);
       jest.spyOn(jwt, 'sign').mockImplementation(() => mockedToken);
       emailServiceMock.sendAuthorizationMail.mockResolvedValue();
       integrationRepositoryMock.createIntegrationProjectRequest.mockImplementation(async () => mockPendingProjectAuthorizationDTO);
 
       // WHEN
-      const { pendingProject: actualPendingAuthorization } = await testedService.createPendingAuthorization(pendingAuthRequest);
+      const { pendingProject: actualPendingAuthorization } = await testedService.createPendingAuthorization(pendingAuthRequest, 'linear');
 
       // THEN
       const expectedAuthRequest: PendingProjectAuthorizationDTO = {
@@ -208,11 +199,11 @@ describe('integration service tests', () => {
   describe('getMembers method', () => {
     it('should return a list of members ordered alphabetically', async () => {
       // given
-      adapterMock.getMembersByProjectId.mockResolvedValue(mockProjectMembers);
+      linearAdapterMock.getMembersByProjectId.mockResolvedValue(mockProjectMembers);
       const expected: ProjectMemberDataDTO[] = [mockProjectMember1, mockProjectMember2, mockProjectMember3]; // ordered array
 
       // when
-      const received: ProjectMemberDataDTO[] = await testedService.getMembers(mockedProviderProjectId, mockedToken);
+      const received: ProjectMemberDataDTO[] = await testedService.getMembers(mockedProviderProjectId, mockedToken, 'linear');
 
       // then
       expect.assertions(3);
@@ -227,18 +218,18 @@ describe('integration service tests', () => {
       // given
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
-      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
-      adapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
+      linearAdapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      linearAdapterMock.getMyEmail.mockResolvedValue('myEmail@mail.com');
       emailServiceMock.sendAcceptanceMail.mockImplementation(async () => {});
 
       // when
-      await testedService.acceptProject(mockedProviderProjectId);
+      await testedService.acceptProject(mockedProviderProjectId, 'linear');
 
       // then
       expect.assertions(3);
       expect(emailServiceMock.sendAcceptanceMail).toHaveBeenCalledTimes(1);
-      expect(adapterMock.getProjectById).toHaveBeenCalledTimes(1);
-      expect(adapterMock.getMyEmail).toHaveBeenCalledTimes(1);
+      expect(linearAdapterMock.getProjectById).toHaveBeenCalledTimes(1);
+      expect(linearAdapterMock.getMyEmail).toHaveBeenCalledTimes(1);
     });
 
     it('should throw a ConflictException if pending is already integrating', async () => {
@@ -246,8 +237,12 @@ describe('integration service tests', () => {
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue({ ...mockPendingProjectAuthorizationDTO, isIntegrating: true });
       // when - then
       expect.assertions(2);
-      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow(ConflictException);
-      await expect(testedService.acceptProject(mockedProviderProjectId)).rejects.toThrow('Project already being integrated');
+      try {
+        await testedService.acceptProject(mockedProviderProjectId, 'linear');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ConflictException);
+        expect(error.message).toBe('Conflict. Project already being integrated');
+      }
     });
   });
 
@@ -255,13 +250,13 @@ describe('integration service tests', () => {
     it('should successfully return pending project info', async () => {
       // given
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(mockPendingProjectAuthorizationDTO);
-      adapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
+      linearAdapterMock.getMemberById.mockResolvedValue(mockUserDataDTO);
       jest.spyOn(auth, 'decryptData').mockImplementation(() => mockedToken);
-      adapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
+      linearAdapterMock.getProjectById.mockResolvedValue(mockBasicProjectDataDTO);
       const expected: PendingProjectInfoDTO = mockPendingProjectInfoDTO;
 
       // when
-      const received: PendingProjectInfoDTO = await testedService.provideProjectInfo(mockedProviderProjectId);
+      const received: PendingProjectInfoDTO = await testedService.provideProjectInfo(mockedProviderProjectId, 'linear');
 
       // then
       expect.assertions(2);

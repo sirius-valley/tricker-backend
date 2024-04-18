@@ -119,9 +119,9 @@ export enum ProjectState {
 }
 
 export interface ProjectsPreIntegratedInputDTO {
-  providerName: string;
   apyKey: string;
   pmProviderId: string;
+  issueProviderName: string;
 }
 
 export class ProjectMemberDataDTO {

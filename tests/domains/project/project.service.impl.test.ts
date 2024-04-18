@@ -1,4 +1,4 @@
-import { issueRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, userRepositoryMock } from '../issue/mock';
+import { issueRepositoryMock, projectRepositoryMock, userProjectRoleRepositoryMock, userRepositoryMock } from '../mock/mock';
 import { ConflictException, NotFoundException } from '@utils';
 import { type ProjectService, ProjectServiceImpl } from '@domains/project/service';
 import { mockProjectDTO, mockUserDTO, mockUserProjectRoleDTO } from '../issue/mockData';
