@@ -58,6 +58,11 @@ export class UserRoleDTO extends UserProjectRoleDTO {
   role: RoleDTO;
 
   /**
+   * Boolean representing if the user is accepted in the project.
+   */
+  isAccepted: boolean;
+
+  /**
    * Constructor for ExtendedUserProjectRoleDTO class.
    *
    * @param {UserRoleDTO} input - Data used to populate the DTO.
@@ -66,6 +71,7 @@ export class UserRoleDTO extends UserProjectRoleDTO {
     super(input);
     this.user = input.user;
     this.role = input.role;
+    this.isAccepted = input.isAccepted;
   }
 }
 

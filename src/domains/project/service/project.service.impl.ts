@@ -51,7 +51,7 @@ export class ProjectServiceImpl implements ProjectService {
    *                                 * 'Project': If the project with the provided ID is not found or the user doesn't have access to it.
    */
   async getMyProjectView({ cognitoId, projectId }: { cognitoId: string; projectId: string }): Promise<MyProjectViewDTO> {
-    const user = await this.userRepository.getByCognitoId(cognitoId);
+    const user: UserDTO | null = await this.userRepository.getByCognitoId(cognitoId);
     if (user == null) throw new NotFoundException('User');
 
     const project: ProjectDetailsDTO | null = await this.projectRepository.getProjectDetails({ userId: user.id, projectId });
@@ -73,6 +73,7 @@ export class ProjectServiceImpl implements ProjectService {
         email: userAndRole.user.email,
         image: userAndRole.user.profileImage,
         role: currentUserIsPm ? userAndRole.role : undefined,
+        isAccepted: userAndRole.isAccepted,
       })),
     };
   }
@@ -146,6 +147,30 @@ export class ProjectServiceImpl implements ProjectService {
     }
 
     return await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: false });
+  }
+
+  /**
+   * Adds a member to a project.
+   * @param cognitoId The Cognito ID of the requester.
+   * @param userId The ID of the user to be added to the project.
+   * @param projectId The ID of the project to which the user will be added.
+   * @returns A Promise that resolves to a UserProjectRoleDTO representing the user's role in the project.
+   * @throws ConflictException if the project manager tries to add themselves.
+   * @throws NotFoundException if the user or project is not found.
+   */
+  async addMember({ cognitoId, userId, projectId }: { cognitoId: string; userId: string; projectId: string }): Promise<UserProjectRoleDTO> {
+    const user: UserDTO = (await this.userRepository.getByCognitoId(cognitoId))!;
+    if (user.id === userId) {
+      throw new ConflictException('Project Managers can`t add themselves.');
+    }
+    await this.validateProjectExistence(projectId);
+    await this.validateUserExistence(userId);
+    const userProjectRole: UserProjectRoleDTO | null = await this.userProjectRoleRepository.getByProjectIdAndUserId({ projectId, userId });
+    if (userProjectRole === null) {
+      throw new NotFoundException('UserProjectRole');
+    }
+
+    return await this.userProjectRoleRepository.update({ ...userProjectRole, isAccepted: true });
   }
 
   /**
