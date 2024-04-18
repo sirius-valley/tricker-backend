@@ -4,7 +4,7 @@ import { type ProjectDTO } from '@domains/project/dto';
 import { type CustomCognitoIdTokenPayload } from '@domains/user';
 import HttpStatus from 'http-status';
 import { ApiKeyDTO, AuthorizationRequestDTO, IssueProviderURLParams, LinearMembersPreIntegrationBody, LinearMembersPreIntegrationParams, MailToken, type PendingProjectInfoDTO, ProjectIdIntegrationInputDTO, type ProjectPreIntegratedDTO } from '@domains/integration/dto';
-import { integrationService } from '@dependencies';
+import { integrationService } from '@domains/dependencies';
 
 require('express-async-errors');
 

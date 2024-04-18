@@ -5,7 +5,7 @@ import { UserProjectParamsDTO } from '@domains/issue';
 import { type DevProjectFiltersDTO, KeyPhraseParamDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, ProjectIdParamDTO } from '@domains/project/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
-import { projectService } from '@dependencies';
+import { projectService } from '@domains/dependencies';
 
 require('express-async-errors');
 

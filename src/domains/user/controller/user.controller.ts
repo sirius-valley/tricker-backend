@@ -5,7 +5,7 @@ import { validateRequest, validateUserIsProjectManager } from '@utils';
 import { type UserDTO } from '../dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { RoleInputDTO, UserProjectInputDTO, type UserProjectRoleDTO } from '@domains/userProjectRole/dto';
-import { userService } from '@dependencies';
+import { userService } from '@domains/dependencies';
 
 require('express-async-errors');
 

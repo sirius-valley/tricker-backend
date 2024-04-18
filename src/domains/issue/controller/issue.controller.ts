@@ -4,7 +4,7 @@ import HttpStatus from 'http-status';
 import { DevOptionalIssueFiltersDTO, type IssueExtendedDTO, IssueIdParamDTO, type IssueViewDTO, ManualTimeModificationRequestDTO, PMOptionalIssueFiltersDTO, UserProjectParamsDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
-import { issueService } from '@dependencies';
+import { issueService } from '@domains/dependencies';
 
 require('express-async-errors');
 

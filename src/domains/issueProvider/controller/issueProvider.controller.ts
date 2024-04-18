@@ -1,6 +1,6 @@
 import { type Request, type Response, Router } from 'express';
 import HttpStatus from 'http-status';
-import { issueProviderService } from '@dependencies';
+import { issueProviderService } from '@domains/dependencies';
 
 export const issueProviderRouter = Router();
 

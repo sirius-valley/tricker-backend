@@ -1,7 +1,7 @@
 import { type AdapterFactory } from '@domains/adapter/factory/adapter.factory';
 import { type ProjectManagementToolAdapter } from '../projectManagementToolAdapter';
 import { InternalServerErrorException } from '@utils';
-import { linearAdapter } from '@dependencies';
+import { linearAdapter } from '@domains/dependencies';
 
 export class AdapterFactoryImpl implements AdapterFactory {
   getSpecificAdapter(issueProviderName: string): ProjectManagementToolAdapter {

@@ -1,7 +1,7 @@
 import { type Request, type Response, Router } from 'express';
 import HttpStatus from 'http-status';
 import { type RoleDTO } from '@domains/role/dto';
-import { roleService } from '@dependencies';
+import { roleService } from '@domains/dependencies';
 
 require('express-async-errors');
 
