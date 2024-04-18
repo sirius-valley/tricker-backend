@@ -1,25 +1,14 @@
 import { type Request, type Response, Router } from 'express';
-import { db, validateRequest, validateUserIsProjectManager } from '@utils';
+import { validateRequest, validateUserIsProjectManager } from '@utils';
 import HttpStatus from 'http-status';
-import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { type IssueRepository, IssueRepositoryImpl } from '@domains/issue/repository';
-import { type EventRepository, EventRepositoryImpl } from '@domains/event/repository';
-import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueViewDTO, DevOptionalIssueFiltersDTO, PMOptionalIssueFiltersDTO, type IssueExtendedDTO, ManualTimeModificationRequestDTO } from '@domains/issue/dto';
-import { type UserRepository, UserRepositoryImpl } from '@domains/user';
-import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
-import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
+import { DevOptionalIssueFiltersDTO, type IssueExtendedDTO, IssueIdParamDTO, type IssueViewDTO, ManualTimeModificationRequestDTO, PMOptionalIssueFiltersDTO, UserProjectParamsDTO, type WorkedTimeDTO } from '@domains/issue/dto';
 import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
+import { issueService } from '@dependencies';
+
 require('express-async-errors');
 
 export const issueRouter = Router();
-
-const issueRepo: IssueRepository = new IssueRepositoryImpl(db);
-const eventRepo: EventRepository = new EventRepositoryImpl(db);
-const userRepo: UserRepository = new UserRepositoryImpl(db);
-const projectRepo: ProjectRepository = new ProjectRepositoryImpl(db);
-const projectStageRepo: ProjectStageRepository = new ProjectStageRepositoryImpl(db);
-const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, userRepo, projectRepo, projectStageRepo);
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
