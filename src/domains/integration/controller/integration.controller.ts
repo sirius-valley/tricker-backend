@@ -54,7 +54,7 @@ integrationRouter.post('/:issueProviderName/project/:id/members', validateReques
 integrationRouter.get('/:issueProviderName/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
   const { projectId, issueProviderName } = req.params;
 
-  await service.acceptProject(projectId, issueProviderName);
+  await service.acceptProject(projectId, issueProviderName.toLowerCase());
   const project: ProjectDTO = await service.integrateProject(projectId, issueProviderName.toLowerCase());
 
   return res.status(HttpStatus.CREATED).json(project);
