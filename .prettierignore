@@ -2,4 +2,3 @@
 .github
 .husky
 node_modules
-dist
