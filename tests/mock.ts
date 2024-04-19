@@ -1,4 +1,4 @@
-import { mock, type MockProxy } from 'jest-mock-extended';
+import { type DeepMockProxy, mock, mockDeep, type MockProxy } from 'jest-mock-extended';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type UserRepository } from '@domains/user';
@@ -14,6 +14,7 @@ import type { OrganizationRepository } from '@domains/organization';
 import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
+import type { PrismaClient } from '@prisma/client';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -30,3 +31,5 @@ export const organizationRepositoryMock: MockProxy<OrganizationRepository> = moc
 export const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
 export const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
 export const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
+
+export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
