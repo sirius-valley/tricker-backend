@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class WebhookDynamicRouteParam {
   @IsNotEmpty()
   @IsString()
-  dynamicRoute!: string;
+  id!: string;
 }
 
 export class WebhookSourceDTO {
   id: string;
-  dynamicRoute: string;
+  providerWebhookId: string | null;
   secret: string | null;
   issueProviderId: string;
   createdAt: Date;
@@ -17,7 +17,7 @@ export class WebhookSourceDTO {
 
   constructor(source: WebhookSourceDTO) {
     this.id = source.id;
-    this.dynamicRoute = source.dynamicRoute;
+    this.providerWebhookId = source.providerWebhookId;
     this.secret = source.secret;
     this.issueProviderId = source.issueProviderId;
     this.createdAt = source.createdAt;

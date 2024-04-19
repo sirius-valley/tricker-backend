@@ -1,0 +1,7 @@
+authtoken: here_you_put_your_ngrok_auth_token
+version: 2
+tunnels:
+  your_tunnel_name:
+    proto: http
+    hostname: here_you_put_your_custom_domain
+    addr: 127.0.0.1:80

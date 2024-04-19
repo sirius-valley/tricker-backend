@@ -23,10 +23,10 @@ export const webhookSourceRepository: WebhookSourceRepository = new WebhookSourc
  */
 export const linearMiddlewareAuth = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
   // Retrieve the dynamic route parameter from the request
-  const { dynamicRoute } = req.params;
+  const { id } = req.params;
 
   // Retrieve the webhook source by its id. We need to split the dynamic route. Example: issue_89b81d0f-fc7e-4bf9-a6a4-39ff771d5c5c
-  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(dynamicRoute.split('_')[1]);
+  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(id);
 
   // If webhook source is not found or has been deleted, throw NotFoundException
   if (webhookSource === null || webhookSource.deletedAt !== null) {

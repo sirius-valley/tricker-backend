@@ -47,5 +47,17 @@ Copy the contents from .env.template adding your custom variables
 4. **Run the application**
 
     ```bash
-    npm start
+    docker compose up
     ```
+   
+5. **Configure ngrok for webhook functionality**
+
+Create ngrok.yml file and fill with data. Check ngrok.yml.template and put your own credentials to create a tunnel.
+
+Run:
+
+   ```bash 
+   docker compose down
+   docker compose build
+   docker compose up
+   ```

@@ -115,12 +115,12 @@ model WebhookOutcomeStatus {
 }
 
 model WebhookSource {
-  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  dynamicRoute      String  @unique
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerWebhookId String?   @unique
   secret            String?
-  issueProviderId   String  @db.Uuid
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now())
+  issueProviderId   String    @db.Uuid
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now())
   deletedAt         DateTime?
 
   logsWebhooks      LogWebhooks[]

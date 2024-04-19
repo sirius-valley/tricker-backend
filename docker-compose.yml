@@ -39,5 +39,17 @@ services:
     depends_on:
       tricker-database:
         condition: service_healthy
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
+    ports:
+      - '4040:4040'
 volumes:
   db-data:
