@@ -7,13 +7,14 @@ export class WebhookSourceRepositoryImpl implements WebhookSourceRepository {
 
   /**
    * Retrieves a webhook source by its dynamic route.
-   * @param dynamicRoute The dynamic route of the webhook source to retrieve.
+   * @param id The id route of the webhook source to retrieve.
    * @returns A promise that resolves to a WebhookSourceDTO object if found, or null if not found.
    */
-  async getByDynamicRoute(dynamicRoute: string): Promise<WebhookSourceDTO | null> {
+  async getById(id: string): Promise<WebhookSourceDTO | null> {
     const webhookSource = await this.db.webhookSource.findUnique({
       where: {
-        dynamicRoute,
+        id,
+        deletedAt: { not: null },
       },
     });
 

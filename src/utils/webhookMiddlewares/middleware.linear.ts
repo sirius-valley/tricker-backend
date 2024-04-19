@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import crypto from 'crypto';
-import { db, decryptData, NotFoundException, WebhookValidationException } from '@utils';
+import { db, decryptData, NotFoundException, WebhookValidationException, Constants } from '@utils';
 import { type WebhookDynamicRouteParam, type WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
 import { WebhookSourceRepositoryImpl } from '@domains/webhookSource/repository/webhookSource.repository.impl';
@@ -25,20 +25,19 @@ export const linearMiddlewareAuth = async (req: CustomRequest, res: Response, ne
   // Retrieve the dynamic route parameter from the request
   const { dynamicRoute } = req.params;
 
-  // Retrieve the webhook source by its dynamic route
-  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getByDynamicRoute(dynamicRoute);
+  // Retrieve the webhook source by its id. We need to split the dynamic route. Example: issue_89b81d0f-fc7e-4bf9-a6a4-39ff771d5c5c
+  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(dynamicRoute.split('_')[1]);
 
   // If webhook source is not found or has been deleted, throw NotFoundException
   if (webhookSource === null || webhookSource.deletedAt !== null) {
     throw new NotFoundException('WebhookSource');
   }
 
-  /* IN CASE LAMBDA FUNCTIONS ARE USED, THIS METHOD MUST BE USED AS A MIDDLEWARE OF LAMBDA
-    // Validate the request origin IP
-    if(req.ip === undefined || ( req.ip !== '35.231.147.226' && req.ip !== '35.243.134.228') ) {
-        throw new WebhookValidationException(400, 'Webhook request origin IP is not authorized.');
-    }
-    */
+  // Validate the request origin IP if the Production environment is being used
+  if (Constants.NODE_ENV === 'production' && (req.ip === undefined || (req.ip !== '35.231.147.226' && req.ip !== '35.243.134.228'))) {
+    throw new WebhookValidationException(400, 'Webhook request origin IP is not authorized.');
+  }
+
   // Check if raw body is provided in the request
   if (req.rawBody === undefined) {
     throw new WebhookValidationException(400, 'No signature provided for the webhook payload.');

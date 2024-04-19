@@ -1,5 +1,5 @@
 import { type WebhookSourceDTO } from '@domains/webhookSource/dto';
 
 export interface WebhookSourceRepository {
-  getByDynamicRoute: (dynamicRoute: string) => Promise<WebhookSourceDTO | null>;
+  getById: (id: string) => Promise<WebhookSourceDTO | null>;
 }
