@@ -115,10 +115,16 @@ model WebhookOutcomeStatus {
 }
 
 model WebhookSource {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dynamicRoute      String  @unique
+  secret            String?
+  issueProviderId   String  @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now())
+  deletedAt         DateTime?
 
-  logsWebhooks LogWebhooks[]
+  logsWebhooks      LogWebhooks[]
+  issueProvider     IssueProvider   @relation(fields: [issueProviderId], references: [id])
 }
 
 model TimeTracking {
@@ -273,6 +279,7 @@ model IssueProvider {
   name                        String                        @unique
   PendingProjectAuthorization PendingProjectAuthorization[]
   projects                    Project[]
+  webhookSources              WebhookSource[]
 }
 
 model MemberEmail {
