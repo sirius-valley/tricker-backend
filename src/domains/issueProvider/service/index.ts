@@ -1,2 +1,2 @@
-export * from './managementProvider.service';
-export * from './managementProvider.service.impl';
+export * from './issueProvider.service';
+export * from './issueProvider.service.impl';
