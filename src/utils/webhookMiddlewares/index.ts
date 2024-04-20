@@ -1,1 +1,1 @@
-export * from './middleware.linear';
+export * from './middleware.linear.webhooks';

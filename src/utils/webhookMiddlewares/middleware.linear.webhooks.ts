@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
-import crypto from 'crypto';
-import { db, decryptData, NotFoundException, WebhookValidationException, Constants } from '@utils';
+import { db, decryptData, NotFoundException, WebhookValidationException, Constants, verifyLinearSignature } from '@utils';
 import { type WebhookDynamicRouteParam, type WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
 import { WebhookSourceRepositoryImpl } from '@domains/webhookSource/repository/webhookSource.repository.impl';
@@ -21,7 +20,7 @@ export const webhookSourceRepository: WebhookSourceRepository = new WebhookSourc
  * Validates the request origin IP, signature, and webhook source.
  * Throws exceptions for invalid requests.
  */
-export const linearMiddlewareAuth = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
+export const validateLinearWebhook = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
   // Retrieve the dynamic route parameter from the request
   const { id } = req.params;
 
@@ -51,7 +50,7 @@ export const linearMiddlewareAuth = async (req: CustomRequest, res: Response, ne
   const decryptedSecret: string = decryptData(webhookSource.secret);
 
   // Verify signature using decrypted secret
-  const signature = crypto.createHmac('sha256', decryptedSecret).update(req.rawBody).digest('hex');
+  const signature = verifyLinearSignature({ decryptedSecret, rawBody: req.rawBody });
   if (signature !== req.headers['linear-signature']) {
     throw new WebhookValidationException(400, 'Payload signature invalid.');
   }

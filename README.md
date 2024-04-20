@@ -52,9 +52,9 @@ Copy the contents from .env.template adding your custom variables
    
 5. **Configure ngrok for webhook functionality**
 
-Create ngrok.yml file and fill with data. Check ngrok.yml.template and put your own credentials to create a tunnel.
+Create your own ngrok account and add to your .env your NGROK_AUTH_TOKEN and your NGROK_STATIC_DOMAIN.
 
-Run:
+Then run:
 
    ```bash 
    docker compose down
