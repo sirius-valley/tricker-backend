@@ -7,7 +7,23 @@ import ngrok from '@ngrok/ngrok';
 import process from 'process';
 
 dotenv.config();
-checkRequiredEnvVariables(['POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'DATABASE_URL', 'DB_DOCKER_SERVICE', 'DOCKER_DATABASE_URL', 'COGNITO_CLIENT_ID', 'COGNITO_USERPOOL_ID', 'MAILGUN_API_KEY', 'MAILGUN_DOMAIN', 'ENCRYPT_SECRET', 'AUTHORIZATION_SECRET']);
+checkRequiredEnvVariables([
+  'POSTGRES_DB',
+  'POSTGRES_USER',
+  'POSTGRES_PASSWORD',
+  'DATABASE_URL',
+  'DB_DOCKER_SERVICE',
+  'DOCKER_DATABASE_URL',
+  'COGNITO_CLIENT_ID',
+  'COGNITO_USERPOOL_ID',
+  'MAILGUN_API_KEY',
+  'MAILGUN_DOMAIN',
+  'ENCRYPT_SECRET',
+  'AUTHORIZATION_SECRET',
+  'NODE_ENV',
+  'NGROK_AUTH_TOKEN',
+  'NGROK_STATIC_DOMAIN',
+]);
 
 export const server = http.createServer(app);
 
