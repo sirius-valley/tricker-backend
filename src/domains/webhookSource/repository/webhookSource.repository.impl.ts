@@ -6,7 +6,7 @@ export class WebhookSourceRepositoryImpl implements WebhookSourceRepository {
   constructor(private readonly db: PrismaClient) {}
 
   /**
-   * Retrieves a webhook source by its dynamic route.
+   * Retrieves a webhook source by its id.
    * @param id The id route of the webhook source to retrieve.
    * @returns A promise that resolves to a WebhookSourceDTO object if found, or null if not found.
    */
