@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
-import { validateLinearWebhook, webhookSourceRepository } from '@utils/webhookMiddlewares/middleware.linear.webhooks';
-import { type CustomRequest } from '@utils/webhookMiddlewares';
+import { type CustomRequest, validateLinearWebhook, webhookSourceRepository } from '@domains/webhook/middleware/middleware.linear.webhooks';
 import { mockWebhookSourceDTO } from './mockData';
 import * as auth from '@utils/auth';
 import { Constants, NodeEnv, NotFoundException, WebhookValidationException } from '@utils';
