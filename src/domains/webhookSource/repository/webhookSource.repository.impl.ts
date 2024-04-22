@@ -14,7 +14,7 @@ export class WebhookSourceRepositoryImpl implements WebhookSourceRepository {
     const webhookSource = await this.db.webhookSource.findUnique({
       where: {
         id,
-        deletedAt: { not: null },
+        deletedAt: null,
       },
     });
 

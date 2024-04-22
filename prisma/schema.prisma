@@ -92,6 +92,7 @@ model Project {
   projectStages ProjectStage[]
   issues        Issue[]
   labels        ProjectLabel[]
+  webhooks      WebhookSource[]
   issueProvider IssueProvider     @relation(fields: [issueProviderId], references: [id])
 }
 
@@ -119,12 +120,14 @@ model WebhookSource {
   providerWebhookId String?   @unique
   secret            String?
   issueProviderId   String    @db.Uuid
+  projectId         String    @db.Uuid
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @default(now())
   deletedAt         DateTime?
 
   logsWebhooks      LogWebhooks[]
   issueProvider     IssueProvider   @relation(fields: [issueProviderId], references: [id])
+  project           Project         @relation(fields: [projectId], references: [id])
 }
 
 model TimeTracking {
