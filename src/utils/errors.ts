@@ -59,11 +59,21 @@ export class InternalServerErrorException extends HttpException {
 
 /**
  * Represents an exception specific to Linear errors.
- * Extends the InternalServerErrorException class.
+ * Extends the HttpException class.
  */
 export class LinearIntegrationException extends HttpException {
   constructor(code: number, message?: string, error?: object[] | object) {
     super(code, message ?? 'Linear error.', error);
+  }
+}
+
+/**
+ * Represents an exception specific to a Webhook validation request.
+ * Extends the HttpException class.
+ */
+export class WebhookValidationException extends HttpException {
+  constructor(code: number, message?: string, error?: object[] | object) {
+    super(code, message ?? 'Webhook source invalid.', error);
   }
 }
 
