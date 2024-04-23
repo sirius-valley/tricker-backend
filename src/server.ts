@@ -27,14 +27,14 @@ checkRequiredEnvVariables([
 
 export const server = http.createServer(app);
 
-server.listen(Constants.PORT, () => {
+server.listen(Constants.PORT, (): void => {
   Logger.info(`Server listening on port ${Constants.PORT}`);
 });
 
 // Establish ngrok connectivity
 if (Constants.NODE_ENV === NodeEnv.DEV) {
-  (async function () {
-    const listener = await ngrok.forward({
+  (async function (): Promise<void> {
+    const listener: ngrok.Listener = await ngrok.forward({
       addr: 8080,
       authtoken: process.env.NGROK_AUTH_TOKEN,
       proto: 'http',
@@ -43,6 +43,6 @@ if (Constants.NODE_ENV === NodeEnv.DEV) {
     });
 
     // Output ngrok url to console
-    console.log(`Ngrok ingress established at: ${listener.url()}\nCheck ngrok health clicking: ${listener.url()}/api/ngrok/`);
+    console.log(`Ngrok ingress established at: ${listener.url()}\nCheck ngrok health clicking: ${listener.url()}/api/health/`);
   })();
 }

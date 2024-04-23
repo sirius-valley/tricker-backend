@@ -1,7 +1,7 @@
 import { type Request, type Response, Router } from 'express';
 import HttpStatus from 'http-status';
-export const ngrokHealthRouter = Router();
+export const healthRouter = Router();
 
-ngrokHealthRouter.get('/', (req: Request, res: Response) => {
+healthRouter.get('/', (req: Request, res: Response) => {
   res.sendStatus(HttpStatus.OK);
 });

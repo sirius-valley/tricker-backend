@@ -8,7 +8,7 @@ import serverless from 'serverless-http';
 import { Constants, NodeEnv, specs } from '@utils';
 import { ErrorHandling } from '@utils/errors';
 import { router } from '@router';
-import { type CustomRequest } from '@utils/webhookMiddlewares';
+import { type CustomRequest } from '@domains/webhook/middleware/webhooksMiddleware';
 require('express-async-errors');
 
 export const app = express();

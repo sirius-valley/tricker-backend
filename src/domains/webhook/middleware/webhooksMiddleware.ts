@@ -1,8 +1,11 @@
 import type { Request, Response } from 'express';
-import { db, decryptData, NotFoundException, WebhookValidationException, Constants, verifyLinearSignature } from '@utils';
+import { db, NotFoundException } from '@utils';
 import { type WebhookDynamicRouteParam, type WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
 import { WebhookSourceRepositoryImpl } from '@domains/webhookSource/repository/webhookSource.repository.impl';
+import { type WebhookMiddleware } from '@domains/webhook/middleware/strategy/webhook.middleware';
+import { WebhookLinearMiddleware } from '@domains/webhook/middleware/strategy/webhook.linear.middleware';
+import { type IssueProviderDTO, type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 
 /**
  * Represents a custom request object that extends the default Express Request object.
@@ -14,17 +17,26 @@ export interface CustomRequest extends Request {
 }
 
 export const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
+export const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
+export const webhookLinearMiddleware: WebhookMiddleware = new WebhookLinearMiddleware();
+const webhookMiddlewareRegistry: Record<string, WebhookMiddleware> = {};
+
+function registerWebhookMiddleware(provider: string, middleware: WebhookMiddleware): void {
+  webhookMiddlewareRegistry[provider] = middleware;
+}
+
+registerWebhookMiddleware('LINEAR', webhookLinearMiddleware);
 
 /**
  * Middleware function for authenticating webhook requests.
  * Validates the request origin IP, signature, and webhook source.
  * Throws exceptions for invalid requests.
  */
-export const validateLinearWebhook = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
+export const validateWebhook = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
   // Retrieve the dynamic route parameter from the request
   const { id } = req.params;
 
-  // Retrieve the webhook source by its id. We need to split the dynamic route. Example: issue_89b81d0f-fc7e-4bf9-a6a4-39ff771d5c5c
+  // Retrieve the webhook source by its id
   const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(id);
 
   // If webhook source is not found or has been deleted, throw NotFoundException
@@ -32,28 +44,16 @@ export const validateLinearWebhook = async (req: CustomRequest, res: Response, n
     throw new NotFoundException('WebhookSource');
   }
 
-  // Validate the request origin IP if the Production environment is being used
-  if (Constants.NODE_ENV === 'production' && (req.ip === undefined || (req.ip !== '35.231.147.226' && req.ip !== '35.243.134.228'))) {
-    throw new WebhookValidationException(400, 'Webhook request origin IP is not authorized.');
+  // Retrieve the issue provider by its id
+  const issueProvider: IssueProviderDTO | null = await issueProviderRepository.getById(webhookSource.issueProviderId);
+
+  // If webhook source is not found, throw NotFoundException
+  if (issueProvider === null) {
+    throw new NotFoundException('IssueProvider');
   }
 
-  // Check if raw body is provided in the request
-  if (req.rawBody === undefined) {
-    throw new WebhookValidationException(400, 'No signature provided for the webhook payload.');
-  }
-  // Check if webhook source secret is null
-  else if (webhookSource.secret === null) {
-    throw new WebhookValidationException(400, 'Secret validation problem.');
-  }
-
-  // Decrypt the webhook source secret
-  const decryptedSecret: string = decryptData(webhookSource.secret);
-
-  // Verify signature using decrypted secret
-  const signature = verifyLinearSignature({ decryptedSecret, rawBody: req.rawBody });
-  if (signature !== req.headers['linear-signature']) {
-    throw new WebhookValidationException(400, 'Payload signature invalid.');
-  }
+  const middleware: WebhookMiddleware = webhookMiddlewareRegistry[issueProvider.name.toUpperCase()];
+  await middleware.validateWebhookRequest(req, webhookSource);
 
   next();
 };

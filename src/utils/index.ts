@@ -9,4 +9,3 @@ export * from './aws';
 export * from './enums';
 export * from './mail';
 export * from './validation-annotations';
-export * from './webhookMiddlewares';
