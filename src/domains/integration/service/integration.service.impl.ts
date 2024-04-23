@@ -77,6 +77,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       Logger.error(e.stack);
       await this.emailService.sendIntegrationErrorEmail(integratorEmail);
       await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
+      await this.pendingAuthProjectRepository.delete(pendingProject.id);
       throw e;
     }
 
@@ -133,7 +134,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(input.issueProviderName);
     const pm: UserDTO | null = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email, input.issueProviderName);
-    const projects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects();
+    const projects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects(input.apyKey);
     const taggedProjects: ProjectPreIntegratedDTO[] = [];
     // detect pending projects or already integrated
     for (const project of projects) {

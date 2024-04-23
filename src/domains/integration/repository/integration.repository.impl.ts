@@ -61,7 +61,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
             url: input.project.url,
             issueProvider: {
               connect: {
-                name: input.issueProviderName,
+                name: input.issueProviderName.trim().toUpperCase(),
               },
             },
             usersRoles: {
