@@ -15,11 +15,18 @@ import { type AdministratorRepository } from '@domains/administrator/repository/
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
 import { AdapterFactoryImpl } from '@domains/adapter/factory/adapter.factory.impl';
+import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
+import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
+import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
 
+const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
+const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
+const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
+const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider);
 const adapterFactory = new AdapterFactoryImpl();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
@@ -29,7 +36,7 @@ const organizationRepository: OrganizationRepository = new OrganizationRepositor
 const emailService: EmailService = new MailgunEmailService(mailgunClient);
 const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
 const integrationRepository: IntegrationRepository = new IntegrationRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(adapterFactory, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService);
+const service: IntegrationService = new IntegrationServiceImpl(adapterFactory, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService, webhookService);
 
 integrationRouter.post('/:issueProviderName/projects', validateRequest(IssueProviderURLParams, 'params'), validateRequest(ApiKeyDTO, 'body'), async (req: Request<any, any, ApiKeyDTO>, res: Response) => {
   const { key } = req.body;

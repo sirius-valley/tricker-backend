@@ -1,9 +1,22 @@
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
-import { WebhookSourceDTO } from '@domains/webhookSource/dto';
+import { type WebhookSourceCreateInput, WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type PrismaClient } from '@prisma/client';
 
 export class WebhookSourceRepositoryImpl implements WebhookSourceRepository {
   constructor(private readonly db: PrismaClient) {}
+
+  async create(input: WebhookSourceCreateInput): Promise<WebhookSourceDTO> {
+    const webhookSource = await this.db.webhookSource.create({
+      data: {
+        id: input.id,
+        secret: input.secret,
+        providerWebhookId: input.providerWebhookId,
+        issueProviderId: input.issueProviderId,
+      },
+    });
+
+    return new WebhookSourceDTO(webhookSource);
+  }
 
   /**
    * Retrieves a webhook source by its dynamic route.

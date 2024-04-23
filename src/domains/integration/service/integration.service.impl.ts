@@ -20,6 +20,7 @@ import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '
 import { retry } from '@utils/retry';
 import { type AdministratorDTO } from '@domains/administrator/dto';
 import { type AdapterFactory } from '@domains/adapter/factory/adapter.factory';
+import { type WebhookService } from '@domains/webhook/service';
 
 export class IntegrationServiceImpl implements IntegrationService {
   constructor(
@@ -31,7 +32,8 @@ export class IntegrationServiceImpl implements IntegrationService {
     private readonly organizationRepository: OrganizationRepository,
     private readonly administratorRepository: AdministratorRepository,
     private readonly integrationRepository: IntegrationRepository,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly webhookService: WebhookService
   ) {}
 
   /**
@@ -57,7 +59,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     let newProject: ProjectDTO;
 
     try {
-      newProject = await retry<ProjectDTO, Error>(
+      newProject = await retry<ProjectDTO>(
         async () =>
           await this.integration({
             projectId,
@@ -66,15 +68,11 @@ export class IntegrationServiceImpl implements IntegrationService {
             authorizedMemberMails,
             organizationId,
             issueProviderName,
-            pendingProjectId: pendingProject.id,
           }),
         { delay: 1000 * 60 * 60 * 2, retries: 3 },
         [PrismaClientKnownRequestError, PrismaClientUnknownRequestError, ConflictException]
       );
     } catch (e: any) {
-      Logger.error(e.message);
-      Logger.error(e.cause);
-      Logger.error(e.stack);
       await this.emailService.sendIntegrationErrorEmail(integratorEmail);
       await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
       throw e;
@@ -89,7 +87,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     return newProject;
   }
 
-  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName, pendingProjectId }: IntegrationParams): Promise<ProjectDTO> {
+  private async integration({ projectId, pendingProject, organizationId, authorizedMemberMails, integratorEmail, issueProviderName }: IntegrationParams): Promise<ProjectDTO> {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(issueProviderName);
     Logger.time('Provider project data adaptation');
     if (pendingProject.token == null) throw new ConflictException('Project has already been integrated or there was a problem with integration authorization.');
@@ -110,10 +108,12 @@ export class IntegrationServiceImpl implements IntegrationService {
       organizationId,
       integratorEmail,
       issueProviderName,
-      pendingProjectId,
+      pendingProjectId: pendingProject.id,
     });
 
     Logger.complete(`Integration finished`);
+
+    await this.webhookService.createWebhook(decryptData(pendingProject.token), newProject.id, projectData.projectId, issueProviderName);
 
     return newProject;
   }

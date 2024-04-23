@@ -50,3 +50,16 @@ export class WebhookSourceDTO {
     this.deletedAt = source.deletedAt;
   }
 }
+
+export interface ProviderWebhookRegistrationData {
+  secret: string;
+  id: string;
+}
+
+export interface WebhookSourceCreateInput {
+  id: string;
+  secret: string;
+  providerWebhookId: string;
+  issueProviderId: string;
+  projectId: string;
+}

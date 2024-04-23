@@ -1,0 +1,35 @@
+import { type WebhookService } from '@domains/webhook/service/webhook.service';
+import { type ProviderWebhookRegistrationData, type WebhookSourceDTO, type WebhookSourceRepository } from '@domains/webhookSource';
+import { randomUUID } from 'node:crypto';
+import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/issueProvider';
+import { NotFoundException } from '@utils';
+import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistrationStrategy.provider';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy';
+
+export class WebhookServiceImpl implements WebhookService {
+  constructor(
+    private readonly webhookSourceRepository: WebhookSourceRepository,
+    private readonly issueProviderRepository: IssueProviderRepository,
+    private readonly strategyProvider: WebhookRegistrationStrategyProvider
+  ) {}
+
+  async createWebhook(apiKey: string, projectId: string, providerProjectId: string, issueProviderId: string): Promise<WebhookSourceDTO> {
+    const generatedWebhookId = randomUUID();
+
+    const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getById(issueProviderId);
+    if (issueProvider == null) throw new NotFoundException('Issue Provider');
+
+    const webhookRegistrationStrategy: WebhookRegistrationStrategy = this.strategyProvider.getStrategy(issueProvider.name);
+    // registrar webhook en provider
+    const webhookRegistrationData: ProviderWebhookRegistrationData = await webhookRegistrationStrategy.registerWebhook(apiKey, generatedWebhookId, providerProjectId);
+
+    // guardar registro de webhook asociado al proyecto en tricker
+    return await this.webhookSourceRepository.create({
+      id: generatedWebhookId,
+      secret: webhookRegistrationData.secret,
+      providerWebhookId: webhookRegistrationData.id,
+      issueProviderId,
+      projectId,
+    });
+  }
+}
