@@ -269,8 +269,10 @@ export class IssueServiceImpl implements IssueService {
       throw new NotFoundException('Issue');
     }
     const orderedEvents: EventHistoryLogDTO[] = await this.getIssueChronology(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const isTracking = lastTimeTrackingEvent !== null && lastTimeTrackingEvent.endTime === null;
 
-    return { ...issue, chronology: orderedEvents };
+    return { ...issue, chronology: orderedEvents, isTracking };
   }
 
   /**

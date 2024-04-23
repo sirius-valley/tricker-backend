@@ -484,6 +484,7 @@ describe('issue service tests', () => {
       userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
       eventRepositoryMock.getIssueManualTimeModification.mockResolvedValue([{ ...validMockManualTimeModification, modificationDate: new Date('2024-03-13T09:00:00Z') }]);
       eventRepositoryMock.getIssueTimeTrackingEvents.mockResolvedValue([stoppedMockTimeTrackingDTO]);
+      eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(stoppedMockTimeTrackingDTO);
       const expected: IssueExtendedDTO = mockIssueExtendedDTO;
       // when
       const received: IssueExtendedDTO = await issueService.getIssueWithChronology('issue789');
