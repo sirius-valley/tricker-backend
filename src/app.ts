@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -8,7 +8,7 @@ import serverless from 'serverless-http';
 import { Constants, NodeEnv, specs } from '@utils';
 import { ErrorHandling } from '@utils/errors';
 import { router } from '@router';
-
+import { type CustomRequest } from '@domains/webhook/middleware/webhooksMiddleware';
 require('express-async-errors');
 
 export const app = express();
@@ -17,6 +17,15 @@ export const app = express();
 if (Constants.NODE_ENV === NodeEnv.DEV) {
   app.use(morgan('tiny')); // Log requests only in development environments
 }
+
+// Save raw body buffer before JSON parsing
+app.use(
+  express.json({
+    verify: (req: CustomRequest, res: Response, buf: Buffer) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Set up request parsers
 app.use(express.json()); // Parses application/json payloads request bodies
