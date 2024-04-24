@@ -13,22 +13,19 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly strategyProvider: WebhookRegistrationStrategyProvider
   ) {}
 
-  async createWebhook(apiKey: string, projectId: string, providerProjectId: string, issueProviderId: string): Promise<WebhookSourceDTO> {
+  async createWebhook(apiKey: string, projectId: string, providerProjectId: string, issueProviderName: string): Promise<WebhookSourceDTO> {
     const generatedWebhookId = randomUUID();
 
-    const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getById(issueProviderId);
+    const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getByName(issueProviderName);
     if (issueProvider == null) throw new NotFoundException('Issue Provider');
 
     const webhookRegistrationStrategy: WebhookRegistrationStrategy = this.strategyProvider.getStrategy(issueProvider.name);
-    // registrar webhook en provider
-    const webhookRegistrationData: ProviderWebhookRegistrationData = await webhookRegistrationStrategy.registerWebhook(apiKey, generatedWebhookId, providerProjectId);
-
-    // guardar registro de webhook asociado al proyecto en tricker
+    const webhookRegistrationData: ProviderWebhookRegistrationData = await webhookRegistrationStrategy.registerWebhook(apiKey, providerProjectId, generatedWebhookId);
     return await this.webhookSourceRepository.create({
       id: generatedWebhookId,
       secret: webhookRegistrationData.secret,
       providerWebhookId: webhookRegistrationData.id,
-      issueProviderId,
+      issueProviderId: issueProvider.id,
       projectId,
     });
   }
