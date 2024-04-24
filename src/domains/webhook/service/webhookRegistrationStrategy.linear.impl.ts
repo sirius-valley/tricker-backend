@@ -2,6 +2,7 @@ import type { ProviderWebhookRegistrationData } from '@domains/webhookSource';
 import { createApolloClient } from '@utils/graphql/apollo';
 import { CreateWebhookMutation } from '@utils/graphql/queries';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy';
+import { NodeEnv } from '@utils';
 
 export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStrategy {
   supports(issueProviderName: string): boolean {
@@ -11,21 +12,24 @@ export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStr
   async registerWebhook(providerApiKey: string, providerProjectId: string, trickerWebhookSourceId: string): Promise<ProviderWebhookRegistrationData> {
     const apolloClient = createApolloClient(providerApiKey);
 
-    const { data } = await apolloClient.mutate({
+    const url = process.env.NODE_ENV === NodeEnv.DEV ? process.env.NGROK_STATIC_DOMAIN! : 'tricker.com.ar';
+
+    const { data: mutationResult } = await apolloClient.mutate({
       mutation: CreateWebhookMutation,
       variables: {
         input: {
+          label: `Tricker Project Integration`,
           allPublicTeams: false,
-          resourceTypes: ['Issue'],
+          resourceTypes: ['Issue', 'IssueLabel'],
           teamId: providerProjectId,
-          url: `https://tricker.com.ar/api/webhooks/${trickerWebhookSourceId}`,
+          url: `https://${url}/api/webhooks/${trickerWebhookSourceId}`,
         },
       },
     });
 
     return {
-      id: data.id,
-      secret: data.secret,
+      id: mutationResult.webhookCreate.webhook.id,
+      secret: mutationResult.webhookCreate.webhook.secret,
     };
   }
 }
