@@ -1,6 +1,6 @@
-import { type CustomRequest } from '@domains/webhook/middleware/webhooksMiddleware';
 import { type WebhookSourceDTO } from '@domains/webhookSource';
+import { ExtendedRequest } from '@app';
 
 export interface WebhookMiddleware {
-  validateWebhookRequest: (req: CustomRequest, webhookSource: WebhookSourceDTO) => Promise<string>;
+  validateWebhookRequest: (req: ExtendedRequest, webhookSource: WebhookSourceDTO) => Promise<string>;
 }

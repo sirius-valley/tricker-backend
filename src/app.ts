@@ -1,4 +1,4 @@
-import express, { type Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -8,7 +8,7 @@ import serverless from 'serverless-http';
 import { Constants, NodeEnv, specs } from '@utils';
 import { ErrorHandling } from '@utils/errors';
 import { router } from '@router';
-import { type CustomRequest } from '@domains/webhook/middleware/webhooksMiddleware';
+
 require('express-async-errors');
 
 export const app = express();
@@ -18,18 +18,23 @@ if (Constants.NODE_ENV === NodeEnv.DEV) {
   app.use(morgan('tiny')); // Log requests only in development environments
 }
 
-// Save raw body buffer before JSON parsing
-app.use(
-  express.json({
-    verify: (req: CustomRequest, res: Response, buf: Buffer) => {
-      req.rawBody = buf;
-    },
-  })
-);
+/**
+ * Represents a custom request object that extends the default Express Request object.
+ * Includes optional properties such as rawBody and route for handling webhook requests.
+ */
+export interface ExtendedRequest extends Request {
+  rawBody?: Buffer; // Optional property for storing the raw body of the request
+}
+
+const rawBodySaver = (req: ExtendedRequest, res: Response, buf: Buffer): any => {
+  if (buf?.length !== 0) {
+    req.rawBody = buf;
+  }
+};
 
 // Set up request parsers
-app.use(express.json()); // Parses application/json payloads request bodies
-app.use(express.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded request bodies
+app.use(express.json({ verify: rawBodySaver })); // Parses application/json payloads request bodies
+app.use(express.urlencoded({ extended: false, verify: rawBodySaver })); // Parse application/x-www-form-urlencoded request bodies
 app.use(cookieParser()); // Parse cookies
 
 // Set up CORS

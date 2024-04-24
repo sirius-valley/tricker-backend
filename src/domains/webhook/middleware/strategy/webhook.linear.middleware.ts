@@ -1,7 +1,7 @@
 import { type WebhookMiddleware } from '@domains/webhook/middleware/strategy/webhook.middleware';
-import { Constants, decryptData, verifyLinearSignature, WebhookValidationException } from '@utils';
-import { type CustomRequest } from '@domains/webhook/middleware/webhooksMiddleware';
+import { Constants, decryptData, NodeEnv, verifyLinearSignature, WebhookValidationException } from '@utils';
 import type { WebhookSourceDTO } from '@domains/webhookSource';
+import { type ExtendedRequest } from '@app';
 
 export class WebhookLinearMiddleware implements WebhookMiddleware {
   /**
@@ -11,9 +11,9 @@ export class WebhookLinearMiddleware implements WebhookMiddleware {
    * @returns A promise resolving to the signature string if the validation succeeds.
    * @throws {WebhookValidationException} Throws an error if the validation fails.
    */
-  async validateWebhookRequest(req: CustomRequest, webhookSource: WebhookSourceDTO): Promise<string> {
+  async validateWebhookRequest(req: ExtendedRequest, webhookSource: WebhookSourceDTO): Promise<string> {
     // Validate the request origin IP if the Production environment is being used
-    if (Constants.NODE_ENV === 'production' && (req.ip === undefined || (req.ip !== '35.231.147.226' && req.ip !== '35.243.134.228'))) {
+    if (Constants.NODE_ENV === NodeEnv.PROD && (req.ip === undefined || (req.ip !== '35.231.147.226' && req.ip !== '35.243.134.228'))) {
       throw new WebhookValidationException(400, 'Webhook request origin IP is not authorized.');
     }
 

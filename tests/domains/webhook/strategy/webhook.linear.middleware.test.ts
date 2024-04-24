@@ -1,9 +1,10 @@
 import type { Request } from 'express';
-import { type CustomRequest, webhookSourceRepository } from '@domains/webhook/middleware/webhooksMiddleware';
+import { webhookSourceRepository } from '@domains/webhook/middleware/webhooksMiddleware';
 import { mockWebhookSourceDTO } from '../mockData';
 import * as auth from '@utils/auth';
 import { Constants, NodeEnv, WebhookValidationException } from '@utils';
 import { WebhookLinearMiddleware } from '@domains/webhook/middleware/strategy/webhook.linear.middleware';
+import { ExtendedRequest } from '@app';
 
 const linearMiddleware: WebhookLinearMiddleware = new WebhookLinearMiddleware();
 
@@ -20,7 +21,7 @@ describe('webhook linear middleware', () => {
     params: {
       id: 'someId',
     },
-  } as unknown as Request as CustomRequest;
+  } as unknown as Request as ExtendedRequest;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -63,7 +64,7 @@ describe('webhook linear middleware', () => {
         params: {
           id: 'someId',
         },
-      } as unknown as Request as CustomRequest;
+      } as unknown as Request as ExtendedRequest;
       jest.spyOn(webhookSourceRepository, 'getById').mockResolvedValue(mockWebhookSourceDTO);
       // then
       expect.assertions(2);
