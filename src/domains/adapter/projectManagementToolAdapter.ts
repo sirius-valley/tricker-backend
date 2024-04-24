@@ -9,7 +9,7 @@ export interface ProjectManagementToolAdapter {
   adaptAllProjectIssuesData: (providerProjectId: string) => Promise<IssueDataDTO[]>;
   getMemberById: (memberId: string, apiKey: string) => Promise<UserData>;
   getProjectById: (projectId: string, apiKey: string) => Promise<BasicProjectDataInput>;
-  getAndAdaptProjects: () => Promise<ProjectPreIntegratedDTO[]>;
+  getAndAdaptProjects: (apiKey: string) => Promise<ProjectPreIntegratedDTO[]>;
   getMembersByProjectId: (providerProjectId: string, apiKey: string) => Promise<ProjectMemberDataDTO[]>;
   getMyEmail: (apiKey: string) => Promise<string>;
 }
