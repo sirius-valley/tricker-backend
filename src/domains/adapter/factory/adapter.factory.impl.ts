@@ -7,7 +7,7 @@ import { InternalServerErrorException } from '@utils';
 export class AdapterFactoryImpl implements AdapterFactory {
   getSpecificAdapter(issueProviderName: string): ProjectManagementToolAdapter {
     switch (issueProviderName) {
-      case 'linear':
+      case 'LINEAR':
         return new LinearAdapter(new LinearDataRetriever());
       default:
         throw new InternalServerErrorException('No adapter available for the chosen Issue Provider. Issue Provider not supported.');
