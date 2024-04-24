@@ -79,7 +79,6 @@ export class WebhookValidationException extends HttpException {
 
 export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
   if (error === null || error === undefined) next(error);
-  Logger.fatal(error);
   if (error instanceof HttpException) {
     if (error.code === HttpStatus.INTERNAL_SERVER_ERROR) {
       Logger.fatal(error);
@@ -92,5 +91,6 @@ export function ErrorHandling(error: Error, req: Request, res: Response, next: N
 
     return res.status(error.code).json({ message: error.message, code: error.code, errors: error.error });
   }
+  Logger.fatal(error);
   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error?.message, code: 500 });
 }
