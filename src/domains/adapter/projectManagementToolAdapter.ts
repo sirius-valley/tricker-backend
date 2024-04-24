@@ -5,6 +5,7 @@ import { type BasicProjectDataInput } from '@domains/project/dto';
 import { type UserData } from '@domains/user';
 
 export interface ProjectManagementToolAdapter {
+  supports: (issueProviderName: string) => boolean;
   adaptProjectData: (input: AdaptProjectDataInput) => Promise<ProjectDataDTO>;
   adaptAllProjectIssuesData: (providerProjectId: string) => Promise<IssueDataDTO[]>;
   getMemberById: (memberId: string, apiKey: string) => Promise<UserData>;

@@ -14,7 +14,7 @@ import { mailgunClient } from '@utils/mail';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
-import { AdapterFactoryImpl } from '@domains/adapter/factory/adapter.factory.impl';
+import { AdapterProviderImpl } from '@domains/adapter/factory/adapterProviderImpl';
 import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
@@ -27,7 +27,7 @@ const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceReposi
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
 const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
 const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider);
-const adapterFactory = new AdapterFactoryImpl();
+const adapterFactory = new AdapterProviderImpl();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
 const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);

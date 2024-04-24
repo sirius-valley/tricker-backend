@@ -135,7 +135,7 @@ describe('Integration service', () => {
       jest.spyOn(pendingAuthProjectMockRepository, 'delete').mockImplementation();
       jest.spyOn(integrationRepository, 'createIntegratedProject').mockResolvedValueOnce(expectedProject);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.adaptProjectData.mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'mail@mail.com' }] });
       linearAdapterMock.getMyEmail.mockResolvedValue('mail@mail.com');
 
@@ -153,7 +153,7 @@ describe('Integration service', () => {
       jest.spyOn(utils, 'decryptData').mockImplementation(() => 'token');
       jest.spyOn(userMockRepository, 'getByEmail').mockResolvedValue(null);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.getMyEmail.mockResolvedValue('mail@mail.com');
 
       expect.assertions(2);
@@ -186,7 +186,7 @@ describe('Integration service', () => {
       jest.spyOn(pendingMemberMailsMockRepository, 'getByProjectId').mockResolvedValue([{ ...pendingMemberMail, email: 'mail@mail.com' }]);
       jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(null);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.getMyEmail.mockResolvedValue('mail@mail.com');
 
       expect.assertions(2);
@@ -205,7 +205,7 @@ describe('Integration service', () => {
       jest.spyOn(organizationMockRepository, 'getById').mockResolvedValue(organization);
       jest.spyOn(emailSender, 'sendIntegrationErrorEmail').mockResolvedValue();
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(mockAdapterTool);
+      adapterFactoryMock.getAdapter.mockReturnValue(mockAdapterTool);
       // linearAdapterMock.getMyEmail.mockResolvedValue('mail@mail.com');
       jest.spyOn(mockAdapterTool, 'getMyEmail').mockResolvedValue('mail@mail.com');
       // linearAdapterMock.adaptProjectData.mockResolvedValue({ ...projectData, members: [{ ...projectMember, email: 'wrong@mail.com' }] });
@@ -229,7 +229,7 @@ describe('Integration service', () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.getAndAdaptProjects.mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.NOT_ADDED }]);
 
       const expected: ProjectPreIntegratedDTO[] = [{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.NOT_ADDED }];
@@ -246,7 +246,7 @@ describe('Integration service', () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(null);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(mockPendingProjectAuthorizationDTO);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.getAndAdaptProjects.mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.PENDING }]);
 
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ apyKey: 'mock_secret', pmProviderId: 'mail@mail.com', issueProviderName: 'linear' });
@@ -262,7 +262,7 @@ describe('Integration service', () => {
       jest.spyOn(projectMockRepository, 'getByProviderId').mockResolvedValue(mockProjectDTO);
       jest.spyOn(pendingAuthProjectMockRepository, 'getByProjectId').mockResolvedValue(null);
 
-      adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+      adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
       linearAdapterMock.getAndAdaptProjects.mockResolvedValue([{ providerProjectId: 'ppID', image: null, name: 'Tricker', state: ProjectState.ADDED }]);
 
       const received: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ apyKey: 'mock_secret', pmProviderId: 'mail@mail.com', issueProviderName: 'linear' });

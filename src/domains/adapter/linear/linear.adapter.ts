@@ -15,6 +15,10 @@ import { type StageType } from '@domains/projectStage/dto';
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
 
+  supports(issueProviderName: string): boolean {
+    return issueProviderName === 'LINEAR';
+  }
+
   /**
    * Retrieves members(users) associated with a Linear project identified by its Linear project ID and adapt them.
    * @param {string} linearProjectId - The ID of the Linear project.

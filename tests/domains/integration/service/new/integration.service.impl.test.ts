@@ -38,7 +38,7 @@ describe('integration service tests', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    adapterFactoryMock.getSpecificAdapter.mockReturnValue(linearAdapterMock);
+    adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
     testedService = new IntegrationServiceImpl(adapterFactoryMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
   });
 
@@ -104,7 +104,6 @@ describe('integration service tests', () => {
         integratorId: mockedIntegratorId,
         members: mocksAdministratorDTO,
         organizationName: mockedOrganizationName,
-        issueProviderName: mockedIssueProviderId,
       };
       pendingAuthProjectRepositoryMock.getByProjectId.mockResolvedValue(null);
       projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
@@ -161,7 +160,6 @@ describe('integration service tests', () => {
         integratorId: mockedIntegratorId,
         members: mocksAdministratorDTO,
         organizationName: mockedOrganizationName,
-        issueProviderName: mockedIssueProviderName,
       };
 
       const spiedIssueProviderConstraint = jest.spyOn(IsValidIssueProviderConstraint.prototype, 'validate').mockResolvedValue(true);
