@@ -536,6 +536,8 @@ export class IssueDetailsDTO {
 export class IssueExtendedDTO extends IssueDetailsDTO {
   /** The chronological history log of events associated with the issue. */
   chronology: EventHistoryLogDTO[];
+  /** Boolean to inform if issue is being tracked */
+  isTracking: boolean;
 
   /**
    * Constructs a new instance of the IssueExtendedDTO class.
@@ -543,6 +545,7 @@ export class IssueExtendedDTO extends IssueDetailsDTO {
    */
   constructor(issue: IssueExtendedDTO) {
     super(issue);
+    this.isTracking = issue.isTracking;
     this.chronology = issue.chronology;
   }
 }
