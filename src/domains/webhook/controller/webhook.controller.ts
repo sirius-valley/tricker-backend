@@ -1,11 +1,12 @@
 import { Router, type Request, type Response } from 'express';
 import HttpStatus from 'http-status';
 import { validateWebhook } from '@domains/webhook/middleware/webhooksMiddleware';
-import { Logger } from '@utils';
+import { Logger, validateRequest } from '@utils';
+import { WebhookDynamicRouteParam } from '@domains/webhookSource';
 
 export const webhookRouter = Router();
 
-webhookRouter.use('/:webhookId', validateWebhook, (req: Request, res: Response) => {
+webhookRouter.use('/:webhookId', validateRequest(WebhookDynamicRouteParam, 'params'), validateWebhook, (req: Request, res: Response) => {
   // just for testing, will be replaced with actual processing
   Logger.success({ prefix: 'webhooks', message: 'Params' });
   console.log(JSON.stringify(req.params));
