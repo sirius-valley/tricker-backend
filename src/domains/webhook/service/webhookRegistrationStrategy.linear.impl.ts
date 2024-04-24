@@ -6,7 +6,7 @@ import { NodeEnv } from '@utils';
 
 export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStrategy {
   supports(issueProviderName: string): boolean {
-    return issueProviderName.toUpperCase().trim() === 'LINEAR';
+    return issueProviderName === 'LINEAR';
   }
 
   async registerWebhook(providerApiKey: string, providerProjectId: string, trickerWebhookSourceId: string): Promise<ProviderWebhookRegistrationData> {

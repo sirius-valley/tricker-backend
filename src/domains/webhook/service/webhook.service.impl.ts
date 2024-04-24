@@ -6,6 +6,10 @@ import { NotFoundException } from '@utils';
 import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistrationStrategy.provider';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy';
 
+export const generateWebhookId = (): string => {
+  return randomUUID();
+};
+
 export class WebhookServiceImpl implements WebhookService {
   constructor(
     private readonly webhookSourceRepository: WebhookSourceRepository,
@@ -14,7 +18,7 @@ export class WebhookServiceImpl implements WebhookService {
   ) {}
 
   async createWebhook(apiKey: string, projectId: string, providerProjectId: string, issueProviderName: string): Promise<WebhookSourceDTO> {
-    const generatedWebhookId = randomUUID();
+    const generatedWebhookId = generateWebhookId();
 
     const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getByName(issueProviderName);
     if (issueProvider == null) throw new NotFoundException('Issue Provider');

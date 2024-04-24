@@ -15,6 +15,8 @@ import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
 import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
+import { type WebhookSourceRepository } from '@domains/webhookSource';
+import { type IssueProviderRepository } from '@domains/issueProvider';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -33,4 +35,6 @@ export const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<
 export const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
 export const webhookServiceMock: MockProxy<WebhookService> = mock<WebhookService>();
 export const webhookRegistrationStrategyProviderMock: MockProxy<WebhookRegistrationStrategyProvider> = mock<WebhookRegistrationStrategyProvider>();
-export const linearWebhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();
+export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();
+export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
+export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
