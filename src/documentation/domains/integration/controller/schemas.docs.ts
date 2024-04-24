@@ -283,19 +283,13 @@
  *           type: string
  *           description: Name of the current organization trying to integrate the project.
  *           example: SIRIUS
- *         issueProviderName:
- *           type: string
- *           description: Name of the selected issue provider for integration.
- *           example: LINEAR
  *       required:
  *         - apiToken
  *         - projectId
  *         - integratorId
  *         - members
  *         - organizationName
- *         - issueProviderName
  *
-
  *
  *     LinearMembersPreIntegrationBody:
  *       type: object
