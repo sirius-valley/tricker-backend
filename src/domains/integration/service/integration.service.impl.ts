@@ -74,7 +74,7 @@ export class IntegrationServiceImpl implements IntegrationService {
       );
     } catch (e: any) {
       await this.emailService.sendIntegrationErrorEmail(integratorEmail);
-      await this.pendingAuthProjectRepository.update({ pendingProjectId: pendingProject.id, isIntegrating: false });
+      await this.pendingAuthProjectRepository.delete(pendingProject.id);
       throw e;
     }
 
@@ -133,7 +133,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     const adapter: ProjectManagementToolAdapter = this.adapterFactory.getSpecificAdapter(input.issueProviderName);
     const pm: UserDTO | null = await this.userRepository.getByCognitoId(input.pmProviderId);
     await this.validateIntegratorIdentity(input.apyKey, pm?.email, input.issueProviderName);
-    const projects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects();
+    const projects: ProjectPreIntegratedDTO[] = await adapter.getAndAdaptProjects(input.apyKey);
     const taggedProjects: ProjectPreIntegratedDTO[] = [];
     // detect pending projects or already integrated
     for (const project of projects) {
@@ -289,7 +289,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     if (admins.length === 0) {
       throw new ConflictException('Your organization has not any Administrator registered in tricker. Please contact your Organization.');
     }
-    const pendingAuth: PendingProjectAuthorizationDTO = await this.integrationRepository.createIntegrationProjectRequest(authReq);
+    const pendingAuth: PendingProjectAuthorizationDTO = await this.integrationRepository.createIntegrationProjectRequest(authReq, issueProviderName);
     const adminIntegrator: AdministratorDTO | undefined = admins.find((admin) => admin.email === integrator.email);
     const pmIsAdmin: boolean = adminIntegrator !== undefined;
     if (!pmIsAdmin) {
