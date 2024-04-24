@@ -23,6 +23,7 @@ checkRequiredEnvVariables([
   'NODE_ENV',
   'NGROK_AUTH_TOKEN',
   'NGROK_STATIC_DOMAIN',
+  'LINEAR_GRAPHQL_URL',
 ]);
 
 export const server = http.createServer(app);
@@ -43,6 +44,7 @@ if (Constants.NODE_ENV === NodeEnv.DEV) {
     });
 
     // Output ngrok url to console
-    console.log(`Ngrok ingress established at: ${listener.url()}\nCheck ngrok health clicking: ${listener.url()}/api/health/`);
+    Logger.info(`Ngrok ingress established at: ${listener.url()}`);
+    Logger.info(`Check ngrok health clicking: ${listener.url()}/api/health`);
   })();
 }
