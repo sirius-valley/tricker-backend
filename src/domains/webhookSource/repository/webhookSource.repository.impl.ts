@@ -12,6 +12,7 @@ export class WebhookSourceRepositoryImpl implements WebhookSourceRepository {
         secret: input.secret,
         providerWebhookId: input.providerWebhookId,
         issueProviderId: input.issueProviderId,
+        projectId: input.projectId,
       },
     });
 
