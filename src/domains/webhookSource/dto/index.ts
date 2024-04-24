@@ -7,7 +7,7 @@ export class WebhookDynamicRouteParam {
   /** The ID of the webhook. */
   @IsNotEmpty()
   @IsString()
-  id!: string;
+  webhookId!: string;
 }
 
 /**
