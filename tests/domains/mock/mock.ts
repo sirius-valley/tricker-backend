@@ -14,6 +14,7 @@ import type { OrganizationRepository } from '@domains/organization';
 import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
+import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -21,7 +22,7 @@ export const userProjectRoleRepositoryMock: MockProxy<UserProjectRoleRepository>
 export const roleRepositoryMock: MockProxy<RoleRepository> = mock<RoleRepository>();
 export const projectStageRepositoryMock: MockProxy<ProjectStageRepository> = mock<ProjectStageRepository>();
 export const linearAdapterMock: MockProxy<LinearAdapter> = mock<LinearAdapter>();
-export const adapterFactoryMock: MockProxy<AdapterProvider> = mock<AdapterProvider>();
+export const adapterProviderMock: MockProxy<AdapterProvider> = mock<AdapterProvider>();
 export const projectRepositoryMock: MockProxy<ProjectRepository> = mock<ProjectRepository>();
 export const userRepositoryMock: MockProxy<UserRepository> = mock<UserRepository>();
 export const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
@@ -30,3 +31,6 @@ export const organizationRepositoryMock: MockProxy<OrganizationRepository> = moc
 export const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
 export const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
 export const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
+export const webhookServiceMock: MockProxy<WebhookService> = mock<WebhookService>();
+export const webhookRegistrationStrategyProviderMock: MockProxy<WebhookRegistrationStrategyProvider> = mock<WebhookRegistrationStrategyProvider>();
+export const linearWebhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();

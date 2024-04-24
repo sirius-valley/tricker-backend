@@ -6,7 +6,6 @@ import {
   mockedGeneratedId,
   mockedIntegratorId,
   mockedIssueProviderId,
-  mockedIssueProviderName,
   mockedMemberName,
   mockedOrganizationId,
   mockedOrganizationName,
@@ -26,20 +25,43 @@ import {
 import { AuthorizationRequestDTO, AuthorizedMemberDTO, type PendingProjectInfoDTO, type ProjectMemberDataDTO } from '@domains/integration/dto';
 import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 import { type NextFunction, type Request, type Response } from 'express';
-import { ConflictException, IsValidIssueProviderConstraint, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
+import { ConflictException, IsValidOrganizationConstraint, NotFoundException, validateRequest } from '@utils';
 import { plainToInstance } from 'class-transformer';
 import * as auth from '@utils/auth';
 import { mockProjectDTO, mockUserDTO } from '../../../issue/mockData';
 import jwt from 'jsonwebtoken';
-import { adapterFactoryMock, administratorRepositoryMock, emailServiceMock, integrationRepositoryMock, linearAdapterMock, organizationRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, projectRepositoryMock, userRepositoryMock } from '../../../mock/mock';
+import {
+  adapterProviderMock,
+  administratorRepositoryMock,
+  emailServiceMock,
+  integrationRepositoryMock,
+  linearAdapterMock,
+  organizationRepositoryMock,
+  pendingAuthProjectRepositoryMock,
+  pendingMemberMailsRepositoryMock,
+  projectRepositoryMock,
+  userRepositoryMock,
+  webhookServiceMock,
+} from '../../../mock/mock';
 
 describe('integration service tests', () => {
   let testedService: IntegrationService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    adapterFactoryMock.getAdapter.mockReturnValue(linearAdapterMock);
-    testedService = new IntegrationServiceImpl(adapterFactoryMock, projectRepositoryMock, userRepositoryMock, pendingAuthProjectRepositoryMock, pendingMemberMailsRepositoryMock, organizationRepositoryMock, administratorRepositoryMock, integrationRepositoryMock, emailServiceMock);
+    adapterProviderMock.getAdapter.mockReturnValue(linearAdapterMock);
+    testedService = new IntegrationServiceImpl(
+      adapterProviderMock,
+      projectRepositoryMock,
+      userRepositoryMock,
+      pendingAuthProjectRepositoryMock,
+      pendingMemberMailsRepositoryMock,
+      organizationRepositoryMock,
+      administratorRepositoryMock,
+      integrationRepositoryMock,
+      emailServiceMock,
+      webhookServiceMock
+    );
   });
 
   describe('declineProject method', () => {
@@ -162,7 +184,6 @@ describe('integration service tests', () => {
         organizationName: mockedOrganizationName,
       };
 
-      const spiedIssueProviderConstraint = jest.spyOn(IsValidIssueProviderConstraint.prototype, 'validate').mockResolvedValue(true);
       const spiedOrganizationConstraint = jest.spyOn(IsValidOrganizationConstraint.prototype, 'validate').mockResolvedValue(true);
 
       const req = {
@@ -177,13 +198,7 @@ describe('integration service tests', () => {
       req.body.members.forEach((member: AuthorizedMemberDTO) => {
         expect(member).toBeInstanceOf(AuthorizedMemberDTO);
       });
-      expect(spiedIssueProviderConstraint).toHaveBeenCalledWith(mockedIssueProviderName, {
-        constraints: [],
-        object: plainToInstance(AuthorizationRequestDTO, pendingAuthRequest),
-        property: 'issueProviderName',
-        targetName: 'AuthorizationRequestDTO',
-        value: mockedIssueProviderName,
-      });
+
       expect(spiedOrganizationConstraint).toHaveBeenCalledWith(mockedOrganizationName, {
         constraints: [],
         object: plainToInstance(AuthorizationRequestDTO, pendingAuthRequest),
