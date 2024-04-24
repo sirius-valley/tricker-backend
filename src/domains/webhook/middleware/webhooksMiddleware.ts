@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { db, NotFoundException } from '@utils';
-import { type WebhookDynamicRouteParam, type WebhookSourceDTO } from '@domains/webhookSource/dto';
+import { type WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
 import { WebhookSourceRepositoryImpl } from '@domains/webhookSource/repository/webhookSource.repository.impl';
 import { type WebhookMiddleware } from '@domains/webhook/middleware/strategy/webhook.middleware';
@@ -13,7 +13,6 @@ import { type IssueProviderDTO, type IssueProviderRepository, IssueProviderRepos
  */
 export interface CustomRequest extends Request {
   rawBody?: Buffer; // Optional property for storing the raw body of the request
-  route: WebhookDynamicRouteParam; // Property representing the dynamic route parameter for webhooks
 }
 
 export const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
@@ -32,12 +31,12 @@ registerWebhookMiddleware('LINEAR', webhookLinearMiddleware);
  * Validates the request origin IP, signature, and webhook source.
  * Throws exceptions for invalid requests.
  */
-export const validateWebhook = async (req: CustomRequest, res: Response, next: () => any): Promise<void> => {
+export const validateWebhook: RequestHandler = async (req: CustomRequest, res: Response, next: NextFunction) => {
   // Retrieve the dynamic route parameter from the request
-  const { id } = req.params;
+  const { webhookId } = req.params;
 
   // Retrieve the webhook source by its id
-  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(id);
+  const webhookSource: WebhookSourceDTO | null = await webhookSourceRepository.getById(webhookId);
 
   // If webhook source is not found or has been deleted, throw NotFoundException
   if (webhookSource === null || webhookSource.deletedAt !== null) {
