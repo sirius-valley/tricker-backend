@@ -1,6 +1,6 @@
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
-import { Transform, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
 
@@ -69,6 +69,7 @@ export class ProjectIdIntegrationInputDTO {
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()
+  @Expose()
   @Transform(({ value }) => value.trim().toUpperCase())
   issueProviderName!: string;
 }
@@ -156,6 +157,7 @@ export class LinearMembersPreIntegrationParams {
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()
+  @Expose()
   @Transform(({ value }) => value.trim().toUpperCase())
   issueProviderName!: string;
 }
@@ -221,15 +223,6 @@ export class AuthorizationRequestDTO {
   @IsValidOrganization()
   @IsNotEmpty()
   readonly organizationName!: string;
-
-  /**
-   * The name of the selected issue provider to make the integration
-   * @type {string}
-   * @example "LINEAR", "JIRA", "TRELLO"
-   * */
-  @IsValidIssueProvider()
-  @IsNotEmpty()
-  readonly issueProviderName!: string;
 }
 
 /**
@@ -335,6 +328,7 @@ export class IssueProviderURLParams {
   @IsString()
   @IsNotEmpty()
   @IsValidIssueProvider()
+  @Expose()
   @Transform(({ value }) => value.trim().toUpperCase())
   issueProviderName!: string;
 }
