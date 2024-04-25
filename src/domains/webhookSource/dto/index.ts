@@ -7,7 +7,7 @@ export class WebhookDynamicRouteParam {
   /** The ID of the webhook. */
   @IsNotEmpty()
   @IsString()
-  id!: string;
+  webhookId!: string;
 }
 
 /**
@@ -49,4 +49,49 @@ export class WebhookSourceDTO {
     this.updatedAt = source.updatedAt;
     this.deletedAt = source.deletedAt;
   }
+}
+
+/**
+ * Interface representing the data returned by an issue provider after registering a webhook.
+ */
+export interface ProviderWebhookRegistrationData {
+  /**
+   * The secret associated with the registered webhook.
+   */
+  secret: string;
+
+  /**
+   * The unique identifier of the registered webhook within the issue provider platform.
+   */
+  id: string;
+}
+
+/**
+ * Interface representing the data required to create a new webhook source in the database.
+ */
+export interface WebhookSourceCreateInput {
+  /**
+   * The unique identifier of the webhook source.
+   */
+  id: string;
+
+  /**
+   * The encrypted secret associated with the webhook source.
+   */
+  secret: string;
+
+  /**
+   * The ID of the webhook within the issue provider system.
+   */
+  providerWebhookId: string;
+
+  /**
+   * The ID of the associated issue provider.
+   */
+  issueProviderId: string;
+
+  /**
+   * The ID of the project associated with the webhook.
+   */
+  projectId: string;
 }

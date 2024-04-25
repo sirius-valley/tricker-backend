@@ -7,13 +7,16 @@ import { type UserProjectRoleRepository } from '@domains/userProjectRole/reposit
 import { type RoleRepository } from '@domains/role/repository';
 import { type ProjectStageRepository } from '@domains/projectStage/repository';
 import { type LinearAdapter } from '@domains/adapter/linear/linear.adapter';
-import { type AdapterFactory } from '@domains/adapter/factory/adapter.factory';
+import { type AdapterProvider } from '@domains/adapter/factory/adapterProvider';
 import type { PendingProjectAuthorizationRepository } from '@domains/pendingProjectAuthorization';
 import type { PendingMemberMailsRepository } from '@domains/pendingMemberMail';
 import type { OrganizationRepository } from '@domains/organization';
 import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
+import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
+import { type WebhookSourceRepository } from '@domains/webhookSource';
+import { type IssueProviderRepository } from '@domains/issueProvider';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -21,7 +24,7 @@ export const userProjectRoleRepositoryMock: MockProxy<UserProjectRoleRepository>
 export const roleRepositoryMock: MockProxy<RoleRepository> = mock<RoleRepository>();
 export const projectStageRepositoryMock: MockProxy<ProjectStageRepository> = mock<ProjectStageRepository>();
 export const linearAdapterMock: MockProxy<LinearAdapter> = mock<LinearAdapter>();
-export const adapterFactoryMock: MockProxy<AdapterFactory> = mock<AdapterFactory>();
+export const adapterProviderMock: MockProxy<AdapterProvider> = mock<AdapterProvider>();
 export const projectRepositoryMock: MockProxy<ProjectRepository> = mock<ProjectRepository>();
 export const userRepositoryMock: MockProxy<UserRepository> = mock<UserRepository>();
 export const pendingAuthProjectRepositoryMock: MockProxy<PendingProjectAuthorizationRepository> = mock<PendingProjectAuthorizationRepository>();
@@ -30,3 +33,8 @@ export const organizationRepositoryMock: MockProxy<OrganizationRepository> = moc
 export const administratorRepositoryMock: MockProxy<AdministratorRepository> = mock<AdministratorRepository>();
 export const integrationRepositoryMock: MockProxy<IntegrationRepository> = mock<IntegrationRepository>();
 export const emailServiceMock: MockProxy<EmailService> = mock<EmailService>();
+export const webhookServiceMock: MockProxy<WebhookService> = mock<WebhookService>();
+export const webhookRegistrationStrategyProviderMock: MockProxy<WebhookRegistrationStrategyProvider> = mock<WebhookRegistrationStrategyProvider>();
+export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();
+export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
+export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();

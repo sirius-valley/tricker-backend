@@ -3,7 +3,6 @@ import { db } from '@utils/database';
 import { type OrganizationRepository, OrganizationRepositoryImpl } from '@domains/organization/repository';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider/repository';
 import { LinearClient } from '@linear/sdk';
-import { type AuthorizationRequestDTO } from '@domains/integration/dto';
 import { compareDesc, endOfDay } from 'date-fns';
 
 const organizationRepository: OrganizationRepository = new OrganizationRepositoryImpl(db);
@@ -55,7 +54,7 @@ export function IsValidIssueProvider(validationOptions?: ValidationOptions) {
 @ValidatorConstraint({ async: true })
 export class IsValidApiKeyConstraint implements ValidatorConstraintInterface {
   async validate(apiKey: string, args: ValidationArguments): Promise<boolean> {
-    const issueProviderName = (args.object as AuthorizationRequestDTO).issueProviderName;
+    const { issueProviderName } = args.object as { issueProviderName: string };
     if (issueProviderName === 'LINEAR') {
       try {
         const linearClient = new LinearClient({ apiKey });

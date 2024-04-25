@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { Logger } from '@utils';
+import { Constants, Logger, NodeEnv } from '@utils';
+import process from 'process';
 
 const prisma = new PrismaClient();
 
 async function runSeeding(): Promise<void> {
   Logger.debug('Seeding db with predefined Organizations');
-  await prisma.organization.upsert({
+  const org = await prisma.organization.upsert({
     where: {
       name: 'SIRIUS',
     },
@@ -46,6 +47,29 @@ async function runSeeding(): Promise<void> {
     },
     update: {},
   });
+
+  const defAdminEmail = process.env.DEFAULT_ADMIN_EMAIL;
+
+  if (Constants.NODE_ENV === NodeEnv.DEV && defAdminEmail !== undefined && defAdminEmail !== '') {
+    Logger.debug('Seeding db with predefine User and Organization Administrator');
+    Logger.debug(`Email selected: ${defAdminEmail}`);
+    const user = await prisma.user.upsert({
+      where: {
+        email: process.env.DEFAULT_ADMIN_EMAIL!,
+      },
+      create: {
+        email: process.env.DEFAULT_ADMIN_EMAIL!,
+      },
+      update: {},
+    });
+
+    await prisma.organizationAdministrator.create({
+      data: {
+        userId: user.id,
+        organizationId: org.id,
+      },
+    });
+  }
 }
 
 runSeeding()

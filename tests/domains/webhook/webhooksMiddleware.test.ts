@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
-import { type CustomRequest, issueProviderRepository, validateWebhook, webhookLinearMiddleware, webhookSourceRepository } from '@domains/webhook/middleware/webhooksMiddleware';
+import { issueProviderRepository, validateWebhook, webhookLinearMiddleware, webhookSourceRepository } from '@domains/webhook/middleware/webhooksMiddleware';
 import { NotFoundException } from '@utils';
 import { mockIssueProviderDTO, mockWebhookSourceDTO } from './mockData';
+import { type ExtendedRequest } from '@app';
 
 describe('validateWebhook middleware', () => {
   const req: Request = {
@@ -16,7 +17,7 @@ describe('validateWebhook middleware', () => {
     params: {
       id: 'someId',
     },
-  } as unknown as Request as CustomRequest;
+  } as unknown as Request as ExtendedRequest;
 
   const res: Response = {} as unknown as Response;
 
