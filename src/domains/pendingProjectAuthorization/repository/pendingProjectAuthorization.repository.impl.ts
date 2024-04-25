@@ -24,6 +24,7 @@ export class PendingProjectAuthorizationRepositoryImpl implements PendingProject
       data: {
         deletedAt: new Date(),
         token: null,
+        isIntegrating: false,
       },
     });
 
