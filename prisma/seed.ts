@@ -51,6 +51,8 @@ async function runSeeding(): Promise<void> {
   const defAdminEmail = process.env.DEFAULT_ADMIN_EMAIL;
 
   if (Constants.NODE_ENV === NodeEnv.DEV && defAdminEmail !== undefined && defAdminEmail !== '') {
+    Logger.debug('Seeding db with predefine User and Organization Administrator');
+    Logger.debug(`Email selected: ${defAdminEmail}`);
     const user = await prisma.user.upsert({
       where: {
         email: process.env.DEFAULT_ADMIN_EMAIL!,
