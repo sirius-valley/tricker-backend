@@ -1,6 +1,8 @@
 import { matchesAtLeastOneError, retry } from '@utils/retry';
+import { Logger } from '@utils';
 
 describe('retry', () => {
+  Logger.disable();
   it('should retry the operation on failure and succeed after a few retries', async () => {
     // Mock operation that fails twice and then succeeds
     const mockOperation = jest.fn().mockRejectedValueOnce(new Error('Failed')).mockRejectedValueOnce(new Error('Failed again')).mockResolvedValue('Success');
