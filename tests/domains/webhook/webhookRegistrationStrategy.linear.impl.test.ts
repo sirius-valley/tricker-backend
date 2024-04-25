@@ -39,7 +39,11 @@ describe('webhook registration strategy tests', () => {
     const spiedApolloClientCreation = jest.spyOn(apollo, 'createApolloClient').mockReturnValueOnce(apolloClientMock);
     apolloClientMock.mutate.mockResolvedValue(mockMutationResult);
 
-    const registrationData = await strategy.registerWebhook(providerApiKey, providerProjectId, trickerWebhookSourceId);
+    const registrationData = await strategy.registerWebhook({
+      providerApiKey,
+      providerProjectId,
+      trickerWebhookSourceId,
+    });
 
     expect(spiedApolloClientCreation).toHaveBeenCalledWith(providerApiKey);
     expect(apolloClientMock.mutate).toHaveBeenCalledWith({

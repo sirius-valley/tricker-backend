@@ -4,6 +4,7 @@ import { type WebhookService, WebhookServiceImpl } from '@domains/webhook/servic
 import { issueProviderRepositoryMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../mock/mock';
 import crypto from 'node:crypto';
 import { NotFoundException } from '@utils';
+import * as auth from '@utils/auth';
 
 describe('webhook service tests', () => {
   let webhookService: WebhookService;
@@ -42,14 +43,24 @@ describe('webhook service tests', () => {
       webhookRegistrationStategyMock.registerWebhook.mockResolvedValueOnce(webhookRegistrationData);
       webhookSourceRepositoryMock.create.mockResolvedValueOnce(expectedWebhookSource);
       jest.spyOn(crypto, 'randomUUID').mockImplementationOnce(() => generatedWebhookId as `${string}-${string}-${string}-${string}-${string}`);
+      jest.spyOn(auth, 'encryptData').mockImplementation(() => secret);
 
       // When
-      const createdWebhook = await webhookService.createWebhook(apiKey, projectId, providerProjectId, issueProviderName);
+      const createdWebhook = await webhookService.createWebhook({
+        apiKey,
+        projectId,
+        providerProjectId,
+        issueProviderName,
+      });
 
       // Then
       expect(issueProviderRepositoryMock.getByName).toHaveBeenCalledWith(issueProviderName);
       expect(webhookRegistrationStrategyProviderMock.getStrategy).toHaveBeenCalledWith(issueProviderName);
-      expect(webhookRegistrationStategyMock.registerWebhook).toHaveBeenCalledWith(apiKey, providerProjectId, generatedWebhookId);
+      expect(webhookRegistrationStategyMock.registerWebhook).toHaveBeenCalledWith({
+        providerApiKey: apiKey,
+        providerProjectId,
+        trickerWebhookSourceId: generatedWebhookId,
+      });
       expect(webhookSourceRepositoryMock.create).toHaveBeenCalledWith({
         id: generatedWebhookId,
         secret: webhookRegistrationData.secret,
@@ -66,7 +77,7 @@ describe('webhook service tests', () => {
 
       // When
       try {
-        await webhookService.createWebhook(apiKey, projectId, providerProjectId, issueProviderName);
+        await webhookService.createWebhook({ apiKey, projectId, providerProjectId, issueProviderName });
       } catch (e: any) {
         // Then
         expect(e).toBeInstanceOf(NotFoundException);
