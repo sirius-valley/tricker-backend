@@ -361,6 +361,9 @@
  *         - $ref: "#/components/schemas/IssueDetailsDTO"
  *         - type: object
  *           properties:
+ *             isTracking:
+ *               type: boolean
+ *               example: false
  *             chronology:
  *               type: array
  *               items:
