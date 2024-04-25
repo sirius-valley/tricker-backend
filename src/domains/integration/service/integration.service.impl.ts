@@ -112,8 +112,13 @@ export class IntegrationServiceImpl implements IntegrationService {
     });
 
     Logger.complete(`Integration finished`);
-
-    await this.webhookService.createWebhook(decryptData(pendingProject.token), newProject.id, projectData.projectId, issueProviderName);
+    Logger.info(`Registering webhook in ${issueProviderName} platform...`);
+    await this.webhookService.createWebhook({
+      apiKey: decryptData(pendingProject.token),
+      projectId: newProject.id,
+      providerProjectId: projectData.projectId,
+      issueProviderName,
+    });
 
     return newProject;
   }
