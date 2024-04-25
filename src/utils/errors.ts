@@ -59,7 +59,7 @@ export class InternalServerErrorException extends HttpException {
 
 /**
  * Represents an exception specific to Linear errors.
- * Extends the InternalServerErrorException class.
+ * Extends the HttpException class.
  */
 export class LinearIntegrationException extends HttpException {
   constructor(code: number, message?: string, error?: object[] | object) {
@@ -67,14 +67,30 @@ export class LinearIntegrationException extends HttpException {
   }
 }
 
+/**
+ * Represents an exception specific to a Webhook validation request.
+ * Extends the HttpException class.
+ */
+export class WebhookValidationException extends HttpException {
+  constructor(code: number, message?: string, error?: object[] | object) {
+    super(code, message ?? 'Webhook source invalid.', error);
+  }
+}
+
 export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
   if (error === null || error === undefined) next(error);
-  Logger.error(error.stack);
   if (error instanceof HttpException) {
     if (error.code === HttpStatus.INTERNAL_SERVER_ERROR) {
-      Logger.error(error.message);
+      Logger.fatal(error);
     }
+
+    if (error.code === HttpStatus.BAD_REQUEST) {
+      Logger.fatal(error);
+      Logger.debug(JSON.stringify(error.error));
+    }
+
     return res.status(error.code).json({ message: error.message, code: error.code, errors: error.error });
   }
+  Logger.fatal(error);
   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error?.message, code: 500 });
 }

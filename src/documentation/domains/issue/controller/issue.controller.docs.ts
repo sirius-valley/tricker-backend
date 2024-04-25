@@ -445,6 +445,7 @@
  *                     comment: "Admin removed the block on the issue"
  *                     isBlocker: false
  *                     date: "2024-02-13T00:00:00Z"
+ *                 isTracking: true
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':

@@ -8,7 +8,7 @@ import { type IntegratedProjectCreationInput, ProjectDTO } from '@domains/projec
 export class IntegrationRepositoryImpl implements IntegrationRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async createIntegrationProjectRequest(input: AuthorizationRequestDTO): Promise<PendingProjectAuthorizationDTO> {
+  async createIntegrationProjectRequest(input: AuthorizationRequestDTO, issueProviderName: string): Promise<PendingProjectAuthorizationDTO> {
     const result = await this.db.pendingProjectAuthorization.create({
       data: {
         integratorId: input.integratorId,
@@ -30,7 +30,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
         issueProvider: {
           // same as above but with issue provider (linear, jira, etc.)
           connect: {
-            name: input.issueProviderName.trim().toUpperCase(),
+            name: issueProviderName,
           },
         },
       },
@@ -61,7 +61,7 @@ export class IntegrationRepositoryImpl implements IntegrationRepository {
             url: input.project.url,
             issueProvider: {
               connect: {
-                name: input.issueProviderName,
+                name: input.issueProviderName.trim().toUpperCase(),
               },
             },
             usersRoles: {

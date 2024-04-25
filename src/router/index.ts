@@ -6,12 +6,16 @@ import { issueRouter } from '@domains/issue/controller/issue.controller';
 import { projectRouter } from '@domains/project/controller';
 import { issueProviderRouter } from '@domains/issueProvider/controller/issueProvider.controller';
 import { roleRouter } from '@domains/role/controller/role.controller';
+import { healthRouter } from '@domains/health/health.controller';
+import { webhookRouter } from '@domains/webhook/controller/webhook.controller';
 
 export const router = Router();
 
+router.use('/health', healthRouter);
 router.use('/user', withAwsAuth, userRouter);
 router.use('/integration', withAwsAuth, integrationRouter);
 router.use('/issue', withAwsAuth, issueRouter);
 router.use('/projects', withAwsAuth, projectRouter);
 router.use('/roles', withAwsAuth, roleRouter);
 router.use('/issue-providers', withAwsAuth, issueProviderRouter);
+router.use('/webhooks', webhookRouter);

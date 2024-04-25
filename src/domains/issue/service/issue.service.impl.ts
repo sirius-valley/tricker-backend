@@ -54,25 +54,30 @@ export class IssueServiceImpl implements IssueService {
    * It ensures that the issue exists and is in a state where time tracking can be resumed.
    * If the issue is already tracking time, a ConflictException is thrown.
    *
-   * @param {string} issueId - The ID of the issue to resume time tracking for.
+   * @param input - An object containing the user Cognito ID and issue ID.
    * @returns {Promise<TimeTrackingDTO>} A promise that resolves to the time tracking DTO for the resumed timer.
    * @throws {NotFoundException} If the specified issue does not exist.
    * @throws {ConflictException} If the issue is not in a state where time tracking can be resumed, or if the issue is already tracking time.
+   * @throws {ForbiddenException} If the user who is trying to track time is not the issue assignee
    */
-  async resumeTimer(issueId: string): Promise<TimeTrackingDTO> {
-    const issue = await this.issueRepository.getById(issueId);
-    if (issue == null) throw new NotFoundException('issue');
+  async resumeTimer(input: IssueAndAssignee): Promise<TimeTrackingDTO> {
+    const { issue } = await this.validateIssueAndAssignee(input);
+    if (issue.isBlocked) {
+      throw new ConflictException('Blocked issues cannot be tracked.');
+    }
 
     const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue.projectStageId);
-    if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
+    if (!isIssueInStartedStage) {
+      throw new ConflictException('This issue needs to be started in order to be able to track time');
+    }
 
-    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(input.issueId);
 
     if (lastTimeTrackingEvent != null && lastTimeTrackingEvent.endTime == null) {
       throw new ConflictException('This issue is already tracking time');
     }
 
-    return await this.eventRepository.createTimeTrackingEvent(issueId);
+    return await this.eventRepository.createTimeTrackingEvent(input.issueId);
   }
 
   /**
@@ -101,7 +106,7 @@ export class IssueServiceImpl implements IssueService {
 
     const { workedTime } = await this.getIssueWorkedSeconds(input.issueId);
     if (input.timeAmount < 0 && workedTime < -input.timeAmount) {
-      throw new ConflictException('The time amount you are trying to substract exceeds the total worked time of the issue');
+      throw new ConflictException('The time amount you are trying to subtract exceeds the total worked time of the issue');
     }
 
     return await this.eventRepository.createManualTimeModification(input);
@@ -109,16 +114,15 @@ export class IssueServiceImpl implements IssueService {
 
   /**
    * Pauses the timer for a specific issue.
-   * @param {string} issueId - The ID of the issue to pause the timer for.
    * @returns {Promise<TimeTrackingDTO>} - A promise that resolves with the updated time tracking data.
    * @throws {NotFoundException} - If the issue with the given ID is not found.
    * @throws {ConflictException} - If the issue has never been played nor paused, or if the issue is already paused.
+   * @param input - An object containing the user Cognito ID and issue ID.
    */
-  async pauseTimer(issueId: string): Promise<TimeTrackingDTO> {
-    const issue = await this.issueRepository.getById(issueId);
-    if (issue == null) throw new NotFoundException('issue');
+  async pauseTimer(input: IssueAndAssignee): Promise<TimeTrackingDTO> {
+    await this.validateIssueAndAssignee(input);
 
-    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(input.issueId);
 
     if (lastTimeTrackingEvent == null) {
       throw new ConflictException('This issue has never been played nor paused');
@@ -265,8 +269,10 @@ export class IssueServiceImpl implements IssueService {
       throw new NotFoundException('Issue');
     }
     const orderedEvents: EventHistoryLogDTO[] = await this.getIssueChronology(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const isTracking = lastTimeTrackingEvent !== null && lastTimeTrackingEvent.endTime === null;
 
-    return { ...issue, chronology: orderedEvents };
+    return { ...issue, chronology: orderedEvents, isTracking };
   }
 
   /**

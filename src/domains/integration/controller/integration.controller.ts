@@ -14,13 +14,20 @@ import { mailgunClient } from '@utils/mail';
 import { type AdministratorRepository } from '@domains/administrator/repository/administrator.repository';
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
-import { AdapterFactoryImpl } from '@domains/adapter/factory/adapter.factory.impl';
+import { AdapterProviderImpl } from '@domains/adapter/factory/adapterProviderImpl';
+import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
+import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
+import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
 
-const adapterFactory = new AdapterFactoryImpl();
+const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
+const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
+const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
+const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider);
+const adapterFactory = new AdapterProviderImpl();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
 const pendingAuthRepository: PendingProjectAuthorizationRepository = new PendingProjectAuthorizationRepositoryImpl(db);
@@ -29,14 +36,14 @@ const organizationRepository: OrganizationRepository = new OrganizationRepositor
 const emailService: EmailService = new MailgunEmailService(mailgunClient);
 const administratorRepository: AdministratorRepository = new AdministratorRepositoryImpl(db);
 const integrationRepository: IntegrationRepository = new IntegrationRepositoryImpl(db);
-const service: IntegrationService = new IntegrationServiceImpl(adapterFactory, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService);
+const service: IntegrationService = new IntegrationServiceImpl(adapterFactory, projectRepository, userRepository, pendingAuthRepository, pendingMemberMailsRepository, organizationRepository, administratorRepository, integrationRepository, emailService, webhookService);
 
 integrationRouter.post('/:issueProviderName/projects', validateRequest(IssueProviderURLParams, 'params'), validateRequest(ApiKeyDTO, 'body'), async (req: Request<any, any, ApiKeyDTO>, res: Response) => {
   const { key } = req.body;
   const { sub } = res.locals.context as CustomCognitoIdTokenPayload;
   const { issueProviderName } = req.params as IssueProviderURLParams;
 
-  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ apyKey: key, pmProviderId: sub, issueProviderName: issueProviderName.toLowerCase() });
+  const projects: ProjectPreIntegratedDTO[] = await service.retrieveProjectsFromProvider({ apyKey: key, pmProviderId: sub, issueProviderName });
 
   return res.status(HttpStatus.OK).json(projects);
 });
@@ -46,7 +53,7 @@ integrationRouter.post('/:issueProviderName/project/:id/members', validateReques
   const { apiToken }: { apiToken: string } = req.body;
   const { issueProviderName } = req.params;
 
-  const members = await service.getMembers(projectId, apiToken, issueProviderName.toLowerCase());
+  const members = await service.getMembers(projectId, apiToken, issueProviderName);
 
   return res.status(HttpStatus.OK).json(members);
 });
@@ -54,8 +61,8 @@ integrationRouter.post('/:issueProviderName/project/:id/members', validateReques
 integrationRouter.get('/:issueProviderName/:projectId/accept', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
   const { projectId, issueProviderName } = req.params;
 
-  await service.acceptProject(projectId, issueProviderName.toLowerCase());
-  const project: ProjectDTO = await service.integrateProject(projectId, issueProviderName.toLowerCase());
+  await service.acceptProject(projectId, issueProviderName);
+  const project: ProjectDTO = await service.integrateProject(projectId, issueProviderName);
 
   return res.status(HttpStatus.CREATED).json(project);
 });
@@ -64,10 +71,10 @@ integrationRouter.post('/:issueProviderName/authorization', validateRequest(Issu
   const authorizationReq = _req.body;
   const { issueProviderName } = _req.params as IssueProviderURLParams;
 
-  const { pmIsAdmin } = await service.createPendingAuthorization(authorizationReq, issueProviderName.toLowerCase());
+  const { pmIsAdmin } = await service.createPendingAuthorization(authorizationReq, issueProviderName);
   if (pmIsAdmin) {
     res.status(HttpStatus.CREATED).json(pmIsAdmin);
-    await service.integrateProject(authorizationReq.projectId, issueProviderName.toLowerCase());
+    await service.integrateProject(authorizationReq.projectId, issueProviderName);
   } else {
     return res.status(HttpStatus.CREATED).json(pmIsAdmin);
   }
@@ -76,23 +83,16 @@ integrationRouter.post('/:issueProviderName/authorization', validateRequest(Issu
 integrationRouter.get('/:issueProviderName/:projectId/decline', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
   const { projectId, issueProviderName } = req.params;
 
-  await service.declineProject(projectId, issueProviderName.toLowerCase());
+  await service.declineProject(projectId, issueProviderName);
 
   return res.sendStatus(HttpStatus.NO_CONTENT);
 });
 
-integrationRouter.get(
-  '/:issueProviderName/:projectId/information',
-  validateRequest(IssueProviderURLParams, 'params'),
-  validateRequest(ProjectIdIntegrationInputDTO, 'params'),
-  validateRequest(MailToken, 'query'),
-  validateAdminIdentity(),
-  async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
-    const { projectId } = req.params;
-    const { issueProviderName } = req.params as IssueProviderURLParams;
+integrationRouter.get('/:issueProviderName/:projectId/information', validateRequest(ProjectIdIntegrationInputDTO, 'params'), validateRequest(MailToken, 'query'), validateAdminIdentity(), async (req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken>, res: Response) => {
+  const { projectId } = req.params;
+  const { issueProviderName } = req.params as IssueProviderURLParams;
 
-    const pendingProjectInfo: PendingProjectInfoDTO = await service.provideProjectInfo(projectId, issueProviderName.toLowerCase());
+  const pendingProjectInfo: PendingProjectInfoDTO = await service.provideProjectInfo(projectId, issueProviderName);
 
-    return res.status(HttpStatus.OK).json(pendingProjectInfo);
-  }
-);
+  return res.status(HttpStatus.OK).json(pendingProjectInfo);
+});

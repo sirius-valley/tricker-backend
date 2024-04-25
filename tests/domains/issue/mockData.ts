@@ -354,6 +354,7 @@ export const mockIssueExtendedDTO: IssueExtendedDTO = {
   },
   labels: [{ id: 'label999', name: 'Backend' }],
   isBlocked: true,
+  isTracking: true,
   chronology: [
     {
       isBlocker: false,

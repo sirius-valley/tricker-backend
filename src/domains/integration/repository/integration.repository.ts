@@ -3,6 +3,6 @@ import { type PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuth
 import { type IntegratedProjectCreationInput, type ProjectDTO } from '@domains/project/dto';
 
 export interface IntegrationRepository {
-  createIntegrationProjectRequest: (request: AuthorizationRequestDTO) => Promise<PendingProjectAuthorizationDTO>;
+  createIntegrationProjectRequest: (request: AuthorizationRequestDTO, issueProviderName: string) => Promise<PendingProjectAuthorizationDTO>;
   createIntegratedProject: (input: IntegratedProjectCreationInput) => Promise<ProjectDTO>;
 }

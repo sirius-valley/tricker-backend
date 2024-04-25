@@ -3,7 +3,7 @@ import { type Request, type Response } from 'express';
 import { Constants } from '@utils';
 import { UnauthorizedException } from '@utils/errors';
 import { verifyAwsAccessToken } from '@utils/aws';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import crypto, { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import process from 'process';
 import type { MailPayload } from '@domains/integration/dto';
 
@@ -64,4 +64,8 @@ export const verifyToken = (mailToken: string): string => {
   } catch (e) {
     throw new UnauthorizedException('INVALID_TOKEN');
   }
+};
+
+export const verifyLinearSignature = ({ decryptedSecret, rawBody }: { decryptedSecret: string; rawBody: Buffer }): string => {
+  return crypto.createHmac('sha256', decryptedSecret).update(rawBody).digest('hex');
 };

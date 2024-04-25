@@ -8,7 +8,7 @@ import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueVi
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
@@ -41,16 +41,18 @@ issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectPa
 
 issueRouter.post('/:issueId/pause', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event = await issueService.pauseTimer(issueId);
+  const event: TimeTrackingDTO = await issueService.pauseTimer({ issueId, userCognitoId: sub });
 
   return res.status(HttpStatus.CREATED).json(event);
 });
 
 issueRouter.post('/:issueId/resume', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event = await issueService.resumeTimer(issueId);
+  const event: TimeTrackingDTO = await issueService.resumeTimer({ issueId, userCognitoId: sub });
 
   return res.status(HttpStatus.CREATED).json(event);
 });

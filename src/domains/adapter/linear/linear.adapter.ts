@@ -15,6 +15,10 @@ import { type StageType } from '@domains/projectStage/dto';
 export class LinearAdapter implements ProjectManagementToolAdapter {
   constructor(private readonly dataRetriever: LinearDataRetriever) {}
 
+  supports(issueProviderName: string): boolean {
+    return issueProviderName === 'LINEAR';
+  }
+
   /**
    * Retrieves members(users) associated with a Linear project identified by its Linear project ID and adapt them.
    * @param {string} linearProjectId - The ID of the Linear project.
@@ -152,7 +156,8 @@ export class LinearAdapter implements ProjectManagementToolAdapter {
    * Retrieves and adapts projects including their names and logos.
    * @returns {Promise<ProjectPreIntegratedDTO[]>} A promise resolving with pre-integrated projects.
    */
-  async getAndAdaptProjects(): Promise<ProjectPreIntegratedDTO[]> {
+  async getAndAdaptProjects(apiKey: string): Promise<ProjectPreIntegratedDTO[]> {
+    this.dataRetriever.configureRetriever(apiKey);
     const teams: Team[] = await this.dataRetriever.getProjects();
     const workspace: Organization = await this.dataRetriever.getOrganization();
     return teams.map((project) => new ProjectPreIntegratedDTO({ providerProjectId: project.id, name: project.name, image: workspace.logoUrl ?? null, state: ProjectState.NOT_ADDED }));
