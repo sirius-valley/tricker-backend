@@ -6,7 +6,7 @@ import { WebhookDynamicRouteParam } from '@domains/webhookSource';
 
 export const webhookRouter = Router();
 
-webhookRouter.use('/:webhookId', validateRequest(WebhookDynamicRouteParam, 'params'), validateWebhook, (req: Request, res: Response) => {
+webhookRouter.post('/:webhookId', validateRequest(WebhookDynamicRouteParam, 'params'), validateWebhook, (req: Request, res: Response) => {
   // just for testing, will be replaced with actual processing
   Logger.success({ prefix: 'webhooks', message: 'Params' });
   console.log(JSON.stringify(req.params));
