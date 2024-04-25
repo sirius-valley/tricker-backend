@@ -6,6 +6,11 @@ import { encryptData, NotFoundException } from '@utils';
 import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
 
+/**
+ * Generates a random UUID string to be used as a webhook ID.
+ *
+ * @returns {string} A random UUID string.
+ */
 export const generateWebhookId = (): string => {
   return randomUUID();
 };
@@ -17,6 +22,20 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly strategyProvider: WebhookRegistrationStrategyProvider
   ) {}
 
+  /**
+   * Creates a new webhook source.
+   *
+   * This method retrieves the issue provider, registrates the webhook is the issue provider platform,
+   * encrypts the secret, and then saves the webhook information (Webhook Source) in the repository.
+   *
+   * @param {object} input - The data required to create the webhook.
+   * @param {string} input.apiKey - The API key issued by the issue provider.
+   * @param {string} input.projectId - The project ID associated with the webhook.
+   * @param {string} input.providerProjectId - The project ID within the issue provider platform.
+   * @param {string} input.issueProviderName - The name of the issue provider.
+   * @returns {Promise<WebhookSourceDTO>} A promise resolving to the created WebhookSourceDTO.
+   * @throws {NotFoundException} If the specified issue provider is not found.
+   */
   async createWebhook(input: { apiKey: string; projectId: string; providerProjectId: string; issueProviderName: string }): Promise<WebhookSourceDTO> {
     const generatedWebhookId = generateWebhookId();
 
