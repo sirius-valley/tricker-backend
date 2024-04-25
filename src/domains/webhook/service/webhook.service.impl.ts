@@ -3,8 +3,8 @@ import { type ProviderWebhookRegistrationData, type WebhookSourceDTO, type Webho
 import { randomUUID } from 'node:crypto';
 import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/issueProvider';
 import { encryptData, NotFoundException } from '@utils';
-import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistrationStrategy.provider';
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy';
+import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
 
 export const generateWebhookId = (): string => {
   return randomUUID();

@@ -1,5 +1,5 @@
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy';
-import { LinearWebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistrationStrategy.linear.impl';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
+import { LinearWebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.linear.impl';
 
 export class WebhookRegistrationStrategyProvider {
   private readonly strategies: WebhookRegistrationStrategy[] = [new LinearWebhookRegistrationStrategy()];
