@@ -1,4 +1,4 @@
-import type { NextFunction, RequestHandler, Response } from 'express';
+import type { NextFunction, Response } from 'express';
 import { db, NotFoundException } from '@utils';
 import { type WebhookSourceDTO } from '@domains/webhookSource/dto';
 import { type WebhookSourceRepository } from '@domains/webhookSource/repository/webhookSource.repository';
@@ -24,8 +24,7 @@ registerWebhookMiddleware('LINEAR', webhookLinearMiddleware);
  * Validates the request origin IP, signature, and webhook source.
  * Throws exceptions for invalid requests.
  */
-export const validateWebhook: RequestHandler = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
-  // Retrieve the dynamic route parameter from the request
+export const validateWebhook = async (req: ExtendedRequest, res: Response, next: NextFunction): Promise<void> => {
   const { webhookId } = req.params;
 
   // Retrieve the webhook source by its id

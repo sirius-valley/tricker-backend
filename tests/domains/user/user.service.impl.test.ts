@@ -1,10 +1,10 @@
 import { UserDTO } from '@domains/user';
 import { type UserService, UserServiceImpl } from '@domains/user/service';
 import { NotFoundException } from '@utils';
-import { projectRepositoryMock, roleRepositoryMock, userProjectRoleRepositoryMock, userRepositoryMock } from '../../mock/mock';
-import { mockDevRoleDTO, mockProjectDTO, mockUserDTO, mockUserProjectRoleDTO, mockUserProjectRolePMDTO } from '../../issue/mockData';
+import { projectRepositoryMock, roleRepositoryMock, userProjectRoleRepositoryMock, userRepositoryMock } from '../../mock';
+import { mockDevRoleDTO, mockProjectDTO, mockUserDTO, mockUserProjectRoleDTO, mockUserProjectRolePMDTO } from '../issue/mockData';
 import type { UserProjectRoleDTO } from '@domains/userProjectRole/dto';
-import { mockUserProjectRoleUpdateInput } from '../../project/mockData';
+import { mockUserProjectRoleUpdateInput } from '../project/mockData';
 
 let service: UserService;
 let user: UserDTO;
