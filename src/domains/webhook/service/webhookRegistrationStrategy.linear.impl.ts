@@ -9,8 +9,8 @@ export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStr
     return issueProviderName === 'LINEAR';
   }
 
-  async registerWebhook(providerApiKey: string, providerProjectId: string, trickerWebhookSourceId: string): Promise<ProviderWebhookRegistrationData> {
-    const apolloClient = createApolloClient(providerApiKey);
+  async registerWebhook(input: { providerApiKey: string; providerProjectId: string; trickerWebhookSourceId: string }): Promise<ProviderWebhookRegistrationData> {
+    const apolloClient = createApolloClient(input.providerApiKey);
 
     const url = process.env.NODE_ENV === NodeEnv.DEV ? process.env.NGROK_STATIC_DOMAIN! : 'tricker.com.ar';
 
@@ -21,8 +21,8 @@ export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStr
           label: `Tricker Project Integration`,
           allPublicTeams: false,
           resourceTypes: ['Issue', 'IssueLabel'],
-          teamId: providerProjectId,
-          url: `https://${url}/api/webhooks/${trickerWebhookSourceId}`,
+          teamId: input.providerProjectId,
+          url: `https://${url}/api/webhooks/${input.trickerWebhookSourceId}`,
         },
       },
     });
