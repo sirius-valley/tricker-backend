@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { issueProviderRepository, validateWebhook, webhookLinearMiddleware, webhookSourceRepository } from '@domains/webhook/middleware/webhooksMiddleware';
 import { NotFoundException } from '@utils';
 import { mockIssueProviderDTO, mockWebhookSourceDTO } from './mockData';
-import { ExtendedRequest } from '@app';
+import { type ExtendedRequest } from '@app';
 
 describe('validateWebhook middleware', () => {
   const req: Request = {

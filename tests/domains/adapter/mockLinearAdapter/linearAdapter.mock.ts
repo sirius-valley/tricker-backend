@@ -7,6 +7,10 @@ import { type UserData } from '@domains/user';
 import { type BasicProjectDataInput } from '@domains/project/dto';
 
 export class LinearAdapterMock implements ProjectManagementToolAdapter {
+  supports(issueProviderName: string): boolean {
+    return true
+  }
+
   async adaptAllProjectIssuesData(providerProjectId: string): Promise<IssueDataDTO[]> {
     return [];
   }

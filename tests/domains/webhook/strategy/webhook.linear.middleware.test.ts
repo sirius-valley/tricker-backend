@@ -4,7 +4,7 @@ import { mockWebhookSourceDTO } from '../mockData';
 import * as auth from '@utils/auth';
 import { Constants, NodeEnv, WebhookValidationException } from '@utils';
 import { WebhookLinearMiddleware } from '@domains/webhook/middleware/strategy/webhook.linear.middleware';
-import { ExtendedRequest } from '@app';
+import { type ExtendedRequest } from '@app';
 
 const linearMiddleware: WebhookLinearMiddleware = new WebhookLinearMiddleware();
 
