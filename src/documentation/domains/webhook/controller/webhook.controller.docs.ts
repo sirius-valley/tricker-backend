@@ -3,7 +3,7 @@
  * paths:
  *   /api/webhooks/{webhookId}:
  *     post:
- *        summary: Receives webhooks
+ *       summary: Receives webhooks
  *       description: This endpoint receives webhooks from external services.
  *       tags:
  *         - Webhook
