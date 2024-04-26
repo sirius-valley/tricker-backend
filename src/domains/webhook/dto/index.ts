@@ -2,7 +2,7 @@ import { type IssueProviderDTO } from '@domains/issueProvider';
 
 export interface WebhookFullPayload {
   webhookId: string;
-  eventType: string;
+  eventType: WebhookPayloadType;
   webhookBody: JSON;
 }
 

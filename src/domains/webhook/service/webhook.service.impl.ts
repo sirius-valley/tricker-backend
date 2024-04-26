@@ -72,8 +72,8 @@ export class WebhookServiceImpl implements WebhookService {
     const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
 
     const webhookConverter: WebhookConverter = this.converterProvider.getConverter(issueProvider.name);
-    webhookConverter.processWebhookPayload({ eventType: linearEvent, webhookId, webhookBody: req.body });
     const eventType: WebhookPayloadType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
+    webhookConverter.processWebhookPayload({ eventType, webhookId, webhookBody: req.body });
 
     return { eventType, issueProvider };
   }
