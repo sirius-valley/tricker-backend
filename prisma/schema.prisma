@@ -97,23 +97,24 @@ model Project {
 }
 
 model LogWebhooks {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  statusId        String   @db.Uuid
-  sourceId        String   @db.Uuid
-  providerEventId String   @unique
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status          WebhookStatus   @default(PENDING)
+  sourceId        String          @db.Uuid
+  providerEventId String          @unique
   payload         Json
-  createdAt       DateTime @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime?
+  deletedAt       DateTime?
 
-  status WebhookOutcomeStatus @relation(fields: [statusId], references: [id])
   source WebhookSource        @relation(fields: [sourceId], references: [id])
 }
 
-model WebhookOutcomeStatus {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
+// model WebhookOutcomeStatus {
+//  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//  name String
 
-  logsWebhooks LogWebhooks[]
-}
+//  logsWebhooks LogWebhooks[]
+//}
 
 model WebhookSource {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -303,4 +304,10 @@ enum StageType {
   COMPLETED
   CANCELED
   OTHER
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSED
+  ERROR
 }

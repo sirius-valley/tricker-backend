@@ -215,7 +215,7 @@ export class EventRepositoryImpl implements EventRepository {
   async createLogWebhook(input: LogWebhookInput): Promise<LogWebhooksDTO> {
     const logWebhook = await this.db.logWebhooks.create({
       data: {
-        statusId: input.statusId,
+        status: input.status,
         payload: JSON.stringify(input.payload),
         providerEventId: input.providerEventId,
         sourceId: input.sourceId,

@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
+import { type WebhookStatus } from '@domains/webhook/dto';
 
 export type BlockEventType = 'NO_STATUS' | 'BLOCKED_BY' | 'BLOCKING_TO';
 export enum TrickerBlockEventType {
@@ -483,7 +484,7 @@ export class EventHistoryLogDTO {
 
 export class LogWebhooksDTO {
   id: string;
-  statusId: string;
+  status: WebhookStatus;
   sourceId: string;
   providerEventId: string;
   payload: JSON | null;
@@ -491,7 +492,7 @@ export class LogWebhooksDTO {
 
   constructor(log: LogWebhooksDTO) {
     this.id = log.id;
-    this.statusId = log.statusId;
+    this.status = log.status;
     this.sourceId = log.sourceId;
     this.providerEventId = log.providerEventId;
     this.payload = log.payload;
@@ -500,7 +501,7 @@ export class LogWebhooksDTO {
 }
 
 export interface LogWebhookInput {
-  statusId: string;
+  status: WebhookStatus;
   sourceId: string;
   providerEventId: string;
   payload: Record<string, unknown> | null;

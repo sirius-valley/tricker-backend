@@ -5,11 +5,10 @@ import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/is
 import { encryptData, NotFoundException } from '@utils';
 import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
-import { type WebhookConfirmationDTO, WebhookPayloadType } from '../dto';
-import { type ProjectLabelRepository } from '@domains/projectLabel';
-import { type ConverterProvider } from '@domains/webhook/converter/factory/converter.provider';
-import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
+import { WebhookPayloadType } from '../dto';
 import { type Request } from 'express';
+import { type EventRepository, type LogWebhooksDTO } from '@domains/event';
+import { queue } from '@domains/webhook/Queue/Queue';
 
 /**
  * Generates a random UUID string to be used as a webhook ID.
@@ -25,14 +24,13 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly webhookSourceRepository: WebhookSourceRepository,
     private readonly issueProviderRepository: IssueProviderRepository,
     private readonly strategyProvider: WebhookRegistrationStrategyProvider,
-    private readonly converterProvider: ConverterProvider,
-    private readonly projectLabelRepository: ProjectLabelRepository
+    private readonly eventRepository: EventRepository
   ) {}
 
   /**
    * Creates a new webhook source.
    *
-   * This method retrieves the issue provider, registrates the webhook is the issue provider platform,
+   * This method retrieves the issue provider, registers the webhook is the issue provider platform,
    * encrypts the secret, and then saves the webhook information (Webhook Source) in the repository.
    *
    * @param {object} input - The data required to create the webhook.
@@ -65,17 +63,15 @@ export class WebhookServiceImpl implements WebhookService {
     });
   }
 
-  async handleWebhookArrival(req: Request): Promise<WebhookConfirmationDTO> {
+  async handleWebhookArrival(req: Request): Promise<LogWebhooksDTO> {
     const { webhookId } = req.params;
-    const linearEvent: string = req.headers['linear-event'] as string;
+
     const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
     const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
+    const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
+    await queue.enqueueElement({ webhookBody: req.body, webhookId, eventType });
 
-    const webhookConverter: WebhookConverter = this.converterProvider.getConverter(issueProvider.name);
-    const eventType: WebhookPayloadType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
-    webhookConverter.processWebhookPayload({ eventType, webhookId, webhookBody: req.body });
-
-    return { eventType, issueProvider };
+    return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
   }
 
   private async getWebhookSource(webhookId: string): Promise<WebhookSourceDTO> {
@@ -92,5 +88,18 @@ export class WebhookServiceImpl implements WebhookService {
     if (issueProvider == null) throw new NotFoundException('Issue Provider');
 
     return issueProvider;
+  }
+
+  private prepareWebhookPayload(req: Request, issueProviderName: string): WebhookPayloadType {
+    let eventType: WebhookPayloadType;
+    switch (issueProviderName) {
+      default: {
+        const linearEvent: string = req.headers['linear-event'] as string;
+        eventType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
+        break;
+      }
+    }
+
+    return eventType;
   }
 }

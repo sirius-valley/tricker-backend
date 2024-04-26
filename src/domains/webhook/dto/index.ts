@@ -20,3 +20,19 @@ export enum WebhookPayloadType {
   LABEL,
   ISSUE,
 }
+
+export interface TrickerEntity {
+  type: TrickerEntityType;
+  [key: string]: any;
+}
+
+export enum TrickerEntityType {
+  ISSUE,
+  BLOCKER_STATUS_MODIFICATION,
+  ISSUE_CHANGE_LOG,
+  PROJECT_STAGE,
+  PROJECT_LABEL,
+  PRIORITY,
+}
+
+export type WebhookStatus = 'PENDING' | 'PROCESSED';
