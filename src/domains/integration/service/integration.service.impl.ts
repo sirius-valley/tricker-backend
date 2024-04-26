@@ -175,7 +175,7 @@ export class IntegrationServiceImpl implements IntegrationService {
     try {
       userEmail = await adapter.getMyEmail(apiKey);
     } catch (e) {
-      throw new LinearIntegrationException(400, 'Linear api key is not valid');
+      throw new LinearIntegrationException(400, 'Linear API key is not valid');
     }
     if (userEmail !== pmEmail) {
       throw new NotFoundException('User');

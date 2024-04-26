@@ -1,10 +1,10 @@
 import { type ProviderWebhookRegistrationData, type WebhookSourceDTO } from '@domains/webhookSource';
 import { type IssueProviderDTO } from '@domains/issueProvider';
 import { type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
-import { issueProviderRepositoryMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../mock/mock';
 import crypto from 'node:crypto';
 import { NotFoundException } from '@utils';
 import * as auth from '@utils/auth';
+import { issueProviderRepositoryMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
 
 describe('webhook service tests', () => {
   let webhookService: WebhookService;

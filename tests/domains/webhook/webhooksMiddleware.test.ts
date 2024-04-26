@@ -43,17 +43,27 @@ describe('validateWebhook middleware', () => {
   it('should throw NotFoundException when webhookSource has not been found', async (): Promise<void> => {
     // given - when
     jest.spyOn(webhookSourceRepository, 'getById').mockResolvedValue(null);
+
     // then
+    try {
+      await validateWebhook(req, res, next);
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(NotFoundException);
+    }
     expect.assertions(1);
-    await expect(validateWebhook(req, res, next)).rejects.toThrow(NotFoundException);
   });
 
   it('should throw NotFoundException when webhookSource has been logically deleted', async (): Promise<void> => {
     // given - when
     jest.spyOn(webhookSourceRepository, 'getById').mockResolvedValue({ ...mockWebhookSourceDTO, deletedAt: new Date() });
+
     // then
+    try {
+      await validateWebhook(req, res, next);
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(NotFoundException);
+    }
     expect.assertions(1);
-    await expect(validateWebhook(req, res, next)).rejects.toThrow(NotFoundException);
   });
 
   it('should throw NotFoundException when issueProvider has not been found', async (): Promise<void> => {
@@ -61,7 +71,11 @@ describe('validateWebhook middleware', () => {
     jest.spyOn(webhookSourceRepository, 'getById').mockResolvedValue(mockWebhookSourceDTO);
     jest.spyOn(issueProviderRepository, 'getById').mockResolvedValue(null);
     // then
+    try {
+      await validateWebhook(req, res, next);
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(NotFoundException);
+    }
     expect.assertions(1);
-    await expect(validateWebhook(req, res, next)).rejects.toThrow(NotFoundException);
   });
 });

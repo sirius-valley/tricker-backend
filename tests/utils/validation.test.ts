@@ -6,7 +6,7 @@ import { ManualTimeModificationRequestDTO, type UserProjectParamsDTO } from '@do
 import { addDays } from 'date-fns';
 import { type MailToken, type ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
 import * as auth from '@utils/auth';
-import { mockedAdminId, mockPendingProjectAuthorizationDTO, mocksAdministratorDTO } from '../domains/integration/service/new/mockData';
+import { mockedAdminId, mockPendingProjectAuthorizationDTO, mocksAdministratorDTO } from '../domains/integration/mockData';
 
 class TargetClass {
   @IsString()

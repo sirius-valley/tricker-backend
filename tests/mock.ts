@@ -1,4 +1,4 @@
-import { mock, type MockProxy } from 'jest-mock-extended';
+import { type DeepMockProxy, mock, mockDeep, type MockProxy } from 'jest-mock-extended';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
 import { type UserRepository } from '@domains/user';
@@ -14,6 +14,7 @@ import type { OrganizationRepository } from '@domains/organization';
 import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
+import type { PrismaClient } from '@prisma/client';
 import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
 import { type WebhookSourceRepository } from '@domains/webhookSource';
 import { type IssueProviderRepository } from '@domains/issueProvider';
@@ -38,3 +39,5 @@ export const webhookRegistrationStrategyProviderMock: MockProxy<WebhookRegistrat
 export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();
 export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
 export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
+
+export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();

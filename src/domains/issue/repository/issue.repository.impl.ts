@@ -92,6 +92,7 @@ export class IssueRepositoryImpl implements IssueRepository {
   async getWithFilters(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
     const issues = await this.db.issue.findMany({
       cursor: filters.cursor !== undefined ? { id: filters.cursor } : undefined,
+      skip: filters.cursor !== undefined ? 1 : 0,
       take: 5,
       where: {
         projectId: filters.projectId,
