@@ -482,14 +482,32 @@ export class EventHistoryLogDTO {
   }
 }
 
+/**
+ * Data transfer object for LogWebhooks.
+ */
 export class LogWebhooksDTO {
+  /** The unique identifier of the log webhook. */
   id: string;
+
+  /** The status of the webhook. */
   status: WebhookStatus;
+
+  /** The identifier of the source associated with the webhook. */
   sourceId: string;
+
+  /** The provider event identifier associated with the webhook. */
   providerEventId: string;
-  payload: JSON | null;
+
+  /** The payload data associated with the webhook, represented as a JSON object. */
+  payload: Record<string, unknown> | null;
+
+  /** The date and time when the webhook was created. */
   createdAt: Date;
 
+  /**
+   * Constructs a new LogWebhooksDTO object.
+   * @param log The log object to initialize the DTO.
+   */
   constructor(log: LogWebhooksDTO) {
     this.id = log.id;
     this.status = log.status;
@@ -500,9 +518,19 @@ export class LogWebhooksDTO {
   }
 }
 
+/**
+ * Input interface for creating log webhooks.
+ */
 export interface LogWebhookInput {
+  /** The status of the webhook. */
   status: WebhookStatus;
+
+  /** The identifier of the source associated with the webhook. */
   sourceId: string;
+
+  /** The provider event identifier associated with the webhook. */
   providerEventId: string;
+
+  /** The payload data associated with the webhook, represented as a JSON object. */
   payload: Record<string, unknown> | null;
 }

@@ -63,6 +63,11 @@ export class WebhookServiceImpl implements WebhookService {
     });
   }
 
+  /**
+   * Handles the arrival of a webhook request.
+   * @param req The incoming request object containing the webhook data.
+   * @returns A Promise that resolves to a LogWebhooksDTO representing the logged webhook.
+   */
   async handleWebhookArrival(req: Request): Promise<LogWebhooksDTO> {
     const { webhookId } = req.params;
 
@@ -74,6 +79,12 @@ export class WebhookServiceImpl implements WebhookService {
     return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
   }
 
+  /**
+   * Retrieves the webhook source by ID.
+   * @param webhookId The ID of the webhook source to retrieve.
+   * @returns A Promise that resolves to the webhook source DTO.
+   * @throws NotFoundException if the webhook source is not found or has been deleted.
+   */
   private async getWebhookSource(webhookId: string): Promise<WebhookSourceDTO> {
     const webhookSource: WebhookSourceDTO | null = await this.webhookSourceRepository.getById(webhookId);
     if (webhookSource === null || webhookSource.deletedAt !== null) {
@@ -83,6 +94,12 @@ export class WebhookServiceImpl implements WebhookService {
     return webhookSource;
   }
 
+  /**
+   * Retrieves the issue provider by ID.
+   * @param issueProviderId The ID of the issue provider to retrieve.
+   * @returns A Promise that resolves to the issue provider DTO.
+   * @throws NotFoundException if the issue provider is not found.
+   */
   private async getIssueProvider(issueProviderId: string): Promise<IssueProviderDTO> {
     const issueProvider: IssueProviderDTO | null = await this.issueProviderRepository.getById(issueProviderId);
     if (issueProvider == null) throw new NotFoundException('Issue Provider');
@@ -90,6 +107,12 @@ export class WebhookServiceImpl implements WebhookService {
     return issueProvider;
   }
 
+  /**
+   * Prepares the webhook payload type based on the issue provider name.
+   * @param req The incoming request object containing the webhook data.
+   * @param issueProviderName The name of the issue provider.
+   * @returns The type of the webhook payload.
+   */
   private prepareWebhookPayload(req: Request, issueProviderName: string): WebhookPayloadType {
     let eventType: WebhookPayloadType;
     switch (issueProviderName) {
