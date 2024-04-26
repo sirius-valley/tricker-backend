@@ -5,7 +5,11 @@ import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/is
 import { encryptData, NotFoundException } from '@utils';
 import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
-import { type WebhookConfirmationDTO, type WebhookFullPayload, WebhookPayloadType } from '../dto';
+import { type WebhookConfirmationDTO, WebhookPayloadType } from '../dto';
+import { type ProjectLabelRepository } from '@domains/projectLabel';
+import { type ConverterProvider } from '@domains/webhook/converter/factory/converter.provider';
+import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
+import { type Request } from 'express';
 
 export const generateWebhookId = (): string => {
   return randomUUID();
@@ -15,7 +19,9 @@ export class WebhookServiceImpl implements WebhookService {
   constructor(
     private readonly webhookSourceRepository: WebhookSourceRepository,
     private readonly issueProviderRepository: IssueProviderRepository,
-    private readonly strategyProvider: WebhookRegistrationStrategyProvider
+    private readonly strategyProvider: WebhookRegistrationStrategyProvider,
+    private readonly converterProvider: ConverterProvider,
+    private readonly projectLabelRepository: ProjectLabelRepository
   ) {}
 
   async createWebhook(input: { apiKey: string; projectId: string; providerProjectId: string; issueProviderName: string }): Promise<WebhookSourceDTO> {
@@ -40,13 +46,17 @@ export class WebhookServiceImpl implements WebhookService {
     });
   }
 
-  async handleWebhookArrival(input: WebhookFullPayload): Promise<WebhookConfirmationDTO> {
-    const webhookSource: WebhookSourceDTO = await this.getWebhookSource(input.webhookId);
+  async handleWebhookArrival(req: Request): Promise<WebhookConfirmationDTO> {
+    const { webhookId } = req.params;
+    const linearEvent: string = req.headers['linear-event'] as string;
+    const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
     const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
 
-    // const webhookRegistrationStrategy: WebhookRegistrationStrategy = this.strategyProvider.getStrategy(issueProvider.name);
+    const webhookConverter: WebhookConverter = this.converterProvider.getConverter(issueProvider.name);
+    webhookConverter.processWebhookPayload({ eventType: linearEvent, webhookId, webhookBody: req.body });
+    const eventType: WebhookPayloadType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
 
-    return { eventType: WebhookPayloadType.LABEL, issueProvider };
+    return { eventType, issueProvider };
   }
 
   private async getWebhookSource(webhookId: string): Promise<WebhookSourceDTO> {

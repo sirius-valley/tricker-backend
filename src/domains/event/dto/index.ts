@@ -480,3 +480,28 @@ export class EventHistoryLogDTO {
     this.modificationDate = history.modificationDate;
   }
 }
+
+export class LogWebhooksDTO {
+  id: string;
+  statusId: string;
+  sourceId: string;
+  providerEventId: string;
+  payload: JSON | null;
+  createdAt: Date;
+
+  constructor(log: LogWebhooksDTO) {
+    this.id = log.id;
+    this.statusId = log.statusId;
+    this.sourceId = log.sourceId;
+    this.providerEventId = log.providerEventId;
+    this.payload = log.payload;
+    this.createdAt = log.createdAt;
+  }
+}
+
+export interface LogWebhookInput {
+  statusId: string;
+  sourceId: string;
+  providerEventId: string;
+  payload: Record<string, unknown> | null;
+}

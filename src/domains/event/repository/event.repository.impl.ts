@@ -1,5 +1,5 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
+import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, type LogWebhookInput, LogWebhooksDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
 import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
@@ -210,5 +210,18 @@ export class EventRepositoryImpl implements EventRepository {
     });
 
     return new ManualTimeModificationDTO({ ...event });
+  }
+
+  async createLogWebhook(input: LogWebhookInput): Promise<LogWebhooksDTO> {
+    const logWebhook = await this.db.logWebhooks.create({
+      data: {
+        statusId: input.statusId,
+        payload: JSON.stringify(input.payload),
+        providerEventId: input.providerEventId,
+        sourceId: input.sourceId,
+      },
+    });
+
+    return new LogWebhooksDTO({ ...logWebhook, payload: JSON.parse(JSON.stringify(input.payload)) });
   }
 }

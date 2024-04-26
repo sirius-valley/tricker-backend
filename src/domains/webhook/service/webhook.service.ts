@@ -1,7 +1,8 @@
 import { type WebhookSourceDTO } from '@domains/webhookSource';
-import { type WebhookConfirmationDTO, type WebhookFullPayload } from '@domains/webhook/dto';
+import { type WebhookConfirmationDTO } from '@domains/webhook/dto';
+import { type Request } from 'express';
 
 export interface WebhookService {
   createWebhook: (input: { apiKey: string; projectId: string; providerProjectId: string; issueProviderName: string }) => Promise<WebhookSourceDTO>;
-  handleWebhookArrival: (input: WebhookFullPayload) => Promise<WebhookConfirmationDTO>;
+  handleWebhookArrival: (req: Request) => Promise<WebhookConfirmationDTO>;
 }
