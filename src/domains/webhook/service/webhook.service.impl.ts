@@ -8,6 +8,7 @@ import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webho
 import { WebhookPayloadType } from '../dto';
 import { type Request } from 'express';
 import { type EventRepository, type LogWebhooksDTO } from '@domains/event';
+import { type WebhookConverterProvider } from '@domains/webhook/converter';
 
 /**
  * Generates a random UUID string to be used as a webhook ID.
@@ -23,7 +24,8 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly webhookSourceRepository: WebhookSourceRepository,
     private readonly issueProviderRepository: IssueProviderRepository,
     private readonly strategyProvider: WebhookRegistrationStrategyProvider,
-    private readonly eventRepository: EventRepository
+    private readonly eventRepository: EventRepository,
+    private readonly converterProvider: WebhookConverterProvider
   ) {}
 
   /**

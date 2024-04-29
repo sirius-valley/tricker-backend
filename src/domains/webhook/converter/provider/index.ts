@@ -1,2 +1,2 @@
-export * from './converter.provider';
-export * from './converter.provider.impl';
+export * from './webhookConverterProvider';
+export * from './webhookConverterProviderImpl';

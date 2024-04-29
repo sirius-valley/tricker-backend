@@ -1,9 +1,9 @@
-import { type ConverterProvider } from '@domains/webhook/converter/provider/converter.provider';
+import { type WebhookConverterProvider } from '@domains/webhook/converter/provider/webhookConverterProvider';
 import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
 import { WebhookConverterLinear } from '@domains/webhook/converter/webhook.converter.linear';
 
 const linearConverter: WebhookConverterLinear = new WebhookConverterLinear();
-export class ConverterProviderImpl implements ConverterProvider {
+export class WebhookConverterProviderImpl implements WebhookConverterProvider {
   private readonly converters: WebhookConverter[] = [linearConverter];
 
   /**
@@ -12,7 +12,7 @@ export class ConverterProviderImpl implements ConverterProvider {
    * @returns The webhook converter associated with the specified issue provider.
    * @throws Error if no webhook converter is available for the chosen issue provider.
    */
-  getConverter(issueProviderName: string): WebhookConverter {
+  getWebhookConverter(issueProviderName: string): WebhookConverter {
     const converter: WebhookConverter | undefined = this.converters.find((converter) => converter.supports(issueProviderName));
     if (converter === undefined) throw new Error('No webhook converter available for the chosen Issue Provider. Issue Provider not supported.');
 
