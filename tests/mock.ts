@@ -18,6 +18,7 @@ import type { PrismaClient } from '@prisma/client';
 import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
 import { type WebhookSourceRepository } from '@domains/webhookSource';
 import { type IssueProviderRepository } from '@domains/issueProvider';
+import { type WebhookConverterProvider } from '@domains/webhook/converter';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -39,5 +40,5 @@ export const webhookRegistrationStrategyProviderMock: MockProxy<WebhookRegistrat
 export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrategy> = mock<WebhookRegistrationStrategy>();
 export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
 export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
-
 export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+export const webhookConverterProvider: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();

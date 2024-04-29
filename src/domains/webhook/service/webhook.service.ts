@@ -1,5 +1,8 @@
 import { type WebhookSourceDTO } from '@domains/webhookSource';
+import { type Request } from 'express';
+import { type LogWebhooksDTO } from '@domains/event';
 
 export interface WebhookService {
   createWebhook: (input: { apiKey: string; projectId: string; providerProjectId: string; issueProviderName: string }) => Promise<WebhookSourceDTO>;
+  handleWebhookArrival: (req: Request) => Promise<LogWebhooksDTO>;
 }
