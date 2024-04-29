@@ -8,7 +8,6 @@ import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webho
 import { WebhookPayloadType } from '../dto';
 import { type Request } from 'express';
 import { type EventRepository, type LogWebhooksDTO } from '@domains/event';
-import { queue } from '@domains/webhook/Queue/Queue';
 
 /**
  * Generates a random UUID string to be used as a webhook ID.
@@ -71,10 +70,9 @@ export class WebhookServiceImpl implements WebhookService {
   async handleWebhookArrival(req: Request): Promise<LogWebhooksDTO> {
     const { webhookId } = req.params;
 
-    const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
-    const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
-    const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
-    await queue.enqueueElement({ webhookBody: req.body, webhookId, eventType });
+    // const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
+    // const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
+    // const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
 
     return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
   }
