@@ -1,5 +1,3 @@
-import { type IssueProviderDTO } from '@domains/issueProvider';
-
 /**
  * Interface representing the full payload of a webhook event.
  */
@@ -10,25 +8,6 @@ export interface WebhookFullPayload {
   eventType: WebhookPayloadType;
   /** Body of the webhook payload. */
   webhookBody: JSON;
-}
-
-/**
- * Data Transfer Object (DTO) representing a confirmation response from a webhook.
- */
-export class WebhookConfirmationDTO {
-  /** Type of event associated with the confirmation. */
-  eventType: WebhookPayloadType;
-  /** Provider information related to the issue. */
-  issueProvider: IssueProviderDTO;
-
-  /**
-   * Constructs a new WebhookConfirmationDTO object.
-   * @param confirmation An object containing confirmation data.
-   */
-  constructor(confirmation: WebhookConfirmationDTO) {
-    this.eventType = confirmation.eventType;
-    this.issueProvider = confirmation.issueProvider;
-  }
 }
 
 /**
