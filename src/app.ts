@@ -16,6 +16,7 @@ export const app = express();
 // Set up request logger
 if (Constants.NODE_ENV === NodeEnv.DEV) {
   app.use(morgan('tiny')); // Log requests only in development environments
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs as swaggerUi.JsonObject, { explorer: true })); // Serve Swagger Docs only in dev env
 }
 
 /**
@@ -49,8 +50,6 @@ app.use(
 app.use('/api', router);
 
 app.use(ErrorHandling);
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs as swaggerUi.JsonObject, { explorer: true }));
 
 export default app;
 
