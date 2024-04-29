@@ -62,4 +62,4 @@ export enum TrickerEntityType {
 }
 
 /** Type representing the status of a webhook. */
-export type WebhookStatus = 'PENDING' | 'PROCESSED';
+export type WebhookStatus = 'PENDING' | 'PROCESSED' | 'ERROR';
