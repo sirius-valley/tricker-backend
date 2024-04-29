@@ -1,4 +1,4 @@
-import { type ConverterProvider } from '@domains/webhook/converter/factory/converter.provider';
+import { type ConverterProvider } from '@domains/webhook/converter/provider/converter.provider';
 import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
 import { WebhookConverterLinear } from '@domains/webhook/converter/webhook.converter.linear';
 
