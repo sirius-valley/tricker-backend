@@ -25,7 +25,7 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly issueProviderRepository: IssueProviderRepository,
     private readonly strategyProvider: WebhookRegistrationStrategyProvider,
     private readonly eventRepository: EventRepository,
-    private readonly converterProvider: WebhookConverterProvider
+    private readonly webhookConverterProvider: WebhookConverterProvider
   ) {}
 
   /**
@@ -75,6 +75,7 @@ export class WebhookServiceImpl implements WebhookService {
     // const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
     // const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
     // const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
+    // const converter = this.webhookConverterProvider.getWebhookConverter(issueProvider.name)
 
     return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
   }
