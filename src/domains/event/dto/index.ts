@@ -499,7 +499,7 @@ export class LogWebhooksDTO {
   providerEventId: string;
 
   /** The payload data associated with the webhook, represented as a JSON object. */
-  payload: Record<string, unknown> | null;
+  payload: Record<string, any> | null;
 
   /** The date and time when the webhook was created. */
   createdAt: Date;
