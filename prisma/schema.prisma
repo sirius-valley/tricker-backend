@@ -109,13 +109,6 @@ model LogWebhooks {
   source WebhookSource        @relation(fields: [sourceId], references: [id])
 }
 
-// model WebhookOutcomeStatus {
-//  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//  name String
-
-//  logsWebhooks LogWebhooks[]
-//}
-
 model WebhookSource {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   providerWebhookId String?   @unique
