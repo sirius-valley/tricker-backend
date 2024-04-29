@@ -19,16 +19,17 @@ import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServic
 import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event';
+import { type WebhookConverterProvider, WebhookConverterProviderImpl } from '@domains/webhook/converter';
 
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
-
+const webhookConverterProvider: WebhookConverterProvider = new WebhookConverterProviderImpl();
 const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
 const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
 const eventRepository: EventRepository = new EventRepositoryImpl(db);
-const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository);
+const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookConverterProvider);
 const adapterFactory: AdapterProviderImpl = new AdapterProviderImpl();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
