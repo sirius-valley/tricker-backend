@@ -92,8 +92,9 @@ export class WebhookServiceImpl implements WebhookService {
         });
 
         const actionPerformer = this.webhookActionStrategyProvider.getStrategy(entity.type, eventAction);
-        await actionPerformer.perform(entity);
+        const processEntity = await actionPerformer.perform(entity);
         await this.eventRepository.updateLogWebhook({ id: webhookLog.id, status: 'PROCESSED' });
+        return processEntity;
       } catch (e: any) {
         await this.eventRepository.updateLogWebhook({ id: webhookLog.id, status: 'ERROR' });
         throw e;
