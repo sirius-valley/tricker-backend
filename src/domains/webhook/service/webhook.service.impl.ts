@@ -5,10 +5,12 @@ import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/is
 import { encryptData, NotFoundException } from '@utils';
 import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
 import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
-import { WebhookPayloadType } from '../dto';
+import { WebhookActionType, WebhookPayloadType } from '../dto';
 import { type Request } from 'express';
 import { type EventRepository, type LogWebhooksDTO } from '@domains/event';
 import { type WebhookConverterProvider } from '@domains/webhook/converter';
+import { webhooksQueue } from '@utils/queue';
+import { type WebhookActionStrategyProvider } from '@domains/webhook/providers';
 
 /**
  * Generates a random UUID string to be used as a webhook ID.
@@ -25,7 +27,8 @@ export class WebhookServiceImpl implements WebhookService {
     private readonly issueProviderRepository: IssueProviderRepository,
     private readonly strategyProvider: WebhookRegistrationStrategyProvider,
     private readonly eventRepository: EventRepository,
-    private readonly webhookConverterProvider: WebhookConverterProvider
+    private readonly webhookConverterProvider: WebhookConverterProvider,
+    private readonly webhookActionStrategyProvider: WebhookActionStrategyProvider
   ) {}
 
   /**
@@ -66,18 +69,38 @@ export class WebhookServiceImpl implements WebhookService {
 
   /**
    * Handles the arrival of a webhook request.
+   * Saves a log in the db with the webhook's payload,
    * @param req The incoming request object containing the webhook data.
    * @returns A Promise that resolves to a LogWebhooksDTO representing the logged webhook.
    */
   async handleWebhookArrival(req: Request): Promise<LogWebhooksDTO> {
     const { webhookId } = req.params;
 
-    // const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
-    // const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
-    // const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
-    // const converter = this.webhookConverterProvider.getWebhookConverter(issueProvider.name)
+    const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
+    const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
 
-    return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
+    const webhookLog = await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: req.body.webhookId });
+
+    webhooksQueue.push(async () => {
+      try {
+        const converter = this.webhookConverterProvider.getWebhookConverter(issueProvider.name);
+        const { eventType, eventAction } = this.prepareWebhookPayload(req, issueProvider.name);
+
+        const entity = converter.convertWebhookPayload({
+          eventType,
+          webhookBody: req.body,
+        });
+
+        const actionPerformer = this.webhookActionStrategyProvider.getStrategy(entity.type, eventAction);
+        await actionPerformer.perform(entity);
+        await this.eventRepository.updateLogWebhook({ id: webhookLog.id, status: 'PROCESSED' });
+      } catch (e: any) {
+        await this.eventRepository.updateLogWebhook({ id: webhookLog.id, status: 'ERROR' });
+        throw e;
+      }
+    });
+
+    return webhookLog;
   }
 
   /**
@@ -109,21 +132,26 @@ export class WebhookServiceImpl implements WebhookService {
   }
 
   /**
-   * Prepares the webhook payload type based on the issue provider name.
+   * Prepares a WebhookPayloadType and a WebhookActionType based on the issue provider name.
    * @param req The incoming request object containing the webhook data.
    * @param issueProviderName The name of the issue provider.
    * @returns The type of the webhook payload.
    */
-  private prepareWebhookPayload(req: Request, issueProviderName: string): WebhookPayloadType {
+  private prepareWebhookPayload(req: Request, issueProviderName: string): { eventType: WebhookPayloadType; eventAction: WebhookActionType } {
     let eventType: WebhookPayloadType;
+    let eventAction: WebhookActionType;
     switch (issueProviderName) {
       default: {
         const linearEvent: string = req.headers['linear-event'] as string;
+        const linearAction: string = req.body.action as string;
+        // we only have two event types for linear, if not IssueLabel, then it's Issue
         eventType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
+        // we only have three actions in general, if not create, then it's update, if not update, then it can only be delete
+        eventAction = linearAction === 'create' ? WebhookActionType.CREATE : linearAction === 'update' ? WebhookActionType.UPDATE : WebhookActionType.DELETE;
         break;
       }
     }
 
-    return eventType;
+    return { eventType, eventAction };
   }
 }
