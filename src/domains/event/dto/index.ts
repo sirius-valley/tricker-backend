@@ -534,3 +534,8 @@ export interface LogWebhookInput {
   /** The payload data associated with the webhook, represented as a JSON object. */
   payload: Record<string, unknown> | null;
 }
+
+export interface UpdateLogWebhookInput {
+  id: string;
+  status: WebhookStatus;
+}
