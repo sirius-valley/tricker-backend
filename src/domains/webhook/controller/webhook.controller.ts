@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import HttpStatus from 'http-status';
-import { db, validateRequest } from '@utils';
+import { db, Logger, validateRequest } from '@utils';
 import { WebhookDynamicRouteParam, type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { validateWebhook } from '@domains/webhook/middleware/webhooksMiddleware';
 import { type WebhookConverterProvider, WebhookConverterProviderImpl } from '@domains/webhook/converter';
@@ -20,6 +20,10 @@ const eventRepository: EventRepository = new EventRepositoryImpl(db);
 const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookConverterProvider, webhookActionStrategyProvider);
 
 webhookRouter.post('/:webhookId', validateRequest(WebhookDynamicRouteParam, 'params'), validateWebhook, async (req: Request, res: Response) => {
-  await webhookService.handleWebhookArrival(req);
+  try {
+    await webhookService.handleWebhookArrival(req);
+  } catch (e: any) {
+    Logger.error(e);
+  }
   return res.sendStatus(HttpStatus.OK);
 });
