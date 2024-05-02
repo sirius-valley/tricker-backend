@@ -77,6 +77,12 @@ export class WebhookValidationException extends HttpException {
   }
 }
 
+export class NotImplementedException extends HttpException {
+  constructor(message?: string) {
+    super(HttpStatus.NOT_IMPLEMENTED, `Not implemented. ${message}`);
+  }
+}
+
 export function ErrorHandling(error: Error, req: Request, res: Response, next: NextFunction): Response {
   if (error === null || error === undefined) next(error);
   if (error instanceof HttpException) {
