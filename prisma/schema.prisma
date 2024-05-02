@@ -97,16 +97,16 @@ model Project {
 }
 
 model LogWebhooks {
-  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status          WebhookStatus   @default(PENDING)
-  sourceId        String          @db.Uuid
-  providerEventId String          @unique
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status          WebhookStatus @default(PENDING)
+  sourceId        String        @db.Uuid
+  providerEventId String
   payload         Json
-  createdAt       DateTime        @default(now())
+  createdAt       DateTime      @default(now())
   updatedAt       DateTime?
   deletedAt       DateTime?
 
-  source WebhookSource        @relation(fields: [sourceId], references: [id])
+  source WebhookSource @relation(fields: [sourceId], references: [id])
 }
 
 model WebhookSource {
@@ -119,9 +119,9 @@ model WebhookSource {
   updatedAt         DateTime  @default(now())
   deletedAt         DateTime?
 
-  logsWebhooks      LogWebhooks[]
-  issueProvider     IssueProvider   @relation(fields: [issueProviderId], references: [id])
-  project           Project         @relation(fields: [projectId], references: [id])
+  logsWebhooks  LogWebhooks[]
+  issueProvider IssueProvider @relation(fields: [issueProviderId], references: [id])
+  project       Project       @relation(fields: [projectId], references: [id])
 }
 
 model TimeTracking {
