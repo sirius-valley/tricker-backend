@@ -4,14 +4,14 @@ import { type WebhookService, WebhookServiceImpl } from '@domains/webhook/servic
 import crypto from 'node:crypto';
 import { NotFoundException } from '@utils';
 import * as auth from '@utils/auth';
-import { eventRepositoryMock, issueProviderRepositoryMock, webhookConverterProvider, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
+import { eventRepositoryMock, issueProviderRepositoryMock, webhookActionStrategyProviderMock, webhookConverterProviderMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
 
 describe('webhook service tests', () => {
   let webhookService: WebhookService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    webhookService = new WebhookServiceImpl(webhookSourceRepositoryMock, issueProviderRepositoryMock, webhookRegistrationStrategyProviderMock, eventRepositoryMock, webhookConverterProvider);
+    webhookService = new WebhookServiceImpl(webhookSourceRepositoryMock, issueProviderRepositoryMock, webhookRegistrationStrategyProviderMock, eventRepositoryMock, webhookConverterProviderMock, webhookActionStrategyProviderMock);
   });
 
   describe('createWebhook method', () => {

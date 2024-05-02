@@ -19,6 +19,7 @@ import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvi
 import { type WebhookSourceRepository } from '@domains/webhookSource';
 import { type IssueProviderRepository } from '@domains/issueProvider';
 import { type WebhookConverterProvider } from '@domains/webhook/converter';
+import { type WebhookActionStrategyProvider } from '@domains/webhook/providers';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -41,4 +42,5 @@ export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrate
 export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
 export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
 export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
-export const webhookConverterProvider: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();
+export const webhookConverterProviderMock: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();
+export const webhookActionStrategyProviderMock: MockProxy<WebhookActionStrategyProvider> = mock<WebhookActionStrategyProvider>();
