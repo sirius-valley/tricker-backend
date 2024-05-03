@@ -15,13 +15,11 @@ import { type AdministratorRepository } from '@domains/administrator/repository/
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
 import { AdapterProviderImpl } from '@domains/adapter/factory/adapterProviderImpl';
-import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event';
-import { type WebhookConverterProvider, WebhookConverterProviderImpl } from '@domains/webhook/converter';
-import { type WebhookActionStrategyProvider, WebhookActionStrategyProviderImpl } from '@domains/webhook/providers';
-import { WebhookProcessor } from '@domains/webhook/service/webhook.processor';
+import { WebhookProcessor } from '@domains/webhook/service/processor/webhook.processor';
+import { type WebhookActionStrategyProvider, WebhookActionStrategyProviderImpl, type WebhookConverterProvider, WebhookConverterProviderImpl, WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 
 require('express-async-errors');
 

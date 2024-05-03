@@ -3,12 +3,10 @@ import HttpStatus from 'http-status';
 import { db, Logger, validateRequest } from '@utils';
 import { WebhookDynamicRouteParam, type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { validateWebhook } from '@domains/webhook/middleware/webhooksMiddleware';
-import { type WebhookConverterProvider, WebhookConverterProviderImpl } from '@domains/webhook/converter';
-import { type WebhookActionStrategyProvider, WebhookActionStrategyProviderImpl } from '@domains/webhook/providers';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
-import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
+import { type WebhookActionStrategyProvider, WebhookActionStrategyProviderImpl, type WebhookConverterProvider, WebhookConverterProviderImpl, WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event';
-import { WebhookProcessor } from '@domains/webhook/service/webhook.processor';
+import { WebhookProcessor } from '@domains/webhook/service/processor/webhook.processor';
 
 export const webhookRouter = Router();
 

@@ -15,11 +15,9 @@ import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
 import type { PrismaClient } from '@prisma/client';
-import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
+import { type WebhookActionStrategyProvider, type WebhookConverterProvider, type WebhookProcessor, type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
 import { type WebhookSourceRepository } from '@domains/webhookSource';
 import { type IssueProviderRepository } from '@domains/issueProvider';
-import { type WebhookConverterProvider } from '@domains/webhook/converter';
-import { type WebhookActionStrategyProvider } from '@domains/webhook/providers';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -44,3 +42,4 @@ export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = m
 export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
 export const webhookConverterProviderMock: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();
 export const webhookActionStrategyProviderMock: MockProxy<WebhookActionStrategyProvider> = mock<WebhookActionStrategyProvider>();
+export const webhookProcessorMock: MockProxy<WebhookProcessor> = mock<WebhookProcessor>();

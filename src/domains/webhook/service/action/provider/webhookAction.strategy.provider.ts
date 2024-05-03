@@ -1,5 +1,5 @@
 import { type TrickerEntityType, type WebhookActionType } from '@domains/webhook/dto';
-import { type WebhookActionStrategy } from '@domains/webhook/providers/webhookActionStrategy';
+import { type WebhookActionStrategy } from '@domains/webhook/service/action/webhookAction.strategy';
 
 export interface WebhookActionStrategyProvider {
   /**

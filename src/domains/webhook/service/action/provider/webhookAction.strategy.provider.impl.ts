@@ -1,8 +1,8 @@
 import { TrickerEntityType, WebhookActionType } from '@domains/webhook/dto';
 import { NotImplementedException } from '@utils';
-import { type WebhookActionStrategyProvider } from '@domains/webhook/providers/webhookActionStrategy.provider';
-import { type WebhookActionStrategy } from '@domains/webhook/providers/webhookActionStrategy';
-import { LoggerExampleStrategy } from '@domains/webhook/providers/loggerExampleStrategy';
+import { type WebhookActionStrategyProvider } from '@domains/webhook/service/action/provider/webhookAction.strategy.provider';
+import { type WebhookActionStrategy } from '@domains/webhook/service/action/webhookAction.strategy';
+import { LoggerExampleStrategy } from '@domains/webhook/service/action/loggerExample.strategy';
 
 const innerIssueActionMap = new Map<WebhookActionType, WebhookActionStrategy>([
   [WebhookActionType.CREATE, new LoggerExampleStrategy()],

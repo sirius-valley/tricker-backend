@@ -1,5 +1,4 @@
-import { type WebhookConverterProvider } from '@domains/webhook/converter';
-import { type WebhookActionStrategyProvider } from '@domains/webhook/providers';
+import { type WebhookActionStrategyProvider, type WebhookConverterProvider } from '@domains/webhook/service';
 import { WebhookActionType, WebhookPayloadType } from '@domains/webhook/dto';
 import type { Request } from 'express';
 import { NotImplementedException } from '@utils';

@@ -1,5 +1,5 @@
-import { type WebhookActionStrategy } from '@domains/webhook/providers/webhookActionStrategy';
-import { type TrickerEntity, TrickerEntityType } from '../dto';
+import { type WebhookActionStrategy } from '@domains/webhook/service/action/webhookAction.strategy';
+import { type TrickerEntity, TrickerEntityType } from '../../dto';
 import { Logger } from '@utils';
 
 export class LoggerExampleStrategy implements WebhookActionStrategy {

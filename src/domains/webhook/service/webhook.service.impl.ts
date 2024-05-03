@@ -3,11 +3,11 @@ import { type ProviderWebhookRegistrationData, type WebhookSourceDTO, type Webho
 import { randomUUID } from 'node:crypto';
 import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/issueProvider';
 import { encryptData, Logger, NotFoundException, WebhooksProcessingException } from '@utils';
-import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
+import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy.provider';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy';
 import { type Request } from 'express';
 import { type EventRepository } from '@domains/event';
-import { type WebhookProcessor } from '@domains/webhook/service/webhook.processor';
+import { type WebhookProcessor } from '@domains/webhook/service/processor/webhook.processor';
 import Queue from 'queue';
 
 /**

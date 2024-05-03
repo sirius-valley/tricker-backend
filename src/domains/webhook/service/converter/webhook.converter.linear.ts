@@ -1,4 +1,4 @@
-import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
+import { type WebhookConverter } from '@domains/webhook/service/converter/webhook.converter';
 import { type TrickerEntity, TrickerEntityType, type WebhookFullPayload, WebhookPayloadType } from '@domains/webhook/dto';
 
 export class WebhookConverterLinear implements WebhookConverter {

@@ -1,6 +1,6 @@
-import { type WebhookConverterProvider } from '@domains/webhook/converter/provider/webhookConverterProvider';
-import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
-import { WebhookConverterLinear } from '@domains/webhook/converter/webhook.converter.linear';
+import { type WebhookConverterProvider } from '@domains/webhook/service/converter/provider/webhookConverter.provider';
+import { type WebhookConverter } from '@domains/webhook/service/converter/webhook.converter';
+import { WebhookConverterLinear } from '@domains/webhook/service/converter/webhook.converter.linear';
 
 const linearConverter: WebhookConverterLinear = new WebhookConverterLinear();
 export class WebhookConverterProviderImpl implements WebhookConverterProvider {
