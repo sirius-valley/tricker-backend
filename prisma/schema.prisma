@@ -97,14 +97,13 @@ model Project {
 }
 
 model LogWebhooks {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status          WebhookStatus @default(PENDING)
-  sourceId        String        @db.Uuid
-  providerEventId String
-  payload         Json
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime?
-  deletedAt       DateTime?
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status    WebhookStatus @default(PENDING)
+  sourceId  String        @db.Uuid
+  payload   Json
+  createdAt DateTime      @default(now())
+  updatedAt DateTime?
+  deletedAt DateTime?
 
   source WebhookSource @relation(fields: [sourceId], references: [id])
 }
