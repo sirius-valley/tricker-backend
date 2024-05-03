@@ -29,7 +29,7 @@ describe('webhook converter tests', () => {
         fail('');
       } catch (e: any) {
         expect(e).toBeInstanceOf(NotImplementedException);
-        expect(e.message).toBe('No webhook converter available for the chosen Issue Provider. Issue Provider not supported.');
+        expect(e.message).toBe('Not implemented. No webhook converter available for the chosen Issue Provider. Issue Provider not supported.');
       }
     });
   });
