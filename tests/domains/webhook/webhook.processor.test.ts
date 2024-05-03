@@ -59,7 +59,7 @@ describe('webhook processor tests', () => {
     expect(webhookActionStrategyProviderMock.getStrategy).toHaveBeenCalledWith(TrickerEntityType.PROJECT_LABEL, WebhookActionType.CREATE);
     expect(webhookActionStrategyMock.perform).toHaveBeenCalled();
   });
-  //
+
   // Error handling tests
   it('should throw NotImplementedException for unsupported issue provider', async () => {
     const requestMock = mock<Request>();
@@ -70,11 +70,17 @@ describe('webhook processor tests', () => {
       expect(e).toBeInstanceOf(NotImplementedException);
     }
   });
-  //
-  // it('should throw NotImplementedException for unsupported event type in prepareWebhookPayload', async () => {
-  //   mockRequest.headers = { 'linear-event': 'UNSUPPORTED_EVENT' };
-  //   mockRequest.body = { action: 'create' };
-  //
-  //   expect(() => processor.process(mockRequest, 'LINEAR')).rejects.toThrow(new NotImplementedException());
-  // });
+
+  it('should throw NotImplementedException for unsupported event type in prepareWebhookPayload', async () => {
+    const requestMock = mock<Request>({
+      headers: { 'linear-event': 'UNSUPPORTED_EVENT' },
+      body: { action: 'create' },
+    });
+
+    try {
+      await webhookProcessor.process(requestMock, 'LINEAR');
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(NotImplementedException);
+    }
+  });
 });
