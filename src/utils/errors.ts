@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import HttpStatus from 'http-status';
 import { Logger } from '@utils';
+import type { WebhookSourceDTO } from '@domains/webhookSource';
 
 abstract class HttpException extends Error {
   protected constructor(
@@ -80,6 +81,19 @@ export class WebhookValidationException extends HttpException {
 export class NotImplementedException extends HttpException {
   constructor(message?: string) {
     super(HttpStatus.NOT_IMPLEMENTED, `Not implemented. ${message}`);
+  }
+}
+
+export class WebhooksProcessingException extends Error {
+  webhookSource: WebhookSourceDTO;
+  payload: any;
+  reason: string;
+
+  constructor(webhookSource: WebhookSourceDTO, payload: any, reason: string) {
+    super('An error occured while processing webhook!');
+    this.payload = payload;
+    this.webhookSource = webhookSource;
+    this.reason = reason;
   }
 }
 
