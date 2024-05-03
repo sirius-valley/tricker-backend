@@ -227,7 +227,6 @@ export class EventRepositoryImpl implements EventRepository {
       data: {
         status: input.status,
         payload: JSON.stringify(input.payload),
-        providerEventId: input.providerEventId,
         sourceId: input.sourceId,
       },
     });
