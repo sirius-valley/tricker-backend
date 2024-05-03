@@ -528,9 +528,6 @@ export interface LogWebhookInput {
   /** The identifier of the source associated with the webhook. */
   sourceId: string;
 
-  /** The provider event identifier associated with the webhook. */
-  providerEventId: string;
-
   /** The payload data associated with the webhook, represented as a JSON object. */
   payload: Record<string, unknown> | null;
 }
