@@ -8,16 +8,18 @@ import { type WebhookActionStrategyProvider, WebhookActionStrategyProviderImpl }
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event';
+import { WebhookProcessor } from '@domains/webhook/service/webhook.processor';
 
 export const webhookRouter = Router();
 
 const webhookConverterProvider: WebhookConverterProvider = new WebhookConverterProviderImpl();
 const webhookActionStrategyProvider: WebhookActionStrategyProvider = new WebhookActionStrategyProviderImpl();
+const webhookProcessor: WebhookProcessor = new WebhookProcessor(webhookConverterProvider, webhookActionStrategyProvider);
 const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
 const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
 const eventRepository: EventRepository = new EventRepositoryImpl(db);
-const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookConverterProvider, webhookActionStrategyProvider);
+const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookProcessor);
 
 webhookRouter.post('/:webhookId', validateRequest(WebhookDynamicRouteParam, 'params'), validateWebhook, async (req: Request, res: Response) => {
   try {
