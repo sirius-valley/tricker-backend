@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import HttpStatus from 'http-status';
-import { Logger } from '@utils';
+import { type JsonObject, Logger } from '@utils';
 import type { WebhookSourceDTO } from '@domains/webhookSource';
 
 abstract class HttpException extends Error {
@@ -86,7 +86,7 @@ export class NotImplementedException extends HttpException {
 
 export class WebhooksProcessingException extends Error {
   webhookSource: WebhookSourceDTO;
-  payload: any;
+  payload: JsonObject;
   reason: string;
 
   constructor(webhookSource: WebhookSourceDTO, payload: any, reason: string) {
