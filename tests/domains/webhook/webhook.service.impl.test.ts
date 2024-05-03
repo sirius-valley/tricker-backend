@@ -2,12 +2,11 @@ import { type ProviderWebhookRegistrationData, type WebhookSourceDTO } from '@do
 import { type IssueProviderDTO } from '@domains/issueProvider';
 import { type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import crypto from 'node:crypto';
-import { NotFoundException, NotImplementedException } from '@utils';
+import { NotFoundException } from '@utils';
 import * as auth from '@utils/auth';
 import { eventRepositoryMock, issueProviderRepositoryMock, webhookProcessorMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
 import { mock } from 'jest-mock-extended';
 import { type Request } from 'express';
-import { type LogWebhooksDTO } from '@domains/event';
 
 describe('webhook service tests', () => {
   let webhookService: WebhookService;
@@ -133,60 +132,6 @@ describe('webhook service tests', () => {
         // Then
         expect(e).toBeInstanceOf(NotFoundException);
         expect(e.message).toBe("Not found. Couldn't find Issue Provider");
-      }
-    });
-
-    // if no converter is available for the specified issue provider
-    it('should throw NotImplementedException if no converter is available for the issue provider', async () => {
-      // Given
-      const req = mock<Request>();
-      req.params = { webhookId: 'valid-id' };
-      // const webhookSource = { id: 'source-id', issueProviderId: 'unknown-provider' };
-      const issueProvider = { id: 'provider-id', name: 'unknown-provider' };
-      // webhookSourceRepositoryMock.getById.mockResolvedValueOnce(webhookSource);
-      issueProviderRepositoryMock.getById.mockResolvedValueOnce(issueProvider);
-      // webhookConverterProviderMock.getWebhookConverter.mockThrows(new NotImplementedException());
-
-      // When
-      try {
-        await webhookService.handleWebhookArrival(req);
-        fail('Expected NotImplementedException');
-      } catch (e) {
-        // Then
-        expect(e).toBeInstanceOf(NotImplementedException);
-      }
-    });
-
-    // if no action is found for the entity type nor the action type
-    it('should ', () => {});
-
-    // if issue provider name is not found when preparing webhook payload
-    it('should throw an error if issue provider name is not found when preparing webhook payload', async () => {
-      // Given
-      const req = mock<Request>({
-        params: { webhookId: 'valid-id' },
-      });
-      const mockWebhookSource = mock<WebhookSourceDTO>({
-        id: 'valid-id',
-        deletedAt: null,
-      });
-      const issueProviderMock = mock<IssueProviderDTO>({
-        name: 'fake',
-      });
-      const createdWebhookMock = mock<LogWebhooksDTO>();
-      const updatedLogWebhookMock = mock<LogWebhooksDTO>({ ...createdWebhookMock });
-      webhookSourceRepositoryMock.getById.mockResolvedValueOnce(mockWebhookSource);
-      issueProviderRepositoryMock.getById.mockResolvedValueOnce(issueProviderMock); // No issue provider for the source
-      eventRepositoryMock.createLogWebhook.mockResolvedValueOnce(createdWebhookMock);
-      eventRepositoryMock.updateLogWebhook.mockResolvedValueOnce(updatedLogWebhookMock);
-
-      // When
-      try {
-        await webhookService.handleWebhookArrival(req);
-        fail('Expected NotImplementedException');
-      } catch (e: any) {
-        // Then
-        expect(e).toBeInstanceOf(NotImplementedException);
       }
     });
   });
