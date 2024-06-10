@@ -1,13 +1,11 @@
-import type { PrismaClient } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { ArrayMinSize, IsArray, IsDefined, IsEmail, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { IsValidApiKey, IsValidIssueProvider, IsValidOrganization } from '@utils/validation-annotations';
-import { Transform, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import 'reflect-metadata';
 import { type IssueDataDTO } from '@domains/issue/dto';
-import type { EventInput } from '@domains/event/dto';
 
 import { type StageType } from '@domains/projectStage/dto';
+import type { PendingProjectAuthorizationDTO } from '@domains/pendingProjectAuthorization/dto';
 
 export class ProjectDataDTO {
   projectId: string;
@@ -17,15 +15,17 @@ export class ProjectDataDTO {
   stages: StageData[];
   labels: string[];
   issues: IssueDataDTO[];
+  url: string;
 
-  constructor(projectId: string, members: ProjectMemberDataDTO[], name: string, stages: StageData[], labels: string[], image: string | null, issues: IssueDataDTO[]) {
-    this.projectId = projectId;
-    this.projectName = name;
-    this.members = members;
-    this.image = image;
-    this.stages = stages;
-    this.labels = labels;
-    this.issues = issues;
+  constructor(input: ProjectDataDTO) {
+    this.projectId = input.projectId;
+    this.projectName = input.projectName;
+    this.members = input.members;
+    this.image = input.image;
+    this.stages = input.stages;
+    this.labels = input.labels;
+    this.issues = input.issues;
+    this.url = input.url;
   }
 }
 
@@ -46,7 +46,7 @@ export class UserRole {
   /**
    * The role of the user.
    */
-  role: string;
+  roleName: string;
 
   /**
    * Constructs a new instance of the UserRole class.
@@ -55,33 +55,9 @@ export class UserRole {
   constructor(userRole: UserRole) {
     this.email = userRole.email;
     this.name = userRole.name;
-    this.role = userRole.role;
+    this.roleName = userRole.roleName;
   }
 }
-
-export interface MembersIntegrationInputDTO {
-  memberRoles: UserRole[];
-  projectId: string;
-  emitterId: string;
-  acceptedUsers: string[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-/**
- * Interface representing input data for stage integration.
- */
-export interface StageIntegrationInput {
-  projectId: string;
-  stages: StageData[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-export interface LabelIntegrationInputDTO {
-  projectId: string;
-  labels: string[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
 /**
  * Represents the provider project id pending to be integrated
  * */
@@ -89,27 +65,64 @@ export class ProjectIdIntegrationInputDTO {
   @IsString()
   @IsNotEmpty()
   projectId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Expose()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }
 
 /**
- * Represents a project sent to the integrator in the project integration request flow
- * */
+ * Data transfer object (DTO) representing a pre-integrated project.
+ */
 export class ProjectPreIntegratedDTO {
+  /**
+   * ID of the project from the provider.
+   */
   providerProjectId: string;
+
+  /**
+   * Name of the project.
+   */
   name: string;
+
+  /**
+   * Image URL of the project, can be null.
+   */
   image: string | null;
 
+  /**
+   * State of the project, represented by the ProjectState enum.
+   */
+  state: ProjectState;
+
+  /**
+   * Constructs a new instance of ProjectPreIntegratedDTO.
+   * @param project - Object containing project data to initialize the DTO.
+   */
   constructor(project: ProjectPreIntegratedDTO) {
     this.providerProjectId = project.providerProjectId;
     this.name = project.name;
     this.image = project.image;
+    this.state = project.state;
   }
 }
 
+/**
+ * Enum representing if a project has been already integrated.
+ */
+export enum ProjectState {
+  NOT_ADDED = 'NOT_ADDED',
+  PENDING = 'PENDING',
+  ADDED = 'ADDED',
+}
+
 export interface ProjectsPreIntegratedInputDTO {
-  providerName: string;
   apyKey: string;
   pmProviderId: string;
+  issueProviderName: string;
 }
 
 export class ProjectMemberDataDTO {
@@ -123,19 +136,6 @@ export class ProjectMemberDataDTO {
     this.email = input.email;
   }
 }
-
-export interface IssueIntegrationInputDTO {
-  projectId: string;
-  issues: IssueDataDTO[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
-export interface EventIntegrationInputDTO {
-  issueId: string;
-  events: EventInput[];
-  db: Omit<PrismaClient, ITXClientDenyList>;
-}
-
 /**
  * Class only exists with validation purposes
  * Represents the URL Params of the HTTP request for retrieving project members
@@ -148,6 +148,18 @@ export class LinearMembersPreIntegrationParams {
    * */
   @IsUUID()
   readonly id!: string;
+
+  /**
+   * Issue provider name for member retrieval
+   * @type {string}
+   * @example "Linear"
+   * */
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Expose()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }
 
 /**
@@ -211,15 +223,6 @@ export class AuthorizationRequestDTO {
   @IsValidOrganization()
   @IsNotEmpty()
   readonly organizationName!: string;
-
-  /**
-   * The name of the selected issue provider to make the integration
-   * @type {string}
-   * @example "LINEAR", "JIRA", "TRELLO"
-   * */
-  @IsValidIssueProvider()
-  @IsNotEmpty()
-  readonly issueProviderName!: string;
 }
 
 /**
@@ -243,16 +246,13 @@ export class AuthorizedMemberDTO {
   readonly email!: string;
 }
 
-export class ProviderKeyDTO {
+/**
+ * DTO that represents the provider api key to query the external API
+ * */
+export class ApiKeyDTO {
   @IsNotEmpty()
   @IsString()
   key!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @IsValidIssueProvider()
-  @Transform(({ value }) => value.trim().toUpperCase())
-  provider!: string;
 }
 
 /**
@@ -277,4 +277,58 @@ export interface MailPayload {
 export interface StageData {
   name: string;
   type: StageType;
+  position: number;
+  color: string;
+}
+
+/**
+ * Function parameters that are supplied to integrate method to make the project integration
+ * */
+export interface IntegrationParams {
+  projectId: string;
+  integratorEmail: string;
+  pendingProject: PendingProjectAuthorizationDTO;
+  authorizedMemberMails: string[];
+  organizationId: string;
+  issueProviderName: string;
+}
+
+/**
+ * Represents pending project information for linear integration.
+ */
+export class PendingProjectInfoDTO {
+  /** The name of the project. */
+  projectName: string;
+
+  /** The URL of the project's image, if available. */
+  projectImage: string | null;
+
+  /** The name of the Project Manager. */
+  pmName: string;
+
+  /** The URL of the Project Manager's image, if available. */
+  pmImage: string | null;
+
+  /**
+   * Constructs a new PendingProjectInfoDTO object.
+   * @param info - The information object used to initialize the PendingProjectInfoDTO.
+   */
+  constructor(info: PendingProjectInfoDTO) {
+    this.projectName = info.projectName;
+    this.projectImage = info.projectImage;
+    this.pmName = info.pmName;
+    this.pmImage = info.pmImage;
+  }
+}
+
+/**
+ * DTO that represents the name of an issue provider, a URL param of the integration endpoint
+ * */
+export class IssueProviderURLParams {
+  @IsString()
+  @IsNotEmpty()
+  @IsValidIssueProvider()
+  @Expose()
+  @Transform(({ value }) => value.trim().toUpperCase())
+  issueProviderName!: string;
 }

@@ -1,9 +1,8 @@
 import { type PrismaClient, type User } from '@prisma/client';
 import { type CreateUserIdTokenDTO, UserDTO, type UserUpdateInputDTO } from '../dto';
 import { type UserRepository } from '@domains/user';
-import { type ITXClientDenyList } from '@prisma/client/runtime/library';
 export class UserRepositoryImpl implements UserRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   async create(data: CreateUserIdTokenDTO): Promise<UserDTO> {
     const user: User = await this.db.user.create({
@@ -20,6 +19,7 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         id,
+        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {
@@ -50,6 +50,7 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findUnique({
       where: {
         cognitoId,
+        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {
@@ -80,6 +81,7 @@ export class UserRepositoryImpl implements UserRepository {
     const userPrisma = await this.db.user.findFirst({
       where: {
         email,
+        deletedAt: null,
       },
       include: {
         projectsRoleAssigned: {
@@ -138,21 +140,5 @@ export class UserRepositoryImpl implements UserRepository {
     });
 
     return userPrisma === null ? null : new UserDTO(userPrisma);
-  }
-
-  /**
-   * Creates a new user without a Cognito ID.
-   * @param {string} email - The email address of the user.
-   * @param {string} name - The name of the user.
-   * @returns {Promise<UserDTO>} A promise that resolves with the created user DTO.
-   */
-  async createWithoutCognitoId(email: string, name: string): Promise<UserDTO> {
-    const user: User = await this.db.user.create({
-      data: {
-        email,
-        name,
-      },
-    });
-    return new UserDTO({ ...user, emittedUserProjectRole: [], projectsRoleAssigned: [] });
   }
 }

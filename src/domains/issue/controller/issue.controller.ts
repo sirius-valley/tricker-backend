@@ -8,7 +8,7 @@ import { IssueIdParamDTO, type WorkedTimeDTO, UserProjectParamsDTO, type IssueVi
 import { type UserRepository, UserRepositoryImpl } from '@domains/user';
 import { type ProjectRepository, ProjectRepositoryImpl } from '@domains/project/repository';
 import { type ProjectStageRepository, ProjectStageRepositoryImpl } from '@domains/projectStage/repository';
-import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type EventHistoryLogDTO, IssueAddBlockerParamsDTO, type TimeTrackingDTO } from '@domains/event/dto';
 import { type CognitoAccessTokenPayload } from 'aws-jwt-verify/jwt-model';
 require('express-async-errors');
 
@@ -23,34 +23,36 @@ const issueService: IssueService = new IssueServiceImpl(issueRepo, eventRepo, us
 
 issueRouter.post('/dev/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(DevOptionalIssueFiltersDTO, 'body'), async (req: Request<UserProjectParamsDTO, any, DevOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, isOutOfEstimation, cursor } = req.body;
+  const { stageIds, priorities, isOutOfEstimation, cursor, name } = req.body;
 
-  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor });
+  const issues: IssueViewDTO[] = await issueService.getDevIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, name });
 
   return res.status(HttpStatus.OK).json(issues);
 });
 
 issueRouter.post('/pm/:userId/project/:projectId', validateRequest(UserProjectParamsDTO, 'params'), validateRequest(PMOptionalIssueFiltersDTO, 'body'), validateUserIsProjectManager(), async (req: Request<UserProjectParamsDTO, any, PMOptionalIssueFiltersDTO>, res: Response) => {
   const { userId, projectId } = req.params;
-  const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor } = req.body;
+  const { stageIds, priorities, isOutOfEstimation, assigneeIds, cursor, name } = req.body;
 
-  const issues: IssueViewDTO[] = await issueService.getPMIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, assigneeIds });
+  const issues: IssueViewDTO[] = await issueService.getPMIssuesFilteredAndPaginated({ userId, projectId, stageIds, priorities, isOutOfEstimation, cursor, assigneeIds, name });
 
   return res.status(HttpStatus.OK).json(issues);
 });
 
 issueRouter.post('/:issueId/pause', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event = await issueService.pauseTimer(issueId);
+  const event: TimeTrackingDTO = await issueService.pauseTimer({ issueId, userCognitoId: sub });
 
   return res.status(HttpStatus.CREATED).json(event);
 });
 
 issueRouter.post('/:issueId/resume', validateRequest(IssueIdParamDTO, 'params'), async (_req: Request<IssueIdParamDTO>, res: Response) => {
   const { issueId } = _req.params;
+  const { sub } = res.locals.context as CognitoAccessTokenPayload;
 
-  const event = await issueService.resumeTimer(issueId);
+  const event: TimeTrackingDTO = await issueService.resumeTimer({ issueId, userCognitoId: sub });
 
   return res.status(HttpStatus.CREATED).json(event);
 });
@@ -106,7 +108,7 @@ issueRouter.delete('/:issueId/flag/remove', validateRequest(IssueIdParamDTO, 'pa
 
   await issueService.unblockIssueWithTrickerUI({ issueId, userCognitoId: sub });
 
-  return res.sendStatus(HttpStatus.NO_CONTENT);
+  return res.status(HttpStatus.NO_CONTENT).send(`The issue with id: ${issueId} was successfully unflagged.`);
 });
 
 issueRouter.get('/:issueId', validateRequest(IssueIdParamDTO, 'params'), async (req: Request<IssueIdParamDTO>, res: Response) => {

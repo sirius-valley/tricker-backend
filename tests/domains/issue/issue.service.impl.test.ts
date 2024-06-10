@@ -1,5 +1,5 @@
 import { type IssueService, IssueServiceImpl } from '@domains/issue/service';
-import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock } from './mock';
+import { issueRepositoryMock, eventRepositoryMock, userRepositoryMock, projectRepositoryMock, projectStageRepositoryMock } from '../../mock';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
 import {
   mockPMIssueFilterParameters,
@@ -26,9 +26,14 @@ import {
   mockIssueChangeLogDTO,
   mockAssigneeIssueChangeLogDTO,
   mockIssueExtendedDTO,
+  mockIssueInput,
+  mockUpdatedIssueViewDTO,
+  mockIssueUpdateInput,
+  mockStageEventInputExtended,
+  mockAssigneeEventInputExtended,
 } from './mockData';
 import { type IssueExtendedDTO, type IssueViewDTO, type WorkedTimeDTO } from '@domains/issue/dto';
-import { type BlockerStatusModificationDTO, type TimeTrackingDTO } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type IssueChangeLogDTO, type TimeTrackingDTO } from '@domains/event/dto';
 
 describe('issue service tests', () => {
   let issueService: IssueService;
@@ -39,37 +44,20 @@ describe('issue service tests', () => {
   });
 
   describe('pause method', () => {
-    it('should throw NotFoundException when issue is null', async () => {
-      // issue == null
-
-      // given
-      const issueId = 'someIssueId';
-      issueRepositoryMock.getById.mockResolvedValue(null);
-
-      // when
-      let result;
-      try {
-        result = await issueService.pauseTimer(issueId);
-      } catch (error) {
-        result = error;
-      }
-
-      // then
-      expect(result).toBeInstanceOf(NotFoundException);
-    });
-
     it('should throw ConflictException when lastTimeTrackingEvent is null', async () => {
       // lastTimeTrackingEvent == null
 
       // given
       const issueId = 'someIssueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(null);
 
       // when
       let result;
       try {
-        result = await issueService.pauseTimer(issueId);
+        result = await issueService.pauseTimer({ issueId, userCognitoId: cognitoId });
       } catch (error) {
         result = error;
       }
@@ -83,13 +71,15 @@ describe('issue service tests', () => {
 
       // given
       const issueId = 'someIssueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(invalidMockTimeTrackingDTO);
 
       // when
       let result;
       try {
-        result = await issueService.pauseTimer(issueId);
+        result = await issueService.pauseTimer({ issueId, userCognitoId: cognitoId });
       } catch (error) {
         result = error;
       }
@@ -220,7 +210,7 @@ describe('issue service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerBlockEventDTO);
-      issueRepositoryMock.updateIsBlocked.mockResolvedValue(mockIssueDetailsDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
 
       const expected: BlockerStatusModificationDTO = mockTrickerBlockEventDTO;
       // when
@@ -300,7 +290,7 @@ describe('issue service tests', () => {
       userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, isBlocked: true });
       eventRepositoryMock.createIssueBlockEvent.mockResolvedValue(mockTrickerUnBlockEventDTO);
-      issueRepositoryMock.updateIsBlocked.mockResolvedValue({ ...mockIssueDetailsDTO, isBlocked: false });
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
       // when
       const received: BlockerStatusModificationDTO = await issueService.unblockIssueWithTrickerUI(mockIssueAddBlockerInput);
       // then
@@ -370,25 +360,30 @@ describe('issue service tests', () => {
   });
 
   describe('resumeTimer method', () => {
-    it('should throw NotFoundException if issue does not exist', async () => {
+    it('should throw ConflictException if issue is blocked', async () => {
       // given
-      const issueId = 'nonexistentIssueId';
-      issueRepositoryMock.getById.mockResolvedValue(null);
+      const issueId = mockIssueDTOWithoutStage.id;
+      const cognitoId = 'cognito145';
+      issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, isBlocked: true });
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
 
       // when
-      const result = issueService.resumeTimer(issueId);
+      const result = issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
-      await expect(result).rejects.toThrow(NotFoundException);
+      await expect(result).rejects.toThrow(ConflictException);
+      await expect(result).rejects.toThrow('Blocked issues cannot be tracked.');
     });
 
     it('should throw ConflictException if issue does not have stage', async () => {
       // given
       const issueId = mockIssueDTOWithoutStage.id;
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTOWithoutStage);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
 
       // when
-      const result = issueService.resumeTimer(issueId);
+      const result = issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
       await expect(result).rejects.toThrow(ConflictException);
@@ -398,11 +393,13 @@ describe('issue service tests', () => {
     it('should throw ConflictException if issue stage is not started type', async () => {
       // given
       const issueId = 'issueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
 
       // when
-      const result = issueService.resumeTimer(issueId);
+      const result = issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
       await expect(result).rejects.toThrow(ConflictException);
@@ -412,11 +409,13 @@ describe('issue service tests', () => {
     it('should throw ConflictException if issue is already tracking time', async () => {
       // given
       const issueId = 'issueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(validMockTimeTrackingDTO);
 
-      const result = issueService.resumeTimer(issueId);
+      const result = issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
       await expect(result).rejects.toThrow(ConflictException);
@@ -426,7 +425,9 @@ describe('issue service tests', () => {
     it('should return TimeTrackingDTO if issue has never tracked time', async () => {
       // given
       const issueId = 'issueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(null);
       const validEvent: TimeTrackingDTO = {
@@ -438,7 +439,7 @@ describe('issue service tests', () => {
       eventRepositoryMock.createTimeTrackingEvent.mockResolvedValue(validEvent);
 
       // when
-      const result = await issueService.resumeTimer(issueId);
+      const result = await issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
       expect(result).toBe(validEvent);
@@ -447,7 +448,9 @@ describe('issue service tests', () => {
     it('should return TimeTrackingDTO if issue is legally resumed', async () => {
       // given
       const issueId = 'issueId';
+      const cognitoId = 'cognito145';
       issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      userRepositoryMock.getByCognitoId.mockResolvedValue(mockUserDTO);
       projectStageRepositoryMock.getById.mockResolvedValue(mockProjectStageDTOStarted);
       const validEvent: TimeTrackingDTO = {
         id: 'eventId',
@@ -465,7 +468,7 @@ describe('issue service tests', () => {
       eventRepositoryMock.createTimeTrackingEvent.mockResolvedValue(newValidEvent);
 
       // when
-      const result = await issueService.resumeTimer(issueId);
+      const result = await issueService.resumeTimer({ issueId, userCognitoId: cognitoId });
 
       // then
       expect(result).toBe(newValidEvent);
@@ -478,8 +481,10 @@ describe('issue service tests', () => {
       issueRepositoryMock.getIssueDetailsById.mockResolvedValue(mockIssueDetailsDTO);
       eventRepositoryMock.getIssueBlockEvents.mockResolvedValue([mockTrickerBlockEventDTO]);
       eventRepositoryMock.getIssueChangeLogs.mockResolvedValue([mockIssueChangeLogDTO, mockAssigneeIssueChangeLogDTO]);
+      userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
       eventRepositoryMock.getIssueManualTimeModification.mockResolvedValue([{ ...validMockManualTimeModification, modificationDate: new Date('2024-03-13T09:00:00Z') }]);
       eventRepositoryMock.getIssueTimeTrackingEvents.mockResolvedValue([stoppedMockTimeTrackingDTO]);
+      eventRepositoryMock.getLastTimeTrackingEvent.mockResolvedValue(stoppedMockTimeTrackingDTO);
       const expected: IssueExtendedDTO = mockIssueExtendedDTO;
       // when
       const received: IssueExtendedDTO = await issueService.getIssueWithChronology('issue789');
@@ -496,6 +501,158 @@ describe('issue service tests', () => {
       issueRepositoryMock.getIssueDetailsById.mockResolvedValue(null);
       // then
       await expect(issueService.getIssueWithChronology(issueId)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('createIssue method', () => {
+    it('should throw a ConflictException if an issue with the same providerIssueId exists', async () => {
+      issueRepositoryMock.getByProviderId.mockResolvedValue(mockIssueDTO);
+
+      const result = issueService.createIssue(mockIssueInput);
+
+      await expect(result).rejects.toThrow(ConflictException);
+      expect(issueRepositoryMock.getByProviderId).toHaveBeenCalledWith(mockIssueInput.providerIssueId);
+      expect(issueRepositoryMock.create).not.toHaveBeenCalled();
+    });
+
+    it('creates an issue successfully', async () => {
+      issueRepositoryMock.getByProviderId.mockResolvedValue(null);
+      issueRepositoryMock.create.mockResolvedValue(mockIssueViewDTO);
+
+      const result = await issueService.createIssue(mockIssueInput);
+      expect(result).toEqual(mockIssueViewDTO);
+    });
+  });
+
+  describe('updateIssueById method', () => {
+    it('should successfully update an Issue', async (): Promise<void> => {
+      // given
+      issueRepositoryMock.getById.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockUpdatedIssueViewDTO);
+      const expected: IssueViewDTO = mockUpdatedIssueViewDTO;
+      // when
+      const received: IssueViewDTO = await issueService.updateIssueById({ ...mockIssueUpdateInput, issueId: 'issue789' });
+      // then
+      expect.assertions(3);
+      expect(received.labels.length).toEqual(expected.labels.length);
+      expect(received.stage?.id).toEqual(expected.stage?.id);
+      expect(received.assignee?.name).toEqual(expected.assignee?.name);
+    });
+
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given - when
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getById.mockResolvedValue(null);
+      // then
+      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if issue has been logically deleted', async () => {
+      // given - when
+      const issueId = 'nonexistentIssueId';
+      issueRepositoryMock.getById.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
+      // then
+      await expect(issueService.updateIssueById({ ...mockIssueUpdateInput, issueId })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateIssueByProviderId method', () => {
+    it('should successfully update an Issue', async (): Promise<void> => {
+      // given
+      const providerIssueId = 'providerId555';
+      issueRepositoryMock.getByProviderId.mockResolvedValue(mockIssueDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockUpdatedIssueViewDTO);
+      const expected: IssueViewDTO = mockUpdatedIssueViewDTO;
+      // when
+      const received: IssueViewDTO = await issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId });
+      // then
+      expect.assertions(3);
+      expect(received.labels.length).toEqual(expected.labels.length);
+      expect(received.stage?.name).toEqual(expected.stage?.name);
+      expect(received.assignee?.id).toEqual(expected.assignee?.id);
+    });
+
+    it('should throw NotFoundException if issue does not exist', async () => {
+      // given - when
+      const providerIssueId = 'nonexistentIssueId';
+      issueRepositoryMock.getByProviderId.mockResolvedValue(null);
+      // then
+      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if issue has been logically deleted', async () => {
+      // given - when
+      const providerIssueId = 'nonexistentIssueId';
+      issueRepositoryMock.getByProviderId.mockResolvedValue({ ...mockIssueDTO, deletedAt: new Date() });
+      // then
+      await expect(issueService.updateIssueByProviderId({ ...mockIssueUpdateInput, providerIssueId })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('createIssueChangeLog method', () => {
+    it('should successfully create an IssueChangeLog event of a assignee change', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      userRepositoryMock.getByEmail.mockResolvedValue(mockUserDTO);
+      const expected: IssueChangeLogDTO = mockAssigneeIssueChangeLogDTO;
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog(mockAssigneeEventInputExtended);
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should throw ConflictException if "to" and "from" are undefined', async () => {
+      // given - when
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      // then
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, to: undefined })).rejects.toThrow(ConflictException);
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, to: undefined })).rejects.toThrow('Either "from" state or "to" state must be present.');
+    });
+
+    it('should successfully create an IssueChangeLog event of an assignee change to unassigned', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue({ ...mockAssigneeIssueChangeLogDTO, to: undefined, from: 'johnDoe@mail.com' });
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      const expected: IssueChangeLogDTO = { ...mockAssigneeIssueChangeLogDTO, to: undefined, from: 'johnDoe@mail.com' };
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, from: 'johnDoe@mail.com', to: undefined });
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should successfully create an IssueChangeLog event of a stage change', async (): Promise<void> => {
+      // given
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockIssueChangeLogDTO);
+      projectRepositoryMock.getById.mockResolvedValue(mockProjectDTO);
+      projectStageRepositoryMock.getByProjectIdAndName.mockResolvedValue(mockProjectStageDTO);
+      issueRepositoryMock.updateById.mockResolvedValue(mockIssueViewDTO);
+      const expected: IssueChangeLogDTO = mockIssueChangeLogDTO;
+      // when
+      const received: IssueChangeLogDTO = await issueService.createIssueChangeLog(mockStageEventInputExtended);
+      // then
+      expect.assertions(3);
+      expect(received.to).toEqual(expected.to);
+      expect(received.issueId).toEqual(expected.issueId);
+      expect(received.userEmitterId).toEqual(expected.userEmitterId);
+    });
+
+    it('should throw ConflictException if "field" property is not valid', async () => {
+      // given - when
+      eventRepositoryMock.createIssueChangeLog.mockResolvedValue(mockAssigneeIssueChangeLogDTO);
+      // then
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, field: 'notValid' })).rejects.toThrow(ConflictException);
+      await expect(issueService.createIssueChangeLog({ ...mockAssigneeEventInputExtended, field: 'notValid' })).rejects.toThrow('The provided IssueChangeLog property "field" is not valid.');
     });
   });
 });

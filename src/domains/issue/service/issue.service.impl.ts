@@ -1,9 +1,22 @@
 import { type IssueService } from '@domains/issue/service/issue.service';
 import { type IssueRepository } from '@domains/issue/repository';
 import { type EventRepository } from '@domains/event/repository';
-import { type BlockerStatusModificationDTO, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
+import { type BlockerStatusModificationDTO, type ChangeScalarEventInputExtended, EventHistoryLogDTO, type IssueAddBlockerInput, type IssueChangeLogDTO, type ManualTimeModificationDTO, type TimeTrackingDTO, TrickerBlockEventType, UpdateTimeTracking } from '@domains/event/dto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@utils';
-import { type DevIssueFilterParameters, type IssueAndAssignee, type IssueDetailsDTO, type IssueDTO, type ManualTimeModificationEventInput, type IssueExtendedDTO, type IssueViewDTO, type PMIssueFilterParameters, type WorkedTimeDTO } from '@domains/issue/dto';
+import {
+  type DevIssueFilterParameters,
+  type IssueAndAssignee,
+  type IssueDetailsDTO,
+  type IssueDTO,
+  type ManualTimeModificationEventInput,
+  type IssueExtendedDTO,
+  type IssueViewDTO,
+  type PMIssueFilterParameters,
+  type WorkedTimeDTO,
+  type IssueInput,
+  type IssueUpdateWebhookInput,
+  type IssueUpdateTrickerInput,
+} from '@domains/issue/dto';
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { type UserDTO, type UserRepository } from '@domains/user';
 import { type ProjectRepository } from '@domains/project/repository';
@@ -21,31 +34,50 @@ export class IssueServiceImpl implements IssueService {
   ) {}
 
   /**
+   * Creates an issue based on the provided input.
+   *
+   * @param {IssueInput} input - The input data for creating the issue.
+   * @returns {Promise<IssueViewDTO>} - A promise resolving to the created issue view data transfer object.
+   * @throws {ConflictException} - Throws a ConflictException if an issue with the same providerIssueId already exists.
+   */
+  async createIssue(input: IssueInput): Promise<IssueViewDTO> {
+    const issue = await this.issueRepository.getByProviderId(input.providerIssueId);
+    if (issue != null) throw new ConflictException('Issue already exists');
+
+    return await this.issueRepository.create(input);
+  }
+
+  /**
    * Resumes the timer for tracking time on an issue.
    *
    * This function resumes the timer for tracking time on the specified issue.
    * It ensures that the issue exists and is in a state where time tracking can be resumed.
    * If the issue is already tracking time, a ConflictException is thrown.
    *
-   * @param {string} issueId - The ID of the issue to resume time tracking for.
+   * @param input - An object containing the user Cognito ID and issue ID.
    * @returns {Promise<TimeTrackingDTO>} A promise that resolves to the time tracking DTO for the resumed timer.
    * @throws {NotFoundException} If the specified issue does not exist.
    * @throws {ConflictException} If the issue is not in a state where time tracking can be resumed, or if the issue is already tracking time.
+   * @throws {ForbiddenException} If the user who is trying to track time is not the issue assignee
    */
-  async resumeTimer(issueId: string): Promise<TimeTrackingDTO> {
-    const issue = await this.issueRepository.getById(issueId);
-    if (issue == null) throw new NotFoundException('issue');
+  async resumeTimer(input: IssueAndAssignee): Promise<TimeTrackingDTO> {
+    const { issue } = await this.validateIssueAndAssignee(input);
+    if (issue.isBlocked) {
+      throw new ConflictException('Blocked issues cannot be tracked.');
+    }
 
     const isIssueInStartedStage: boolean = await this.isIssueInStartedStage(issue.projectStageId);
-    if (!isIssueInStartedStage) throw new ConflictException('This issue needs to be started in order to be able to track time');
+    if (!isIssueInStartedStage) {
+      throw new ConflictException('This issue needs to be started in order to be able to track time');
+    }
 
-    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(input.issueId);
 
     if (lastTimeTrackingEvent != null && lastTimeTrackingEvent.endTime == null) {
       throw new ConflictException('This issue is already tracking time');
     }
 
-    return await this.eventRepository.createTimeTrackingEvent(issueId);
+    return await this.eventRepository.createTimeTrackingEvent(input.issueId);
   }
 
   /**
@@ -74,7 +106,7 @@ export class IssueServiceImpl implements IssueService {
 
     const { workedTime } = await this.getIssueWorkedSeconds(input.issueId);
     if (input.timeAmount < 0 && workedTime < -input.timeAmount) {
-      throw new ConflictException('The time amount you are trying to substract exceeds the total worked time of the issue');
+      throw new ConflictException('The time amount you are trying to subtract exceeds the total worked time of the issue');
     }
 
     return await this.eventRepository.createManualTimeModification(input);
@@ -82,16 +114,15 @@ export class IssueServiceImpl implements IssueService {
 
   /**
    * Pauses the timer for a specific issue.
-   * @param {string} issueId - The ID of the issue to pause the timer for.
    * @returns {Promise<TimeTrackingDTO>} - A promise that resolves with the updated time tracking data.
    * @throws {NotFoundException} - If the issue with the given ID is not found.
    * @throws {ConflictException} - If the issue has never been played nor paused, or if the issue is already paused.
+   * @param input - An object containing the user Cognito ID and issue ID.
    */
-  async pauseTimer(issueId: string): Promise<TimeTrackingDTO> {
-    const issue = await this.issueRepository.getById(issueId);
-    if (issue == null) throw new NotFoundException('issue');
+  async pauseTimer(input: IssueAndAssignee): Promise<TimeTrackingDTO> {
+    await this.validateIssueAndAssignee(input);
 
-    const lastTimeTrackingEvent = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(input.issueId);
 
     if (lastTimeTrackingEvent == null) {
       throw new ConflictException('This issue has never been played nor paused');
@@ -165,6 +196,10 @@ export class IssueServiceImpl implements IssueService {
    * @returns An array of IssueViewDTO objects representing the filtered and paginated issues.
    */
   async getIssuesFilteredAndPaginated(filters: PMIssueFilterParameters): Promise<IssueViewDTO[]> {
+    if (filters.cursor !== undefined) {
+      await this.validateCursor(filters.cursor);
+    }
+
     return this.issueRepository.getWithFilters(filters);
   }
 
@@ -182,7 +217,7 @@ export class IssueServiceImpl implements IssueService {
 
     const blockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
-      userEmitterId: user.id,
+      userEmitterEmail: user.email,
       reason: input.reason,
       comment: input.comment,
       createdAt: new Date(),
@@ -190,7 +225,7 @@ export class IssueServiceImpl implements IssueService {
       type: TrickerBlockEventType.BLOCKED_BY,
     });
 
-    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: true });
+    await this.issueRepository.updateById({ issueId: input.issueId, isBlocked: true });
 
     return blockEvent;
   }
@@ -209,15 +244,15 @@ export class IssueServiceImpl implements IssueService {
     }
     const unblockEvent: BlockerStatusModificationDTO = await this.eventRepository.createIssueBlockEvent({
       issueId: input.issueId,
-      userEmitterId: user.id,
+      userEmitterEmail: user.email,
       reason: `Unblocked by user ${user.name}.`,
       comment: `Issue ${issue.name} unblocked.`,
       createdAt: new Date(),
       providerEventId: null,
-      type: TrickerBlockEventType.BLOCKED_BY,
+      type: TrickerBlockEventType.NO_STATUS,
     });
 
-    await this.issueRepository.updateIsBlocked({ issueId: input.issueId, isBlocked: false });
+    await this.issueRepository.updateById({ issueId: input.issueId, isBlocked: false });
 
     return unblockEvent;
   }
@@ -234,13 +269,14 @@ export class IssueServiceImpl implements IssueService {
       throw new NotFoundException('Issue');
     }
     const orderedEvents: EventHistoryLogDTO[] = await this.getIssueChronology(issueId);
+    const lastTimeTrackingEvent: TimeTrackingDTO | null = await this.eventRepository.getLastTimeTrackingEvent(issueId);
+    const isTracking = lastTimeTrackingEvent !== null && lastTimeTrackingEvent.endTime === null;
 
-    return { ...issue, chronology: orderedEvents };
+    return { ...issue, chronology: orderedEvents, isTracking };
   }
 
   /**
    * Retrieves the chronology of events for a specific issue.
-   *
    * @param issueId The ID of the issue to retrieve the chronology for.
    * @returns A Promise that resolves to an array of EventHistoryLogDTO objects representing the chronology of events.
    * @throws NotFoundException if the issue with the given ID is not found.
@@ -258,11 +294,79 @@ export class IssueServiceImpl implements IssueService {
     const parsedEvents: EventHistoryLogDTO[] = [];
 
     this.parseBlockEvents(blockEvents, parsedEvents);
-    this.parseChangeLogEvents(changeLogEvents, parsedEvents);
+    await this.parseChangeLogEvents(changeLogEvents, parsedEvents);
     this.parseManualTimeModifications(manualModifications, parsedEvents);
     this.parseTimeTrackingEvents(timeTrackingEvents, parsedEvents);
 
-    return parsedEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return parsedEvents.sort((a, b) => {
+      if (b.date.getTime() !== a.date.getTime()) {
+        return b.date.getTime() - a.date.getTime();
+      }
+      return (b.isBlocker ? 1 : 0) - (a.isBlocker ? 1 : 0);
+    });
+  }
+
+  /**
+   * Updates an issue by its unique identifier.
+   * @param data An object containing the data necessary to update the issue.
+   * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
+   * @throws NotFoundException if the issue with the provided id is not found or is deleted.
+   */
+  async updateIssueById(data: IssueUpdateTrickerInput): Promise<IssueViewDTO> {
+    const issue: IssueDTO | null = await this.issueRepository.getById(data.issueId);
+    if (issue === null || issue.deletedAt !== null) {
+      throw new NotFoundException('Issue');
+    }
+    data.projectId = issue.projectId;
+
+    return await this.issueRepository.updateById(data);
+  }
+
+  /**
+   * Updates an issue by its provider-specific identifier.
+   * @param data An object containing the data necessary to update the issue.
+   * @returns A Promise resolving to an IssueViewDTO representing the updated issue.
+   * @throws NotFoundException if the issue with the provided provider id is not found or is deleted.
+   */
+  async updateIssueByProviderId(data: IssueUpdateWebhookInput): Promise<IssueViewDTO> {
+    const issue: IssueDTO | null = await this.issueRepository.getByProviderId(data.providerIssueId);
+    if (issue === null || issue.deletedAt !== null) {
+      throw new NotFoundException('Issue');
+    }
+    data.projectId = issue.projectId;
+
+    return await this.issueRepository.updateById({ ...data, issueId: issue.id });
+  }
+
+  /**
+   * Creates a change log entry for an issue based on the provided input.
+   * @param input An object containing the details of the change event, including the previous state ('from') and the new state ('to').
+   * @returns A DTO representing the created issue change log entry.
+   * @throws ConflictException if both 'from' and 'to' states are undefined.
+   */
+  async createIssueChangeLog(input: ChangeScalarEventInputExtended): Promise<IssueChangeLogDTO> {
+    if (input.from === undefined && input.to === undefined) {
+      throw new ConflictException('Either "from" state or "to" state must be present.');
+    }
+    const issueChangeLog: IssueChangeLogDTO = await this.eventRepository.createIssueChangeLog(input);
+    await this.handleIssueChangeLogByField(input);
+
+    return issueChangeLog;
+  }
+
+  /**
+   * Validates the cursor provided for pagination.
+   * @param cursor The cursor string to be validated.
+   * @throws ConflictException if the cursor provided is not valid.
+   */
+  private async validateCursor(cursor: string): Promise<void> {
+    // Retrieve the issue using the provided cursor
+    const issue: IssueDTO | null = await this.issueRepository.getById(cursor);
+
+    // If the issue is null, throw a ConflictException indicating that the cursor is not valid
+    if (issue === null) {
+      throw new ConflictException('The cursor provided for the pagination is not valid');
+    }
   }
 
   /**
@@ -352,13 +456,18 @@ export class IssueServiceImpl implements IssueService {
    * @param changeLogEvents The list of change log events to parse.
    * @param parsedEvents The list of parsed events to update.
    */
-  private parseChangeLogEvents(changeLogEvents: IssueChangeLogDTO[], parsedEvents: EventHistoryLogDTO[]): void {
-    changeLogEvents.forEach((event) => {
+  private async parseChangeLogEvents(changeLogEvents: IssueChangeLogDTO[], parsedEvents: EventHistoryLogDTO[]): Promise<void> {
+    for (const event of changeLogEvents) {
       let message: string;
+      let newAssignee: UserDTO | null = null;
+      if (event.to !== undefined) {
+        newAssignee = await this.userRepository.getByEmail(event.to);
+      }
+
       if (event.field !== 'state') {
-        message = event.to === undefined ? 'Issue has been unassigned' : `Issue has been assigned to ${event.to}`;
+        message = newAssignee === null ? 'Issue has been unassigned' : `Issue has been assigned to ${newAssignee.name}`;
       } else {
-        message = event.to === undefined ? 'Issue has not any stage assigned' : `Issue stage has changed to ${event.to}`;
+        message = event.to === null ? 'Issue has not any stage assigned' : `Issue stage has changed to ${event.to}`;
       }
 
       parsedEvents.push(
@@ -367,10 +476,9 @@ export class IssueServiceImpl implements IssueService {
           isBlocker: false,
           date: event.eventRegisteredAt ?? event.createdAt,
           eventId: event.id,
-          comment: undefined,
         })
       );
-    });
+    }
   }
 
   /**
@@ -382,11 +490,12 @@ export class IssueServiceImpl implements IssueService {
     manualModifications.forEach((event) =>
       parsedEvents.push(
         new EventHistoryLogDTO({
-          message: event.reason,
           isBlocker: false,
-          date: event.modificationDate,
+          date: event.createdAt,
           eventId: event.id,
-          comment: undefined,
+          modificationReason: event.reason,
+          modificationDate: event.modificationDate,
+          modificationTimeAmount: event.timeAmount,
         })
       )
     );
@@ -405,7 +514,6 @@ export class IssueServiceImpl implements IssueService {
           isBlocker: false,
           date: event.startTime,
           eventId: event.id,
-          comment: undefined,
         })
       );
 
@@ -421,5 +529,35 @@ export class IssueServiceImpl implements IssueService {
         );
       }
     });
+  }
+
+  /**
+   * Handles the change log entry for an issue based on the provided input.
+   * If the 'to' state is defined, it updates the corresponding field of the issue.
+   * @param input An object containing the details of the change event, including the field to update, the issue ID, the project ID, and the new value (to).
+   * @returns A promise that resolves once the issue has been updated.
+   */
+  private async handleIssueChangeLogByField(input: ChangeScalarEventInputExtended): Promise<void> {
+    switch (input.field) {
+      case 'assignee': {
+        let assignee: UserDTO | null = null;
+        if (input.to !== null && input.to !== undefined) {
+          assignee = await this.userRepository.getByEmail(input.to);
+        }
+        await this.issueRepository.updateById({ issueId: input.issueId, assigneeId: assignee !== null ? assignee.id : assignee });
+        break;
+      }
+      case 'state': {
+        const project: ProjectDTO = await this.validateProjectExistence(input.projectId);
+        let projectStage: ProjectStageDTO | null = null;
+        if (input.to !== null && input.to !== undefined) {
+          projectStage = await this.projectStageRepository.getByProjectIdAndName({ projectId: project.id, name: input.to });
+        }
+        await this.issueRepository.updateById({ issueId: input.issueId, projectStageId: projectStage !== null ? projectStage.id : null });
+        break;
+      }
+      default:
+        throw new ConflictException('The provided IssueChangeLog property "field" is not valid.');
+    }
   }
 }

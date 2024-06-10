@@ -1,6 +1,7 @@
 import type { IssueViewDTO } from '@domains/issue';
 import { StageType } from '@prisma/client';
-import { type DevProjectFiltersDTO, type PMProjectFiltersDTO } from '@domains/project/dto';
+import { type DevProjectFiltersDTO, type PMProjectFiltersDTO, type ProjectBasicDTO, type ProjectsFilterInput } from '@domains/project/dto';
+import type { UserProjectRoleUpdateExtended, UserProjectRoleUpdateInput } from '@domains/userProjectRole/dto';
 
 export const mockIssueViewDTO1: IssueViewDTO = {
   id: 'issue789',
@@ -13,6 +14,8 @@ export const mockIssueViewDTO1: IssueViewDTO = {
     id: 'stage456',
     name: 'TODO',
     type: StageType.UNSTARTED,
+    position: 1,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -35,6 +38,8 @@ export const mockIssueViewDTO2: IssueViewDTO = {
     id: 'stage457',
     name: 'In progress',
     type: StageType.STARTED,
+    position: 2,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -57,6 +62,8 @@ export const mockIssueViewDTO3: IssueViewDTO = {
     id: 'stage456',
     name: 'TODO',
     type: StageType.UNSTARTED,
+    position: 3,
+    color: '#FF0000',
   },
   name: 'TRI-001',
   title: 'Fake issue',
@@ -74,14 +81,16 @@ export const mockDevProjectFilterDTO: DevProjectFiltersDTO = {
       id: 'stage456',
       name: 'TODO',
       type: StageType.UNSTARTED,
+      color: '#FF0000',
     },
     {
       id: 'stage457',
       name: 'In progress',
       type: StageType.STARTED,
+      color: '#FF0000',
     },
   ],
-  priorities: ['MEDIUM_PRIORITY'],
+  priorities: ['Medium Priority'],
 };
 
 export const mockPMProjectFilterDTO: PMProjectFiltersDTO = {
@@ -90,22 +99,52 @@ export const mockPMProjectFilterDTO: PMProjectFiltersDTO = {
       id: 'stage456',
       name: 'TODO',
       type: StageType.UNSTARTED,
+      color: '#FF0000',
     },
     {
       id: 'stage457',
       name: 'In progress',
       type: StageType.STARTED,
+      color: '#FF0000',
     },
   ],
-  priorities: ['MEDIUM_PRIORITY', 'LOW_PRIORITY'],
+  priorities: ['Low Priority', 'Medium Priority'],
   assignees: [
-    {
-      id: 'user123',
-      name: 'John Doe',
-    },
     {
       id: 'user124',
       name: 'Bruce Wayne',
     },
+    {
+      id: 'user123',
+      name: 'John Doe',
+    },
   ],
+};
+
+export const mockUserProjectRoleUpdateInput: UserProjectRoleUpdateInput = {
+  userId: 'user123',
+  userEmitterId: undefined,
+  projectId: 'Project777',
+  roleId: 'role888',
+  userEmitterCognitoId: 'cognito145',
+};
+
+export const mockProjectBasicDTO: ProjectBasicDTO = {
+  image: undefined,
+  name: 'Tricker',
+  id: 'Project777',
+};
+
+export const mockProjectsFilterInput: ProjectsFilterInput = {
+  userId: 'user123',
+  projectName: 'TRICK',
+};
+
+export const mockUserProjectRoleUpdateExtended: UserProjectRoleUpdateExtended = {
+  id: 'userProjectRole852',
+  isAccepted: true,
+  userEmitterId: 'user123',
+  projectId: 'Project777',
+  roleId: 'role333',
+  userId: 'user124',
 };

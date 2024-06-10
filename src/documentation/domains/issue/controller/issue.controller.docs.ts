@@ -377,8 +377,13 @@
  *           type: "string"
  *           example: "275a2419-ef61-4bee-95d8-572f80ec5b03"
  *       responses:
- *         204:
- *           description: "Issue successfully unflagged."
+ *         '204':
+ *           description: Issue successfully unflagged.
+ *           content:
+ *             text/plain:
+ *               schema:
+ *                 type: string
+ *                 example: The member with id 8c6e0935-1c27-4b68-804d-5f23d995b5e2 was successfully unflagged.
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':
@@ -440,6 +445,7 @@
  *                     comment: "Admin removed the block on the issue"
  *                     isBlocker: false
  *                     date: "2024-02-13T00:00:00Z"
+ *                 isTracking: true
  *         '400':
  *           $ref: '#/components/responses/ValidationException'
  *         '401':

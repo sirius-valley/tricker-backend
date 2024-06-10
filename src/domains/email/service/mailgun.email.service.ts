@@ -2,13 +2,25 @@ import { type IMailgunClient } from 'mailgun.js/Interfaces';
 import process from 'process';
 import { type EmailService } from '@domains/email/service/email.service';
 import { type AuthorizationEmailVariables, type IntegrationConfirmationEmailVariables, type IntegrationRequestEmailVariables } from '@domains/email/dto';
-// import path from 'path';
 import { prepareHtmlTemplate } from '@utils/templating';
 import { HTML_TEMPLATES } from '@domains/email/service/templates';
 
-// TODO: fix file reads, delete hardcoded html strings
 export class MailgunEmailService implements EmailService {
   constructor(private readonly client: IMailgunClient) {}
+
+  /**
+   * Sends an email to inform that a project has not been integrated due to an error during integration process, to the specified email address.
+   * @param {string} emailAddress - The email address to which the authorization email will be sent.
+   * @returns {Promise<void>} A Promise that resolves when the email is successfully sent.
+   */
+  async sendIntegrationErrorEmail(emailAddress: string): Promise<void> {
+    await this.client.messages.create(process.env.MAILGUN_DOMAIN!, {
+      from: 'Tricker <no-reply@tricker.com>',
+      to: emailAddress,
+      subject: 'Project Integration Error',
+      html: HTML_TEMPLATES.HTML_INTEGRATION_ERROR,
+    });
+  }
 
   /**
    * Sends an email to confirm that a project has been integrated, to the specified email address.

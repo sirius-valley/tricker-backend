@@ -1,9 +1,12 @@
 import { type Request, type Response } from 'express';
-import { validateRequest, validateUserIsProjectManager, ValidationException, userProjectRoleRepository, roleRepository, ForbiddenException, NotFoundException, userRepository } from '@utils';
+import { validateRequest, validateUserIsProjectManager, ValidationException, userProjectRoleRepository, roleRepository, ForbiddenException, NotFoundException, userRepository, pendingProjectRepository, administratorRepository, validateAdminIdentity } from '@utils';
 import { IsString, IsNumber } from 'class-validator';
 import { mockDevRoleDTO, mockPMRoleDTO, mockUserDTO, mockUserProjectRoleDTO } from '../domains/issue/mockData';
 import { ManualTimeModificationRequestDTO, type UserProjectParamsDTO } from '@domains/issue/dto';
 import { addDays } from 'date-fns';
+import { type MailToken, type ProjectIdIntegrationInputDTO } from '@domains/integration/dto';
+import * as auth from '@utils/auth';
+import { mockedAdminId, mockPendingProjectAuthorizationDTO, mocksAdministratorDTO } from '../domains/integration/mockData';
 
 class TargetClass {
   @IsString()
@@ -208,5 +211,60 @@ describe('validateUserIsProjectManager middleware', () => {
     // then
     expect.assertions(1);
     await expect(validateUserIsProjectManager()(req, res, next)).rejects.toThrow(ForbiddenException);
+  });
+});
+
+describe('validateAdminIdentity middleware', () => {
+  const req: Request<ProjectIdIntegrationInputDTO, any, any, MailToken> = {
+    params: {
+      projectId: 'Project777',
+    },
+    query: {
+      token: 'fakeToken',
+    },
+  } as unknown as Request<ProjectIdIntegrationInputDTO, any, any, MailToken>;
+  const res: Response = {
+    locals: {
+      context: {
+        sub: 'user123',
+      },
+    },
+  } as unknown as Response;
+  const next = jest.fn();
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('should successfully validate Organization Administrator', async (): Promise<void> => {
+    // given
+    jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId + '1');
+    jest.spyOn(pendingProjectRepository, 'getByProjectId').mockResolvedValue(mockPendingProjectAuthorizationDTO);
+    jest.spyOn(administratorRepository, 'getByOrganizationId').mockResolvedValue(mocksAdministratorDTO);
+
+    // when
+    await validateAdminIdentity()(req, res, next);
+
+    // then
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('should throw NotFoundException when pendingProject has not been found', async (): Promise<void> => {
+    // given - when
+    jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId);
+    jest.spyOn(pendingProjectRepository, 'getByProjectId').mockResolvedValue(null);
+    // then
+    expect.assertions(1);
+    await expect(validateAdminIdentity()(req, res, next)).rejects.toThrow(NotFoundException);
+  });
+
+  it('should throw NotFoundException when Administrator has not been found', async (): Promise<void> => {
+    // given - when
+    jest.spyOn(auth, 'verifyToken').mockImplementation(() => mockedAdminId);
+    jest.spyOn(pendingProjectRepository, 'getByProjectId').mockResolvedValue(mockPendingProjectAuthorizationDTO);
+    jest.spyOn(administratorRepository, 'getByOrganizationId').mockResolvedValue([]);
+    // then
+    expect.assertions(1);
+    await expect(validateAdminIdentity()(req, res, next)).rejects.toThrow(NotFoundException);
   });
 });

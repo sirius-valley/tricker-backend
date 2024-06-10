@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { type Request, type Response } from 'express';
-import { Constants } from '@utils';
+import { Constants, Logger, NodeEnv } from '@utils';
 import { UnauthorizedException } from '@utils/errors';
 import { verifyAwsAccessToken } from '@utils/aws';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import crypto, { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import process from 'process';
 import type { MailPayload } from '@domains/integration/dto';
 
@@ -26,6 +26,8 @@ export const withAuth = (req: Request, res: Response, next: () => any): void => 
 export const withAwsAuth = async (req: Request, res: Response, next: () => any): Promise<void> => {
   const [bearer, token] = req.headers.authorization?.split(' ') ?? [];
   if ((bearer ?? '') === '' || (token ?? '') === '' || bearer !== 'Bearer') throw new UnauthorizedException('MISSING_TOKEN');
+
+  if (Constants.NODE_ENV === NodeEnv.DEV) Logger.log(token);
 
   try {
     res.locals.context = await verifyAwsAccessToken(token);
@@ -64,4 +66,8 @@ export const verifyToken = (mailToken: string): string => {
   } catch (e) {
     throw new UnauthorizedException('INVALID_TOKEN');
   }
+};
+
+export const verifyLinearSignature = ({ decryptedSecret, rawBody }: { decryptedSecret: string; rawBody: Buffer }): string => {
+  return crypto.createHmac('sha256', decryptedSecret).update(rawBody).digest('hex');
 };

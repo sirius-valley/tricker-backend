@@ -16,26 +16,85 @@ export class UserModel {
   }
 }
 
-export class UserDTO {
+/**
+ * Class representing a Basic User Data Transfer Object.
+ *
+ * This class contains basic user information.
+ *
+ * @class BasicUserDTO
+ */
+export class BasicUserDTO {
+  /**
+   * Unique identifier of the user.
+   */
   id: string;
+  /**
+   * ID of the user in the Cognito authentication system (if applicable).
+   */
   cognitoId: string | null;
+  /**
+   * User's email address.
+   */
   email: string;
+  /**
+   * User's name (optional).
+   */
   name: string | null;
+  /**
+   * URL of the user's profile image (optional).
+   */
   profileImage: string | null;
-  projectsRoleAssigned: UserProjectRoleExtendedDTO[];
+  /**
+   * Date and time the user was created.
+   */
   createdAt: Date;
+  /**
+   * Date and time the user was deleted (null if not deleted).
+   */
   deletedAt: Date | null;
+
+  /**
+   * Constructor for BasicUserDTO class.
+   *
+   * @param {BasicUserDTO} input - User data used to populate the DTO.
+   */
+  constructor(input: BasicUserDTO) {
+    this.id = input.id;
+    this.cognitoId = input.cognitoId;
+    this.email = input.email;
+    this.name = input.name;
+    this.profileImage = input.profileImage;
+    this.createdAt = input.createdAt;
+    this.deletedAt = input.deletedAt;
+  }
+}
+
+/**
+ * Class representing a User Data Transfer Object.
+ *
+ * This class extends BasicUserDTO and includes additional information about project roles.
+ *
+ * @class UserDTO
+ * @extends BasicUserDTO
+ */
+export class UserDTO extends BasicUserDTO {
+  /**
+   * Array of UserProjectRoleExtendedDTO objects representing the user's assigned project roles.
+   */
+  projectsRoleAssigned: UserProjectRoleExtendedDTO[];
+  /**
+   * Array of UserProjectRoleExtendedDTO objects representing the project roles the user has emitted (created).
+   */
   emittedUserProjectRole: UserProjectRoleExtendedDTO[];
 
+  /**
+   * Constructor for UserDTO class.
+   *
+   * @param {UserDTO} user - User data used to populate the DTO.
+   */
   constructor(user: UserDTO) {
-    this.id = user.id;
-    this.cognitoId = user.cognitoId;
-    this.email = user.email;
-    this.name = user.name;
+    super(user);
     this.projectsRoleAssigned = user.projectsRoleAssigned;
-    this.createdAt = user.createdAt;
-    this.profileImage = user.profileImage;
-    this.deletedAt = user.deletedAt;
     this.emittedUserProjectRole = user.emittedUserProjectRole;
   }
 }
@@ -59,9 +118,18 @@ export interface UserUpdateInputDTO {
   email?: string;
 }
 
-// todo: replace this with something more useful in the future
-export interface UserDataDTO {
+/**
+ * Represents user data retrieved from Linear.
+ */
+export interface UserData {
+  /** The name of the user. */
   name: string;
+
+  /** The email address of the user. */
+  email: string;
+
+  /** The image url of the user (if available) */
+  image: string | null;
 }
 
 export class UserIssueDTO {

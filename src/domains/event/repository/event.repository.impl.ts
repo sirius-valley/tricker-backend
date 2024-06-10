@@ -1,12 +1,11 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { type ChangeScalarEventInput, IssueChangeLogDTO, type BlockEventInput, BlockerStatusModificationDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
+import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, type LogWebhookInput, LogWebhooksDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateLogWebhookInput, type UpdateTimeTracking } from '../dto';
 import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
-import type { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
 
 export class EventRepositoryImpl implements EventRepository {
-  constructor(private readonly db: PrismaClient | Omit<PrismaClient, ITXClientDenyList>) {}
+  constructor(private readonly db: PrismaClient) {}
 
   /**
    * Updates a time tracking event with the provided data.
@@ -17,6 +16,7 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.timeTracking.update({
       where: {
         id: input.id,
+        deletedAt: null,
       },
       data: {
         endTime: input.endTime,
@@ -36,6 +36,7 @@ export class EventRepositoryImpl implements EventRepository {
       take: 1,
       where: {
         issueId,
+        deletedAt: null,
       },
       orderBy: [{ startTime: 'desc' }],
     });
@@ -48,12 +49,24 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.issueChangeLog.create({
       data: {
         providerEventId: input.providerEventId!,
-        userEmitterId: input.userEmitterId,
-        issueId: input.issueId,
+        issue: {
+          connect: {
+            id: input.issueId,
+            deletedAt: null,
+          },
+        },
         eventRegisteredAt: input.createdAt,
         field: input.field,
         from: input.from?.toString(),
         to: input.to?.toString(),
+        userEmitter:
+          input.userEmitterEmail == null
+            ? undefined
+            : {
+                connect: {
+                  email: input.userEmitterEmail,
+                },
+              },
       },
     });
 
@@ -70,12 +83,24 @@ export class EventRepositoryImpl implements EventRepository {
     const event = await this.db.blockerStatusModification.create({
       data: {
         providerEventId: input.providerEventId,
-        issueId: input.issueId,
-        userEmitterId: input.userEmitterId,
+        issue: {
+          connect: {
+            id: input.issueId,
+            deletedAt: null,
+          },
+        },
         eventRegisteredAt: input.createdAt,
         status: input.type,
         reason: input.reason,
         comment: input.comment,
+        userEmitter:
+          input.userEmitterEmail == null
+            ? undefined
+            : {
+                connect: {
+                  email: input.userEmitterEmail,
+                },
+              },
       },
     });
 
@@ -89,6 +114,7 @@ export class EventRepositoryImpl implements EventRepository {
     const modifications: ManualTimeModification[] = await this.db.manualTimeModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -99,6 +125,7 @@ export class EventRepositoryImpl implements EventRepository {
     const timeTrackingEvents: TimeTracking[] = await this.db.timeTracking.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -108,7 +135,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createTimeTrackingEvent(issueId: string): Promise<TimeTrackingDTO> {
     const event = await this.db.timeTracking.create({
       data: {
-        issueId,
+        issue: {
+          connect: {
+            id: issueId,
+            deletedAt: null,
+          },
+        },
         startTime: new Date(),
       },
     });
@@ -125,6 +157,7 @@ export class EventRepositoryImpl implements EventRepository {
     const blockerEvents: BlockerStatusModification[] = await this.db.blockerStatusModification.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -140,6 +173,7 @@ export class EventRepositoryImpl implements EventRepository {
     const changeLogs: IssueChangeLog[] = await this.db.issueChangeLog.findMany({
       where: {
         issueId,
+        deletedAt: null,
       },
     });
 
@@ -163,7 +197,12 @@ export class EventRepositoryImpl implements EventRepository {
   async createManualTimeModification(input: ManualTimeModificationEventInput): Promise<ManualTimeModificationDTO> {
     const event = await this.db.manualTimeModification.create({
       data: {
-        issueId: input.issueId,
+        issue: {
+          connect: {
+            id: input.issueId,
+            deletedAt: null,
+          },
+        },
         reason: input.reason,
         timeAmount: input.timeAmount,
         modificationDate: input.date,
@@ -171,5 +210,48 @@ export class EventRepositoryImpl implements EventRepository {
     });
 
     return new ManualTimeModificationDTO({ ...event });
+  }
+
+  /**
+   * Creates a new log webhook in the database.
+   *
+   * @param {LogWebhookInput} input - An object containing the details of the log webhook to be created.
+   * @property {string} input.status - The status of the log webhook.
+   * @property {object} input.payload - The payload data for the log webhook.
+   * @property {string} input.providerEventId - The ID of the provider event associated with the log webhook.
+   * @property {string} input.sourceId - The ID of the source that generated the log webhook.
+   * @returns {Promise<LogWebhooksDTO>} A promise that resolves to a `LogWebhooksDTO` object representing the created log webhook.
+   */
+  async createLogWebhook(input: LogWebhookInput): Promise<LogWebhooksDTO> {
+    const logWebhook = await this.db.logWebhooks.create({
+      data: {
+        status: input.status,
+        payload: input.payload,
+        sourceId: input.sourceId,
+      },
+    });
+
+    return new LogWebhooksDTO({ ...logWebhook, payload: JSON.parse(JSON.stringify(input.payload)) });
+  }
+
+  /**
+   * Updates an existing log webhook in the database.
+   *
+   * @param {UpdateLogWebhookInput} input - An object containing the details of the log webhook to be updated.
+   * @property {string} input.id - The ID of the log webhook to be updated.
+   * @property {string} input.status - The new status for the log webhook.
+   * @returns {Promise<LogWebhooksDTO>} A promise that resolves to a `LogWebhooksDTO` object representing the updated log webhook.
+   */
+  async updateLogWebhook(input: UpdateLogWebhookInput): Promise<LogWebhooksDTO> {
+    const logWebhook = await this.db.logWebhooks.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        status: input.status,
+      },
+    });
+
+    return new LogWebhooksDTO({ ...logWebhook, payload: JSON.parse(JSON.stringify(logWebhook.payload)) });
   }
 }

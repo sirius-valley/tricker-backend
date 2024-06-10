@@ -1,9 +1,10 @@
-import { type EventHistoryLogDTO, type EventInput } from '@domains/event/dto';
+import { type BlockEventData, type ChangeScalarEventData, type EventHistoryLogDTO } from '@domains/event/dto';
 import { IsArray, IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
-import { type LabelDTO } from '@domains/label/dto';
+import { type ProjectLabelDTO } from '@domains/projectLabel/dto';
 import { type UserIssueDTO } from '@domains/user';
 import { IsTodayOrAfterToday } from '@utils';
 import { type StageExtendedDTO } from '@domains/projectStage/dto';
+import { Transform } from 'class-transformer';
 
 export class IssueDTO {
   id: string;
@@ -51,7 +52,8 @@ export class IssueDataDTO {
   storyPoints: number | null;
   stage: string | null;
   labels: string[];
-  events: EventInput[];
+  blockingEvents: BlockEventData[];
+  issueChangeLogEvents: ChangeScalarEventData[];
 
   constructor(data: IssueDataDTO) {
     this.providerIssueId = data.providerIssueId;
@@ -65,22 +67,76 @@ export class IssueDataDTO {
     this.storyPoints = data.storyPoints;
     this.stage = data.stage;
     this.labels = data.labels;
-    this.events = data.events;
+    this.blockingEvents = data.blockingEvents;
+    this.issueChangeLogEvents = data.issueChangeLogEvents;
   }
 }
 
+/**
+ * Represents input data for creating or updating an issue.
+ * This class encapsulates the necessary properties for defining an issue, such as its ID, author, assignee, project details,
+ * name, title, description, priority, story points, and associated label IDs.
+ */
 export class IssueInput {
+  /**
+   * The ID of the issue provided by the provider.
+   */
   providerIssueId: string;
+
+  /**
+   * The ID of the author of the issue, if known. Can be null if not applicable.
+   */
   authorId: string | null;
+
+  /**
+   * The ID of the assignee of the issue, if known. Can be null if not assigned.
+   */
   assigneeId: string | null;
+
+  /**
+   * The ID of the project to which the issue belongs.
+   */
   projectId: string;
+
+  /**
+   * The ID of the project stage to which the issue belongs, if known. Can be null if not applicable.
+   */
   projectStageId: string | null;
+
+  /**
+   * The name of the issue.
+   */
   name: string;
+
+  /**
+   * The title of the issue.
+   */
   title: string;
+
+  /**
+   * The description of the issue, if provided. Can be null if not available.
+   */
   description: string | null;
+
+  /**
+   * The priority of the issue.
+   */
   priority: Priority;
+
+  /**
+   * The story points assigned to the issue, if applicable. Can be null if not estimated.
+   */
   storyPoints: number | null;
 
+  /**
+   * An array of label IDs associated with the issue.
+   */
+  labelIds: string[];
+
+  /**
+   * Constructs a new instance of the IssueInput class.
+   * @param {IssueInput} data - The data object containing properties to initialize the issue input.
+   */
   constructor(data: IssueInput) {
     this.providerIssueId = data.providerIssueId;
     this.authorId = data.authorId;
@@ -92,7 +148,87 @@ export class IssueInput {
     this.description = data.description;
     this.priority = data.priority;
     this.storyPoints = data.storyPoints;
+    this.labelIds = data.labelIds;
   }
+}
+
+/**
+ * Represents the input data for updating an issue.
+ */
+export interface IssueUpdateInput {
+  /**
+   * The unique identifier of the issue.
+   */
+  issueId?: string;
+
+  /**
+   * The provider-specific identifier of the issue.
+   */
+  providerIssueId?: string;
+  /**
+   * The unique identifier of the project associated with the issue.
+   */
+  projectId?: string;
+
+  /**
+   * The unique identifier of the assignee assigned to the issue.
+   */
+  assigneeId?: string | null;
+
+  /**
+   * The unique identifier of the project stage associated with the issue.
+   */
+  projectStageId?: string | null;
+
+  /**
+   * The name of the issue.
+   */
+  name?: string;
+
+  /**
+   * The title of the issue.
+   */
+  title?: string;
+
+  /**
+   * The description of the issue.
+   */
+  description?: string | null;
+
+  /**
+   * The priority of the issue.
+   */
+  priority?: Priority;
+
+  /**
+   * The story points assigned to the issue.
+   */
+  storyPoints?: number | null;
+
+  /**
+   * Indicates whether the issue is blocked.
+   */
+  isBlocked?: boolean;
+}
+
+/**
+ * Represents the input data for updating an issue from a webhook.
+ */
+export interface IssueUpdateWebhookInput extends IssueUpdateInput {
+  /**
+   * The provider-specific identifier of the issue.
+   */
+  providerIssueId: string;
+}
+
+/**
+ * Represents the input data for updating an issue from Tricker.
+ */
+export interface IssueUpdateTrickerInput extends IssueUpdateInput {
+  /**
+   * The unique identifier of the issue.
+   */
+  issueId: string;
 }
 
 /**
@@ -126,6 +262,17 @@ const PriorityType: {
 };
 
 export type Priority = (typeof PriorityType)[keyof typeof PriorityType];
+
+/**
+ * Represents the order of priorities.
+ */
+export const priorityOrder = {
+  NO_PRIORITY: 0,
+  LOW_PRIORITY: 1,
+  MEDIUM_PRIORITY: 2,
+  HIGH_PRIORITY: 3,
+  URGENT: 4,
+};
 
 /**
  * Data Transfer Object (DTO) for representing worked time.
@@ -201,51 +348,24 @@ export class PMOptionalIssueFiltersDTO {
   @IsOptional()
   @IsUUID()
   cursor?: string;
+
+  /**
+   * An optional key phrase which is used to filter by name.
+   */
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  name?: string;
 }
 
 /**
  * Interface used by issue service to retrieve and filter issues.
  */
-export interface PMIssueFilterParameters {
-  /**
-   * The user ID associated with the issue retrieved.
-   */
-  userId: string;
-
-  /**
-   * The project ID associated with the issue retrieved.
-   */
-  projectId: string;
-
-  /**
-   * An optional array of stage IDs to filter issues by stage.
-   */
-  stageIds?: string[];
-
-  /**
-   * An optional array of priorities to filter issues by priority level.
-   */
-  priorities?: Priority[];
-
+export interface PMIssueFilterParameters extends DevIssueFilterParameters {
   /**
    * An optional array of assignee IDs to filter issues by assignee.
    */
   assigneeIds?: string[];
-
-  /**
-   * An optional boolean which defines if issue have been defined or not.
-   */
-  isOutOfEstimation?: boolean;
-
-  /**
-   * An optional array of label IDs to filter issues by labels.
-   */
-  labelIds?: string[];
-
-  /**
-   * An optional issue id which defines the cursor in the pagination.
-   */
-  cursor?: string;
 }
 
 export class DevOptionalIssueFiltersDTO {
@@ -277,6 +397,14 @@ export class DevOptionalIssueFiltersDTO {
   @IsOptional()
   @IsUUID()
   cursor?: string;
+
+  /**
+   * An optional key phrase which is used to filter by name.
+   */
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  name?: string;
 }
 
 export interface DevIssueFilterParameters {
@@ -314,6 +442,11 @@ export interface DevIssueFilterParameters {
    * An optional issue id which defines the cursor in the pagination.
    */
   cursor?: string;
+
+  /**
+   * An optional string which defines the key name to filter.
+   */
+  name?: string;
 }
 
 /**
@@ -331,7 +464,7 @@ export class IssueViewDTO {
   priority: Priority;
   storyPoints: number | null;
   isBlocked: boolean;
-  labels: LabelDTO[];
+  labels: ProjectLabelDTO[];
   isTracking: boolean;
 
   constructor(issueView: IssueViewDTO) {
@@ -378,7 +511,7 @@ export class IssueDetailsDTO {
   isBlocked: boolean;
 
   /** The labels associated with the issue. */
-  labels: LabelDTO[];
+  labels: ProjectLabelDTO[];
 
   /**
    * Constructs a new instance of the IssueDetailsDTO class.
@@ -403,6 +536,8 @@ export class IssueDetailsDTO {
 export class IssueExtendedDTO extends IssueDetailsDTO {
   /** The chronological history log of events associated with the issue. */
   chronology: EventHistoryLogDTO[];
+  /** Boolean to inform if issue is being tracked */
+  isTracking: boolean;
 
   /**
    * Constructs a new instance of the IssueExtendedDTO class.
@@ -410,6 +545,7 @@ export class IssueExtendedDTO extends IssueDetailsDTO {
    */
   constructor(issue: IssueExtendedDTO) {
     super(issue);
+    this.isTracking = issue.isTracking;
     this.chronology = issue.chronology;
   }
 }
@@ -491,19 +627,4 @@ export interface IssueAndAssignee {
    * The ID of the issue.
    */
   issueId: string;
-}
-
-/**
- * Represents the status of an issue, indicating whether it's blocked or not.
- */
-export interface IssueAndIsBlocked {
-  /**
-   * The ID of the issue.
-   */
-  issueId: string;
-
-  /**
-   * A boolean flag indicating whether the issue is blocked or not.
-   */
-  isBlocked: boolean;
 }

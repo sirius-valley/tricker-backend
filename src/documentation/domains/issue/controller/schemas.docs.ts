@@ -49,6 +49,9 @@
  *         cursor:
  *           type: string
  *           format: uuid
+ *         name:
+ *           type: string
+ *           description: key phrase used to filter issues
  *       example:
  *         stageIds:
  *           - "123e4567-e89b-12d3-a456-426614174002"
@@ -58,11 +61,17 @@
  *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: true
  *         cursor: "123e4567-e89b-12d3-a456-426614174004"
+ *         name: "TRI-121"
  *
  *     PMOptionalIssueFiltersDTO:
  *       type: object
  *       properties:
  *         stageIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         assigneeIds:
  *           type: array
  *           items:
  *             type: string
@@ -82,15 +91,22 @@
  *         cursor:
  *           type: string
  *           format: uuid
+ *         name:
+ *           type: string
+ *           description: key phrase used to filter issues
  *       example:
  *         stageIds:
  *           - "123e4567-e89b-12d3-a456-426614174005"
  *           - "123e4567-e89b-12d3-a456-426614174006"
+ *         assigneeIds:
+ *           - "8683912a-0822-429d-83f3-fdc87de49225"
+ *           - "8f9c33c7-59ab-4bda-bf3c-dcc58f0df02b"
  *         priorities:
  *           - "HIGH_PRIORITY"
  *           - "MEDIUM_PRIORITY"
  *         isOutOfEstimation: false
  *         cursor: "123e4567-e89b-12d3-a456-426614174007"
+ *         name: "TRI-121"
  *
  *     UserProjectParamsDTO:
  *       type: object
@@ -190,10 +206,18 @@
  *         type:
  *           $ref: '#/components/schemas/StageType'
  *           description: The type of the stage.
+ *         position:
+ *           type: number
+ *           description: The position of the issue in the project flow
+ *         color:
+ *           type: string
+ *           description: The hex of the color assigned in the project
  *       example:
  *         id: "123e4567-e89b-12d3-a456-426614174015"
  *         name: "In Progress"
  *         type: "STARTED"
+ *         position: 11.1
+ *         color: "#FF0000"
  *
  *     Priority:
  *       type: string
@@ -279,6 +303,19 @@
  *           format: date-time
  *           example: "2024-03-10T08:15:30Z"
  *           description: Date and time when the event was registered.
+ *         modificationTimeAmount:
+ *           type: number
+ *           example: 360
+ *           description: The amount of seconds of the modification event
+ *         modificationReason:
+ *           type: string
+ *           example: I forgot to track time
+ *           description: modification reason
+ *         modificationDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-05T08:15:30Z"
+ *           description: Date and time when the modification was registered
  *
  *     IssueDetailsDTO:
  *       type: object
@@ -324,6 +361,9 @@
  *         - $ref: "#/components/schemas/IssueDetailsDTO"
  *         - type: object
  *           properties:
+ *             isTracking:
+ *               type: boolean
+ *               example: false
  *             chronology:
  *               type: array
  *               items:
