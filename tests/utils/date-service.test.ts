@@ -1,6 +1,7 @@
 import { getTimeTrackedInSeconds } from '@utils/date-service';
 import { ConflictException } from '@utils';
 
+
 describe('date-service tests', () => {
   beforeEach(() => {
     jest.resetAllMocks();

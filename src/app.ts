@@ -1,7 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import serverless from 'serverless-http';
 
@@ -45,6 +44,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'linear-signature'],
   })
 );
+
 
 app.use('/api', router);
 

@@ -10,12 +10,32 @@ provider:
   runtime: nodejs18.x
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
+    MAILGUN_API_KEY: ${env:MAILGUN_API_KEY}
+    MAILGUN_DOMAIN: ${env:MAILGUN_DOMAIN}
+    LINEAR_SECRET: ${env:LINEAR_SECRET}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_USERPOOL_ID: ${env:COGNITO_USERPOOL_ID}
+    ENCRYPT_SECRET: ${env:ENCRYPT_SECRET}
+    AUTHORIZATION_SECRET: ${env:AUTHORIZATION_SECRET}
+
 functions:
   app:
     handler: dist/src/app.handler
     events:
-      - http: ANY /
-      - http: ANY /{proxy+}
+      - http:
+          method: any
+          path: /{proxy+}
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
+            allowCredentials: true
 
 resources:
   Resources:
