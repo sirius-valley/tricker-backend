@@ -69,6 +69,8 @@ async function runSeeding(): Promise<void> {
         organizationId: org.id,
       },
     });
+  } else {
+    Logger.debug('No predefined Organization Administrator nor User');
   }
 }
 

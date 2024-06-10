@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import HttpStatus from 'http-status';
-import { Logger } from '@utils';
+import { type JsonObject, Logger } from '@utils';
+import type { WebhookSourceDTO } from '@domains/webhookSource';
 
 abstract class HttpException extends Error {
   protected constructor(
@@ -74,6 +75,62 @@ export class LinearIntegrationException extends HttpException {
 export class WebhookValidationException extends HttpException {
   constructor(code: number, message?: string, error?: object[] | object) {
     super(code, message ?? 'Webhook source invalid.', error);
+  }
+}
+
+/**
+ * An exception class thrown when a requested feature or functionality is not implemented.
+ *
+ * @extends HttpException
+ */
+export class NotImplementedException extends HttpException {
+  /**
+   * Creates a new `NotImplementedException` instance.
+   *
+   * @param {string} [message] - An optional additional message to provide more context.
+   */
+  constructor(message?: string) {
+    super(HttpStatus.NOT_IMPLEMENTED, `Not implemented. ${message}`);
+  }
+}
+
+/**
+ * An exception class thrown when an error occurs during webhook processing.
+ *
+ * @extends Error
+ */
+export class WebhooksProcessingException extends Error {
+  /**
+   * The source of the webhook that is associated with the error.
+   *
+   * @type {WebhookSourceDTO}
+   */
+  webhookSource: WebhookSourceDTO;
+
+  /**
+   * The payload data associated with the webhook that failed processing.
+   *
+   * @type {JsonObject}
+   */
+  payload: JsonObject;
+
+  /**
+   * The specific reason why the webhook processing failed.
+   *
+   * @type {string}
+   */
+  reason: string;
+
+  /**
+   * @param {WebhookSourceDTO} webhookSource - The source of the problematic webhook.
+   * @param {JsonObject} payload - The payload data associated with the webhook.
+   * @param {string} reason - The reason for the processing failure.
+   */
+  constructor(webhookSource: WebhookSourceDTO, payload: JsonObject, reason: string) {
+    super('An error occured while processing webhook!');
+    this.payload = payload;
+    this.webhookSource = webhookSource;
+    this.reason = reason;
   }
 }
 

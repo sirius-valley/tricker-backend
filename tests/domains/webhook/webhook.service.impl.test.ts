@@ -4,14 +4,16 @@ import { type WebhookService, WebhookServiceImpl } from '@domains/webhook/servic
 import crypto from 'node:crypto';
 import { NotFoundException } from '@utils';
 import * as auth from '@utils/auth';
-import { eventRepositoryMock, issueProviderRepositoryMock, webhookConverterProvider, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
+import { eventRepositoryMock, issueProviderRepositoryMock, webhookProcessorMock, webhookRegistrationStategyMock, webhookRegistrationStrategyProviderMock, webhookSourceRepositoryMock } from '../../mock';
+import { mock } from 'jest-mock-extended';
+import { type Request } from 'express';
 
 describe('webhook service tests', () => {
   let webhookService: WebhookService;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    webhookService = new WebhookServiceImpl(webhookSourceRepositoryMock, issueProviderRepositoryMock, webhookRegistrationStrategyProviderMock, eventRepositoryMock, webhookConverterProvider);
+    webhookService = new WebhookServiceImpl(webhookSourceRepositoryMock, issueProviderRepositoryMock, webhookRegistrationStrategyProviderMock, eventRepositoryMock, webhookProcessorMock);
   });
 
   describe('createWebhook method', () => {
@@ -87,6 +89,50 @@ describe('webhook service tests', () => {
       // Then
       expect(webhookRegistrationStrategyProviderMock.getStrategy).not.toHaveBeenCalled();
       expect(webhookSourceRepositoryMock.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleWebhookArrival method', () => {
+    it('should throw NotFoundException if webhook source is not found', async () => {
+      // Given
+      const req = mock<Request>({
+        params: { webhookId: 'unknown-id' },
+      });
+      webhookSourceRepositoryMock.getById.mockResolvedValueOnce(null);
+
+      // When
+      try {
+        await webhookService.handleWebhookArrival(req);
+        fail('Expected NotFoundException');
+      } catch (e: any) {
+        // Then
+        expect(e).toBeInstanceOf(NotFoundException);
+        expect(e.message).toBe("Not found. Couldn't find WebhookSource");
+      }
+    });
+
+    // if issue provider is not found
+    it('should throw NotFoundException if issue provider is not found', async () => {
+      // Given
+      const req = mock<Request>({
+        params: { webhookId: 'valid-id' },
+      });
+      const mockWebhookSource = mock<WebhookSourceDTO>({
+        id: 'valid-id',
+        deletedAt: null,
+      });
+      webhookSourceRepositoryMock.getById.mockResolvedValueOnce(mockWebhookSource);
+      issueProviderRepositoryMock.getById.mockResolvedValueOnce(null);
+
+      // When
+      try {
+        await webhookService.handleWebhookArrival(req);
+        fail('Expected NotFoundException');
+      } catch (e: any) {
+        // Then
+        expect(e).toBeInstanceOf(NotFoundException);
+        expect(e.message).toBe("Not found. Couldn't find Issue Provider");
+      }
     });
   });
 });

@@ -15,10 +15,9 @@ import type { AdministratorRepository } from '@domains/administrator';
 import type { IntegrationRepository } from '@domains/integration';
 import type { EmailService } from '@domains/email';
 import type { PrismaClient } from '@prisma/client';
-import { type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
+import { type WebhookActionStrategy, type WebhookActionStrategyProvider, type WebhookConverter, type WebhookConverterProvider, type WebhookProcessor, type WebhookRegistrationStrategy, type WebhookRegistrationStrategyProvider, type WebhookService } from '@domains/webhook/service';
 import { type WebhookSourceRepository } from '@domains/webhookSource';
 import { type IssueProviderRepository } from '@domains/issueProvider';
-import { type WebhookConverterProvider } from '@domains/webhook/converter';
 
 export const issueRepositoryMock: MockProxy<IssueRepository> = mock<IssueRepository>();
 export const eventRepositoryMock: MockProxy<EventRepository> = mock<EventRepository>();
@@ -41,4 +40,8 @@ export const webhookRegistrationStategyMock: MockProxy<WebhookRegistrationStrate
 export const webhookSourceRepositoryMock: MockProxy<WebhookSourceRepository> = mock<WebhookSourceRepository>();
 export const issueProviderRepositoryMock: MockProxy<IssueProviderRepository> = mock<IssueProviderRepository>();
 export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
-export const webhookConverterProvider: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();
+export const webhookConverterProviderMock: MockProxy<WebhookConverterProvider> = mock<WebhookConverterProvider>();
+export const webhookActionStrategyProviderMock: MockProxy<WebhookActionStrategyProvider> = mock<WebhookActionStrategyProvider>();
+export const webhookProcessorMock: MockProxy<WebhookProcessor> = mock<WebhookProcessor>();
+export const webhookActionStrategyMock: MockProxy<WebhookActionStrategy> = mock<WebhookActionStrategy>();
+export const webhookConverterMock: MockProxy<WebhookConverter> = mock<WebhookConverter>();

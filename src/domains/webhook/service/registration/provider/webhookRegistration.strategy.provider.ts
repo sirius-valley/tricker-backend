@@ -1,5 +1,5 @@
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
-import { LinearWebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.linear.impl';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy';
+import { LinearWebhookRegistrationStrategy } from '@domains/webhook/service/registration/webhookRegistration.linear.strategy.impl';
 import { InternalServerErrorException } from '@utils';
 
 export class WebhookRegistrationStrategyProvider {

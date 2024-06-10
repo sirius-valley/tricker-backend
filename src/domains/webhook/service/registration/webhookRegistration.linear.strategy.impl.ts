@@ -1,7 +1,7 @@
 import type { ProviderWebhookRegistrationData } from '@domains/webhookSource';
 import { createApolloClient } from '@utils/graphql/apollo';
 import { CreateWebhookMutation } from '@utils/graphql/queries';
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy';
 import { NodeEnv } from '@utils';
 
 export class LinearWebhookRegistrationStrategy implements WebhookRegistrationStrategy {

@@ -1,5 +1,5 @@
-import { type WebhookConverter } from '@domains/webhook/converter/webhook.converter';
-import { type TrickerEntity, TrickerEntityType, type WebhookFullPayload } from '@domains/webhook/dto';
+import { type WebhookConverter } from '@domains/webhook/service/converter/webhook.converter';
+import { type TrickerEntity, TrickerEntityType, type WebhookFullPayload, WebhookPayloadType } from '@domains/webhook/dto';
 
 export class WebhookConverterLinear implements WebhookConverter {
   /**
@@ -16,7 +16,8 @@ export class WebhookConverterLinear implements WebhookConverter {
    * @param input The webhook payload to process.
    * @returns A Promise that resolves to a trigger entity representing the processed payload.
    */
-  async processWebhookPayload(input: WebhookFullPayload): Promise<TrickerEntity> {
-    return Promise.resolve({ ...input, type: TrickerEntityType.ISSUE });
+  convertWebhookPayload(input: WebhookFullPayload): TrickerEntity {
+    // to be changed when working in actual convertion in next ticket
+    return { type: input.eventType === WebhookPayloadType.ISSUE ? TrickerEntityType.ISSUE : TrickerEntityType.PROJECT_LABEL };
   }
 }

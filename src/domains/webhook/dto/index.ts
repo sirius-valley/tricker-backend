@@ -1,13 +1,13 @@
+import { type JsonObject } from '@utils';
+
 /**
  * Interface representing the full payload of a webhook event.
  */
 export interface WebhookFullPayload {
-  /** Unique identifier of the webhook. */
-  webhookId: string;
   /** Type of event associated with the webhook payload. */
   eventType: WebhookPayloadType;
   /** Body of the webhook payload. */
-  webhookBody: JSON;
+  webhookBody: JsonObject;
 }
 
 /**
@@ -16,6 +16,12 @@ export interface WebhookFullPayload {
 export enum WebhookPayloadType {
   LABEL,
   ISSUE,
+}
+
+export enum WebhookActionType {
+  CREATE,
+  UPDATE,
+  DELETE,
 }
 
 /**

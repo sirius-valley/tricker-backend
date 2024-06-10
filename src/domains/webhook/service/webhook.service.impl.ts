@@ -2,13 +2,13 @@ import { type WebhookService } from '@domains/webhook/service/webhook.service';
 import { type ProviderWebhookRegistrationData, type WebhookSourceDTO, type WebhookSourceRepository } from '@domains/webhookSource';
 import { randomUUID } from 'node:crypto';
 import { type IssueProviderDTO, type IssueProviderRepository } from '@domains/issueProvider';
-import { encryptData, NotFoundException } from '@utils';
-import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy.provider';
-import { type WebhookRegistrationStrategy } from '@domains/webhook/service/webhookRegistration/webhookRegistrationStrategy';
-import { WebhookPayloadType } from '../dto';
+import { encryptData, Logger, NotFoundException, WebhooksProcessingException } from '@utils';
+import { type WebhookRegistrationStrategyProvider } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy.provider';
+import { type WebhookRegistrationStrategy } from '@domains/webhook/service/registration/provider/webhookRegistration.strategy';
 import { type Request } from 'express';
-import { type EventRepository, type LogWebhooksDTO } from '@domains/event';
-import { type WebhookConverterProvider } from '@domains/webhook/converter';
+import { type EventRepository } from '@domains/event';
+import { type WebhookProcessor } from '@domains/webhook/service/processor/webhook.processor';
+import Queue from 'queue';
 
 /**
  * Generates a random UUID string to be used as a webhook ID.
@@ -20,13 +20,28 @@ export const generateWebhookId = (): string => {
 };
 
 export class WebhookServiceImpl implements WebhookService {
+  private readonly queue: Queue;
+
   constructor(
     private readonly webhookSourceRepository: WebhookSourceRepository,
     private readonly issueProviderRepository: IssueProviderRepository,
     private readonly strategyProvider: WebhookRegistrationStrategyProvider,
     private readonly eventRepository: EventRepository,
-    private readonly webhookConverterProvider: WebhookConverterProvider
-  ) {}
+    private readonly webhookProcessor: WebhookProcessor
+  ) {
+    this.queue = new Queue({ autostart: true });
+    this.queue.addListener('error', async (e) => this.manageWebhookError(e));
+  }
+
+  async manageWebhookError(e: any): Promise<void> {
+    if (e instanceof WebhooksProcessingException) {
+      await this.eventRepository.createLogWebhook({
+        payload: e.payload,
+        sourceId: e.webhookSource.id,
+        status: 'ERROR',
+      });
+    }
+  }
 
   /**
    * Creates a new webhook source.
@@ -66,18 +81,31 @@ export class WebhookServiceImpl implements WebhookService {
 
   /**
    * Handles the arrival of a webhook request.
+   * Saves a log in the db with the webhook's payload, process the payload and perform actions in db.
    * @param req The incoming request object containing the webhook data.
    * @returns A Promise that resolves to a LogWebhooksDTO representing the logged webhook.
    */
-  async handleWebhookArrival(req: Request): Promise<LogWebhooksDTO> {
+  async handleWebhookArrival(req: Request): Promise<void> {
     const { webhookId } = req.params;
 
-    // const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
-    // const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
-    // const eventType: WebhookPayloadType = this.prepareWebhookPayload(req, issueProvider.name);
-    // const converter = this.webhookConverterProvider.getWebhookConverter(issueProvider.name)
+    const webhookSource: WebhookSourceDTO = await this.getWebhookSource(webhookId);
+    const issueProvider: IssueProviderDTO = await this.getIssueProvider(webhookSource.issueProviderId);
 
-    return await this.eventRepository.createLogWebhook({ payload: req.body, sourceId: webhookId, status: 'PENDING', providerEventId: '' });
+    this.queue.push(async () => {
+      try {
+        const result = await this.webhookProcessor.process(req, issueProvider.name);
+        await this.eventRepository.createLogWebhook({
+          payload: req.body,
+          sourceId: webhookId,
+          status: 'PROCESSED',
+        });
+        return result;
+      } catch (e: any) {
+        Logger.error(e);
+        Logger.error(e.stack);
+        throw new WebhooksProcessingException(webhookSource, req.body, e.message as string);
+      }
+    });
   }
 
   /**
@@ -106,24 +134,5 @@ export class WebhookServiceImpl implements WebhookService {
     if (issueProvider == null) throw new NotFoundException('Issue Provider');
 
     return issueProvider;
-  }
-
-  /**
-   * Prepares the webhook payload type based on the issue provider name.
-   * @param req The incoming request object containing the webhook data.
-   * @param issueProviderName The name of the issue provider.
-   * @returns The type of the webhook payload.
-   */
-  private prepareWebhookPayload(req: Request, issueProviderName: string): WebhookPayloadType {
-    let eventType: WebhookPayloadType;
-    switch (issueProviderName) {
-      default: {
-        const linearEvent: string = req.headers['linear-event'] as string;
-        eventType = linearEvent === 'IssueLabel' ? WebhookPayloadType.LABEL : WebhookPayloadType.ISSUE;
-        break;
-      }
-    }
-
-    return eventType;
   }
 }

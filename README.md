@@ -61,3 +61,12 @@ Then run:
    docker compose build
    docker compose up
    ```
+
+## Glossary
+
+- ### Issue Provider
+
+  This is how we call the application or service that provides us with the ticket/**issue** data.
+E.g. Linear, Jira, Trello, etc.
+
+  Each of these applications is an *Issue Provider*.

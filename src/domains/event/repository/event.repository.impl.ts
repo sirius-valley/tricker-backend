@@ -1,5 +1,5 @@
 import { type EventRepository } from '@domains/event/repository/event.repository';
-import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, type LogWebhookInput, LogWebhooksDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateTimeTracking } from '../dto';
+import { BlockerStatusModificationDTO, type BlockEventInput, type ChangeScalarEventInput, IssueChangeLogDTO, type LogWebhookInput, LogWebhooksDTO, ManualTimeModificationDTO, TimeTrackingDTO, type UpdateLogWebhookInput, type UpdateTimeTracking } from '../dto';
 import type { BlockerStatusModification, IssueChangeLog, ManualTimeModification, PrismaClient, TimeTracking } from '@prisma/client';
 import { Logger } from '@utils';
 import { type ManualTimeModificationEventInput } from '@domains/issue';
@@ -212,16 +212,46 @@ export class EventRepositoryImpl implements EventRepository {
     return new ManualTimeModificationDTO({ ...event });
   }
 
+  /**
+   * Creates a new log webhook in the database.
+   *
+   * @param {LogWebhookInput} input - An object containing the details of the log webhook to be created.
+   * @property {string} input.status - The status of the log webhook.
+   * @property {object} input.payload - The payload data for the log webhook.
+   * @property {string} input.providerEventId - The ID of the provider event associated with the log webhook.
+   * @property {string} input.sourceId - The ID of the source that generated the log webhook.
+   * @returns {Promise<LogWebhooksDTO>} A promise that resolves to a `LogWebhooksDTO` object representing the created log webhook.
+   */
   async createLogWebhook(input: LogWebhookInput): Promise<LogWebhooksDTO> {
     const logWebhook = await this.db.logWebhooks.create({
       data: {
         status: input.status,
-        payload: JSON.stringify(input.payload),
-        providerEventId: input.providerEventId,
+        payload: input.payload,
         sourceId: input.sourceId,
       },
     });
 
     return new LogWebhooksDTO({ ...logWebhook, payload: JSON.parse(JSON.stringify(input.payload)) });
+  }
+
+  /**
+   * Updates an existing log webhook in the database.
+   *
+   * @param {UpdateLogWebhookInput} input - An object containing the details of the log webhook to be updated.
+   * @property {string} input.id - The ID of the log webhook to be updated.
+   * @property {string} input.status - The new status for the log webhook.
+   * @returns {Promise<LogWebhooksDTO>} A promise that resolves to a `LogWebhooksDTO` object representing the updated log webhook.
+   */
+  async updateLogWebhook(input: UpdateLogWebhookInput): Promise<LogWebhooksDTO> {
+    const logWebhook = await this.db.logWebhooks.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        status: input.status,
+      },
+    });
+
+    return new LogWebhooksDTO({ ...logWebhook, payload: JSON.parse(JSON.stringify(logWebhook.payload)) });
   }
 }

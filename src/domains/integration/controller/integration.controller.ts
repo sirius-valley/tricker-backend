@@ -15,21 +15,21 @@ import { type AdministratorRepository } from '@domains/administrator/repository/
 import { AdministratorRepositoryImpl } from '@domains/administrator/repository/administrator.repository.impl';
 import { type IntegrationRepository, IntegrationRepositoryImpl } from '@domains/integration/repository';
 import { AdapterProviderImpl } from '@domains/adapter/factory/adapterProviderImpl';
-import { WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 import { type WebhookSourceRepository, WebhookSourceRepositoryImpl } from '@domains/webhookSource';
 import { type IssueProviderRepository, IssueProviderRepositoryImpl } from '@domains/issueProvider';
 import { type EventRepository, EventRepositoryImpl } from '@domains/event';
-import { type WebhookConverterProvider, WebhookConverterProviderImpl } from '@domains/webhook/converter';
+import { WebhookProcessor } from '@domains/webhook/service/processor/webhook.processor';
+import { webhookActionStrategyProviderImplInstance, webhookConverterProviderImplInstance, WebhookRegistrationStrategyProvider, type WebhookService, WebhookServiceImpl } from '@domains/webhook/service';
 
 require('express-async-errors');
 
 export const integrationRouter: Router = Router();
-const webhookConverterProvider: WebhookConverterProvider = new WebhookConverterProviderImpl();
+const webhookProcessor: WebhookProcessor = new WebhookProcessor(webhookConverterProviderImplInstance, webhookActionStrategyProviderImplInstance);
 const webhookSourceRepository: WebhookSourceRepository = new WebhookSourceRepositoryImpl(db);
 const issueProviderRepository: IssueProviderRepository = new IssueProviderRepositoryImpl(db);
 const strategyProvider: WebhookRegistrationStrategyProvider = new WebhookRegistrationStrategyProvider();
 const eventRepository: EventRepository = new EventRepositoryImpl(db);
-const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookConverterProvider);
+const webhookService: WebhookService = new WebhookServiceImpl(webhookSourceRepository, issueProviderRepository, strategyProvider, eventRepository, webhookProcessor);
 const adapterFactory: AdapterProviderImpl = new AdapterProviderImpl();
 const projectRepository: ProjectRepository = new ProjectRepositoryImpl(db);
 const userRepository: UserRepository = new UserRepositoryImpl(db);
